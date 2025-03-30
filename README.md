@@ -86,5 +86,5 @@ changes, use this command to test:
 heroku local web
 ```
 
-And the server will use port 8000, so visit http://localhost:8000/health
-(instead of the Flask server, which used port 5000).
+The gunicorn server will use port 8000, so visit http://localhost:8000/health
+(instead of port 5000, used by the Flask server).
