@@ -21,6 +21,15 @@ Here's how to get started:
    pip install -r requirements.txt
    ```
 
+3. Create a .env file in the root directory of your sandbox with SECRET_KEY and
+   DATABASE_URL entries. The DATABASE_URL should be a Postgres database (in the
+   future, we would like to provide a Docker image for the database). The secret
+   key can be anything you like; `dev` will work well.
+   ```env
+   SECRET_KEY=dev
+   DATABASE_URL=postgresql://user:password@host:port/dbname
+   ```
+
 ## Running tests
 
 We use pytest for testing and coverage.py for measuring code coverage. Follow
@@ -69,3 +78,13 @@ You should see this response, indicating everything is working:
   "status": "healthy"
 }
 ```
+
+If making changes to Procfile, gunicorn.conf.py, or other Heroku-related
+changes, use this command to test:
+
+```
+heroku local web
+```
+
+The gunicorn server will use port 8000, so visit http://localhost:8000/health
+(instead of port 5000, used by the Flask server).
