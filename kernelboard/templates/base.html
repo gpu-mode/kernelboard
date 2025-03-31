@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GPU MODE{% endblock %}</title>
+    
+    <!-- Emoji Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-white">
+    <!-- Header -->
+    <header class="header-base">
+        <div class="header-container">
+            <div class="header-layout">
+                <div class="header-row">
+                    <a href="{{ url_for('index') }}" class="header-brand-item">
+                        <span class="header-brand-icon">⚡</span>
+                        <span>GPU MODE</span>
+                    </a>
+                    <div class="header-item">
+                        <a href="{{ url_for('coming_soon') }}" class="header-link">
+                            Leaderboards
+                        </a>
+                    </div>
+                    <div class="header-item">
+                        <a href="{{ url_for('coming_soon') }}" class="header-link">
+                            My Submissions
+                        </a>
+                    </div>
+                    <div class="header-item">
+                        <a href="{{ url_for('coming_soon') }}" class="header-link">
+                            Lectures
+                        </a>
+                    </div>
+                    <div class="header-item">
+                        <a href="https://github.com/gpu-mode/resource-stream" class="header-link">
+                            Resources
+                        </a>
+                    </div>
+                    <div class="header-item">
+                        <a href="{{ url_for('coming_soon') }}" class="header-link">
+                            About
+                        </a>
+                    </div>
+                </div>
+                <div class="header-row space-x-4">
+                    <a href="{{ url_for('coming_soon') }}" class="header-link">
+                        Log Out
+                    </a>
+                    <a href="{{ url_for('coming_soon') }}" class="header-login-button">
+                        Sign In With Discord
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-base">
+        <div class="footer-container">
+            <a href="https://discord.gg/gpumode" class="footer-link">Discord</a>
+            <a href="https://x.com/GPU_MODE" class="footer-link">X</a>
+            <a href="https://www.youtube.com/@GPUMODE" class="footer-link">YouTube</a>
+            <a href="https://github.com/gpu-mode/" class="footer-link">GitHub</a>
+            <a href="https://gpu-mode.github.io/discord-cluster-manager/docs/intro" class="footer-link">Docs</a>
+            <span class="footer-text">© 2025 GPU MODE</span>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    {% block scripts %}{% endblock %}
+</body>
+</html> 

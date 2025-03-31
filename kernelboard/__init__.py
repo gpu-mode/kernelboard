@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask
-from kernelboard.env import check_env_vars
+from . import color, db, env, error, health, index, leaderboard, score, time
 
 def create_app(test_config=None):
     # Check if we're in development mode:
@@ -9,7 +9,7 @@ def create_app(test_config=None):
     if is_dev:
         load_dotenv()
 
-    check_env_vars()    
+    env.check_env_vars()
 
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
@@ -26,11 +26,27 @@ def create_app(test_config=None):
         if not os.path.exists(app.instance_path):
             raise
 
-    @app.route('/health')
-    def health():
-        return {
-            'status': 'healthy',
-            'service': 'kernelboard'
-        }, 200
+    db.init_app(app)
+
+    app.add_template_filter(color.to_color, 'to_color')
+    app.add_template_filter(index.select_highest_priority_gpu, 'select_highest_priority_gpu')
+    app.add_template_filter(score.format_score, 'format_score')
+    app.add_template_filter(time.to_time_left, 'to_time_left')
+    app.add_template_filter(time.format_datetime, 'format_datetime')
+
+    app.register_blueprint(health.blueprint)
+    app.add_url_rule('/health', endpoint='health')
+
+    app.register_blueprint(index.blueprint)
+    app.add_url_rule('/', endpoint='index')
+
+    app.register_blueprint(leaderboard.blueprint)
+    app.add_url_rule('/leaderboard/<int:id>', endpoint='leaderboard')
+
+    app.register_blueprint(error.blueprint)
+    app.add_url_rule('/coming-soon', endpoint='coming_soon')
+
+    app.errorhandler(404)(error.page_not_found)
+    app.errorhandler(500)(error.server_error)
 
     return app
