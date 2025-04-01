@@ -21,6 +21,10 @@ Here's how to get started:
    pip install -r requirements.txt
    ```
 
+   ```shell
+   npm install
+   ```
+
 3. Create a .env file in the root directory of your sandbox with SECRET_KEY and
    DATABASE_URL entries. The DATABASE_URL should be a Postgres database (in the
    future, we would like to provide a Docker image for the database). The secret
@@ -28,6 +32,12 @@ Here's how to get started:
    ```env
    SECRET_KEY=dev
    DATABASE_URL=postgresql://user:password@host:port/dbname
+   ```
+
+4. Download a database snapshot from Heroku, and install it:
+
+   ```
+   pg_restore -d dbname path/to/snapshot/file
    ```
 
 ## Running tests
