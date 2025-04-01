@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Kernel Leaderboards &ndash; Server Error{% endblock %}
+
+{% block content %}
+<div class="error-layout">
+    <div class="error-message">
+        <h1 class="error-headline">500. Server error</h1>
+        <p class="error-description">
+            Kernel panic &ndash; something went wrong on our end.
+        </p>
+    </div>
+    <div class="error-image">
+        <img src="{{ url_for('static', filename='images/kernelbot-sad.png') }}" alt="500 illustration" class="max-w-full h-auto">
+    </div>
+</div>
+{% endblock %} 
