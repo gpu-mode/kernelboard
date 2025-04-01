@@ -10,3 +10,5 @@ instance/
 htmlcov/
 
 .env
+
+node_modules/
