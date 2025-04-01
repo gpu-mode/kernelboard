@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboards &ndash; GPU MODE{% endblock %}
+
+{# Define our color palette. This is very much a hack at present. We have a
+   number of colors defined here. Below, we hash each leaderboard name, and
+   then use the hash to lookup a color in this table. The leaderboard page
+   seems very drab otherwise. #}
+{% set colors = [
+    '#FF6B6B',
+    '#4ECDC4',
+    '#45B7D1',
+    '#96CEB4',
+    '#FFEEAD',
+    '#D4A5A5',
+    '#9B5DE5',
+    '#F15BB5',
+    '#00BBF9',
+    '#00F5D4'
+] %}
+
+{% block content %}
+<div class="content-stack">
+    <h1>Active Leaderboards</h1>
+    
+    <div class="leaderboard-grid">
+        {% for leaderboard in leaderboards %}
+            <a href="{{ url_for('leaderboard', id=leaderboard['id']) }}" class="leaderboard-tile-link">
+                <div class="leaderboard-tile">
+                    <div class="leaderboard-tile-name">
+                        {% set color = leaderboard['name']|to_color %}
+                        <div class="colored-square" style="background-color: {{ color }}"></div>
+                        {{ leaderboard['name'] }}
+                    </div>
+
+                    <div class="leaderboard-content">
+                        {{ leaderboard['deadline']|to_time_left }} remaining
+                    </div>
+
+                    <div class="leaderboard-content text-sm">
+                        {{ leaderboard['gpu_types']|join(', ') }}
+                    </div>
+
+                    {% set gpu_type, top_users = leaderboard.top_users_by_gpu | select_highest_priority_gpu %}
+                    {% if top_users %}
+                        <div class="leaderboard-content mt-4">
+                            <div class="score-box">
+                                <div class="text-center mb-2">
+                                    <span class="chip px-2 py-0.5 text-sm bg-gray-100 text-gray-700">
+                                        {{ gpu_type }}
+                                    </span>
+                                </div>
+                                {% for user_info in top_users %}
+                                    <div class="score-row">
+                                        <span>{{ user_info['user_name'] or "&nbsp;"|safe }}
+                                            {% if user_info['rank'] == 1 %}
+                                                🥇
+                                            {% elif user_info['rank'] == 2 %}
+                                                🥈
+                                            {% elif user_info['rank'] == 3 %}
+                                                🥉
+                                            {% endif %}
+                                        </span>
+
+                                        <span class="score">{{ user_info['score']|format_score or "&nbsp;"|safe }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+
+    {% if not leaderboards %}
+        <p>No active leaderboards found.</p>
+    {% endif %}
+</div>
+{% endblock %} 
