@@ -9,6 +9,6 @@ instance/
 .coverage
 htmlcov/
 
-.env
-
 node_modules/
+
+.env
