@@ -5,9 +5,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: '#FEE832',   // Yellow
-        secondary: '#D3D93B', // Green
-        accent: '#F29999',    // Coral
+        primary: '#5865F2',   // Blurple, Discord's brand color
+        secondary: '#00BFFF', // Electric cyan
+        accent: '#8B5CF6',    // Vibrant purple
         neutral: '#C9C9C9',   // Gray
         dark: '#202020',      // Dark Gray
         discord: '#5865F2',   // Discord's brand color, blurple

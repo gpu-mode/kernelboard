@@ -733,25 +733,6 @@ h3 {
   background-color: rgb(243 244 246 / var(--tw-bg-opacity, 1));
 }
 
-.header-login-button {
-  border-radius: 9999px;
-  --tw-bg-opacity: 1;
-  background-color: rgb(88 101 242 / var(--tw-bg-opacity, 1));
-  padding-left: 1rem;
-  padding-right: 1rem;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  font-weight: 500;
-  --tw-text-opacity: 1;
-  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
-}
-
-.header-login-button:hover {
-  background-color: rgb(88 101 242 / 0.8);
-}
-
 .main-container {
   margin-left: auto;
   margin-right: auto;
@@ -915,7 +896,7 @@ h3 {
 
 .leaderboard-tile:hover {
   --tw-border-opacity: 1;
-  border-color: rgb(211 217 59 / var(--tw-border-opacity, 1));
+  border-color: rgb(0 191 255 / var(--tw-border-opacity, 1));
 }
 
 .leaderboard-tile-name {
@@ -1173,12 +1154,6 @@ h3 {
   --tw-space-x-reverse: 0;
   margin-right: calc(0.5rem * var(--tw-space-x-reverse));
   margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
-}
-
-.space-x-4 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 0;
-  margin-right: calc(1rem * var(--tw-space-x-reverse));
-  margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
 .overflow-y-hidden {
