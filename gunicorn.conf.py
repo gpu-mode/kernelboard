@@ -1,7 +1,10 @@
+import os
 import multiprocessing
 
+PORT = int(os.getenv('PORT', 443))
+
 # Server socket
-bind = "0.0.0.0:8000"
+bind = f"0.0.0.0:{PORT}"
 backlog = 2048
 
 # Worker processes
