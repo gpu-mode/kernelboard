@@ -25,19 +25,33 @@ Here's how to get started:
    npm install
    ```
 
-3. Create a .env file in the root directory of your sandbox with SECRET_KEY and
-   DATABASE_URL entries. The DATABASE_URL should be a Postgres database (in the
-   future, we would like to provide a Docker image for the database). The secret
-   key can be anything you like; `dev` will work well.
+3. Docker is required for running the test suite, so please ensure you have it
+   installed.
+
+4. Next, you'll need a Postgres database to store leaderboard information. Feel
+   free to set this up wherever works best for you -- running it on your local
+   machine (directly or with Docker) is usually a smooth way to get going. Once
+   your database is up and running, load it with sample data using the provided
+   `tests/data.sql` file:
+
+   ```shell
+   createdb kernelboard
+   psql [postgres_options] kernelboard < tests/data.sql
+   ```
+
+   Or, download a database snapshot from Heroku, and install it:
+
+   ```shell
+   pg_restore -d kernelboard path/to/snapshot/file
+   ```
+
+4. Finally, create a .env file in the root directory of your sandbox with
+   SECRET_KEY and DATABASE_URL entries. The secret key can be anything you like;
+   `dev` will work well.
+
    ```env
    SECRET_KEY=dev
-   DATABASE_URL=postgresql://user:password@host:port/dbname
-   ```
-
-4. Download a database snapshot from Heroku, and install it:
-
-   ```
-   pg_restore -d dbname path/to/snapshot/file
+   DATABASE_URL=postgresql://user:password@host:port/kernelboard
    ```
 
 ## Running tests
