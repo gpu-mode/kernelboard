@@ -109,17 +109,18 @@ def leaderboard(leaderboard_id: int):
         ranking = []
         prev_score = None
 
-        for i, entry in enumerate(ranking_):
-            entry['rank'] = i + 1 
+        if ranking_ is not None:
+            for i, entry in enumerate(ranking_):
+                entry['rank'] = i + 1
 
-            if prev_score is not None:
-                entry['prev_score'] = entry['score'] - prev_score
-            else:
-                entry['prev_score'] = None
+                if prev_score is not None:
+                    entry['prev_score'] = entry['score'] - prev_score
+                else:
+                    entry['prev_score'] = None
 
-            ranking.append(entry)
+                ranking.append(entry)
 
-            prev_score = entry['score']
+                prev_score = entry['score']
 
         if len(ranking) > 0:
             rankings[gpu_type] = ranking
