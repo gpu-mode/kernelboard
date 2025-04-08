@@ -5,6 +5,13 @@ def test_leaderboard(client):
     assert response.status_code == 200
     assert b'conv2d' in response.data
 
+
+def test_leaderboard_no_submissions(client):
+    response = client.get('/leaderboard/344')
+    assert response.status_code == 200
+    assert b'No submissions yet' in response.data
+
+
 def test_leaderboard_mathjax(client, app):
     # Test that MathJax script is not included for a standard description.
     response_no_math = client.get('/leaderboard/339')
