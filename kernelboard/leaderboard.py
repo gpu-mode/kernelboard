@@ -77,10 +77,9 @@ def leaderboard(leaderboard_id: int):
         cur.execute(query, {'leaderboard_id': leaderboard_id})
         result = cur.fetchone()
     
-    if result is None or not result[0]:
+    if result is None or not result[0] or not result[0]['leaderboard']:
         abort(404)
-        
-    # Parse the JSON result
+
     data = result[0]
         
     # Extract leaderboard info
@@ -124,7 +123,7 @@ def leaderboard(leaderboard_id: int):
 
         if len(ranking) > 0:
             rankings[gpu_type] = ranking
-    
+
     return render_template('leaderboard.html',
                          name=name,
                          deadline=deadline,
