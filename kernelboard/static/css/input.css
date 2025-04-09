@@ -51,6 +51,10 @@ Appending --watch will watch for changes and update main.css automatically.
   .medal .bronze {
     text-shadow: 0 0 5px rgba(205, 127, 50, 0.5);
   }
+  .external-link::after {
+    content: '\2197\FE0E'; /* Unicode for up-right arrow, ↗ (2197) displayed as text (FE0E) instead of emoji */
+    @apply inline-block ml-0.5 text-xs align-super no-underline;
+  }
   .content-stack {
     @apply space-y-6;
   }
@@ -91,7 +95,7 @@ Appending --watch will watch for changes and update main.css automatically.
     @apply bg-white border-t;
   }
   .footer-container {
-    @apply page-container text-center py-4 text-gray-600 space-y-6 space-x-6;
+    @apply page-container text-center text-sm py-4 text-gray-600 space-y-6 space-x-6;
   }
   .footer-link {
     @apply text-gray-600 hover:text-gray-900;
