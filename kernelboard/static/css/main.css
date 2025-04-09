@@ -640,6 +640,17 @@ h3 {
   text-shadow: 0 0 5px rgba(205, 127, 50, 0.5);
 }
 
+.external-link::after {
+  content: '\2197\FE0E';
+  /* Unicode for up-right arrow, ↗ (2197) displayed as text (FE0E) instead of emoji */
+  margin-left: 0.125rem;
+  display: inline-block;
+  vertical-align: super;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  text-decoration-line: none;
+}
+
 .content-stack > :not([hidden]) ~ :not([hidden]) {
   --tw-space-y-reverse: 0;
   margin-top: calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));
@@ -804,6 +815,8 @@ h3 {
   padding-top: 1rem;
   padding-bottom: 1rem;
   text-align: center;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   --tw-text-opacity: 1;
   color: rgb(75 85 99 / var(--tw-text-opacity, 1));
 }
