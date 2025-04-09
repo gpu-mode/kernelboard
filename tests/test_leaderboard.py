@@ -6,8 +6,19 @@ def test_leaderboard(client):
     assert b'conv2d' in response.data
 
 
-def test_leaderboard_no_submissions(client):
-    response = client.get('/leaderboard/344')
+def test_nonexistent_leaderboard(client):
+    response = client.get('/leaderboard/1000000')
+    assert response.status_code == 404
+
+
+def test_leaderboard_no_submissions(client, app):
+    with app.app_context():
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            cur.execute("UPDATE leaderboard.submission SET leaderboard_id = 340 WHERE leaderboard_id = 339")
+            conn.commit()  # Commit update so the web request sees it.
+
+    response = client.get('/leaderboard/339')
     assert response.status_code == 200
     assert b'No submissions yet' in response.data
 
@@ -40,7 +51,7 @@ def test_leaderboard_mathjax(client, app):
                 """,
                 {'new_desc': new_description}
             )
-            conn.commit()  # Commit update so the web request sees it.
+            conn.commit()
 
             response_with_math = client.get('/leaderboard/339')
             assert response_with_math.status_code == 200
