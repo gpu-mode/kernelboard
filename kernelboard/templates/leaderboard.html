@@ -2,6 +2,16 @@
 
 {% block title %}{{ name }} - Kernel Leaderboards{% endblock %}
 
+{# Determine if we need to load MathJax. #}
+{% set needs_mathjax = '\\(' in description or '$$' in description or '\\begin' in description %}
+
+{% block extra_head %}
+    {{ super() }}
+    {% if needs_mathjax %}
+    <script id="mathjax" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    {% endif %}
+{% endblock %}
+
 {% block content %}
 <script src="{{ url_for('static', filename='js/leaderboard.js') }}"></script>
 
