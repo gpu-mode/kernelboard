@@ -89,7 +89,8 @@ def index():
                     AND r.user_rank <= 3
                 )) FROM gpu_types g)
         )
-        FROM active_leaderboards l;
+        FROM active_leaderboards l
+        ORDER BY l.id DESC;
         """
 
     conn = get_db_connection()
