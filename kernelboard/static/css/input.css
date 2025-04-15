@@ -53,7 +53,7 @@ Appending --watch will watch for changes and update main.css automatically.
   }
   .external-link::after {
     content: '\2197\FE0E'; /* Unicode for up-right arrow, ↗ (2197) displayed as text (FE0E) instead of emoji */
-    @apply inline-block ml-0.5 text-xs align-super no-underline;
+    @apply inline-block ml-0.5 text-xs align-middle no-underline;
   }
   .content-stack {
     @apply space-y-6;
@@ -197,5 +197,14 @@ Appending --watch will watch for changes and update main.css automatically.
   }
   .rankings-btn {
     @apply bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1 rounded text-sm;
+  }
+  .news-item a {
+    @apply text-secondary underline hover:brightness-75
+  }
+  .news-item h2 {
+    @apply mb-4
+  }
+  .news-item p {
+    @apply mb-4
   }
 }
