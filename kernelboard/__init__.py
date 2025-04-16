@@ -46,9 +46,6 @@ def create_app(test_config=None):
     app.register_blueprint(news.blueprint)
     app.add_url_rule('/news', endpoint='news')
 
-    app.register_blueprint(error.blueprint)
-    app.add_url_rule('/coming-soon', endpoint='coming_soon')
-
     app.errorhandler(404)(error.page_not_found)
     app.errorhandler(500)(error.server_error)
 
