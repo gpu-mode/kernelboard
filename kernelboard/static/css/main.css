@@ -645,7 +645,7 @@ h3 {
   /* Unicode for up-right arrow, ↗ (2197) displayed as text (FE0E) instead of emoji */
   margin-left: 0.125rem;
   display: inline-block;
-  vertical-align: super;
+  vertical-align: middle;
   font-size: 0.75rem;
   line-height: 1rem;
   text-decoration-line: none;
@@ -1101,6 +1101,25 @@ h3 {
 .rankings-btn:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(229 231 235 / var(--tw-bg-opacity, 1));
+}
+
+.news-item a {
+  --tw-text-opacity: 1;
+  color: rgb(0 191 255 / var(--tw-text-opacity, 1));
+  text-decoration-line: underline;
+}
+
+.news-item a:hover {
+  --tw-brightness: brightness(.75);
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
+}
+
+.news-item h2 {
+  margin-bottom: 1rem;
+}
+
+.news-item p {
+  margin-bottom: 1rem;
 }
 
 .static {

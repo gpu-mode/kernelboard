@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask
-from . import color, db, env, error, health, index, leaderboard, score, time
+from . import color, db, env, error, health, index, leaderboard, news, score, time
 
 def create_app(test_config=None):
     # Check if we're in development mode:
@@ -42,6 +42,9 @@ def create_app(test_config=None):
 
     app.register_blueprint(leaderboard.blueprint)
     app.add_url_rule('/leaderboard/<int:id>', endpoint='leaderboard')
+
+    app.register_blueprint(news.blueprint)
+    app.add_url_rule('/news', endpoint='news')
 
     app.register_blueprint(error.blueprint)
     app.add_url_rule('/coming-soon', endpoint='coming_soon')

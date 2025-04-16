@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}News &ndash; GPU MODE{% endblock %}
+
+{% block content %}
+
+<div class="content-stack">
+<h1>News and Announcements</h1>
+
+<div class="news-item">
+{% set color = 'AMD Developer Challenge 2025'|to_color %}
+<h2><div class="colored-square" style="background-color: {{ color }}"></div>
+AMD Developer Challenge 2025: Inference Sprint (April 15, 2025)</h2>
+
+<p>
+We are excited to announce the $100K competition hosted by
+<a href="https://x.com/AMD">@AMD</a> as part of the first round of our GPU
+kernel leaderboard! The theme is writing LLM inference kernels on AMD MI300s,
+provided for free through the
+<a href="https://www.discord.gg/gpumode">GPU MODE Discord</a>.
+</p>
+
+<p>
+You (and anyone around the world) can participate for FREE by signing up
+<a href="https://www.datamonsters.com/amd-developer-challenge-2025#wf-form-AMD-Email-Form">here</a>.
+The format consists of three kernels that are core to DeepSeek's LLM inference:
+FP8 GEMM, Multi-Head Latent Attention, and Fused MOE!
+</p>
+
+<p>
+Competitors will target the AMD MI300 using Triton, but other DSLs and languages
+that target AMD hardware are permitted! Participants can form teams of three
+when competing, and prizes will be awarded based on team rankings averaged over
+the three kernels.
+</p>
+
+<p>
+Special thanks to <a href="https://x.com/AMD">@AMD</a>,
+<a href="https://x.com/indianspeedster">@indianspeedster</a>, and the
+amazing GPU MODE Project Popcorn core devs,
+<a href="https://x.com/a1zhang">@a1zhang</a>,
+<a href="https://x.com/m_sirovatka">@m_sirovatka</a>,
+<a href="https://x.com/marksaroufim">@marksaroufim</a>, ngc92 (Erik S.), and
+<a href="https://github.com/b9r5">@b9r5</a> for making this competition
+possible.
+</p>
+
+<p>
+We're very excited to accelerate AI research by building on kernels, and we're
+super grateful for all of the support from the community!
+</p>
+
+<p>
+If you're interested in collaborating with us on future competitions / kernels
+you think are important, definitely reach out to any one of us on the Popcorn
+team!
+</p>
+
+<p>
+Get started now! The first kernel is the <a href="{{ url_for('static', filename='pdfs/2025-amd-dev-fp8-gemm.pdf') }}" target="_blank">FP8 Groupwise GEMM</a>.
+</p>
+
+<img src="{{ url_for('static', filename='images/2025-amd-dev-challenge.jpeg') }}"
+alt="2025 AMD Developer Challenge: Inference Sprint" class="max-w-full h-auto">
+
+</div>
+</div>
+
+{% endblock %}
+
