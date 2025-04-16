@@ -2,23 +2,6 @@
 
 {% block title %}Leaderboards &ndash; GPU MODE{% endblock %}
 
-{# Define our color palette. This is very much a hack at present. We have a
-   number of colors defined here. Below, we hash each leaderboard name, and
-   then use the hash to lookup a color in this table. The leaderboard page
-   seems very drab otherwise. #}
-{% set colors = [
-    '#FF6B6B',
-    '#4ECDC4',
-    '#45B7D1',
-    '#96CEB4',
-    '#FFEEAD',
-    '#D4A5A5',
-    '#9B5DE5',
-    '#F15BB5',
-    '#00BBF9',
-    '#00F5D4'
-] %}
-
 {% block content %}
 <div class="content-stack">
     <h1>Active Leaderboards</h1>
