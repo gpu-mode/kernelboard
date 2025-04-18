@@ -126,6 +126,7 @@ def app(template_db: dict):
         'TESTING': True,
         'SECRET_KEY': secrets.token_hex(),
         'DATABASE_URL': f"{db_url}/{test_db}",
+        'TALISMAN_FORCE_HTTPS': False,
     })
 
     yield app
