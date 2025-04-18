@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask
+from flask_talisman import Talisman
 from . import color, db, env, error, health, index, leaderboard, news, score, time
 
 def create_app(test_config=None):
@@ -15,10 +16,16 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=os.getenv('SECRET_KEY'),
         DATABASE_URL=os.getenv('DATABASE_URL'),
+        TALISMAN_FORCE_HTTPS=True,
     )
 
     if test_config is not None:
         app.config.from_mapping(test_config)
+
+    Talisman(
+        app,
+        content_security_policy=None,
+        force_https=app.config.get('TALISMAN_FORCE_HTTPS', True))
 
     try:
         os.makedirs(app.instance_path)
