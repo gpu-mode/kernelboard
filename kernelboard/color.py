@@ -5,17 +5,18 @@ def to_color(name: str) -> str:
     """Convert name to a color using the murmur3 hash"""
 
     # Somewhat vibrant color palette.
+    # These names must match the -square and -chip classes in input.css.
     colors = [
-        '#FF6B6B',
-        '#4ECDC4',
-        '#45B7D1',
-        '#96CEB4',
-        '#FFEEAD',
-        '#D4A5A5',
-        '#9B5DE5',
-        '#F15BB5',
-        '#00BBF9',
-        '#00F5D4',
+        'coral',
+        'turquoise',
+        'sky-blue',
+        'gray-aquamarine',
+        'pale-yellow',
+        'dusky-rose',
+        'purple',
+        'medium-pink',
+        'bright-blue',
+        'aquamarine',
     ]
 
     hash = abs(mmh3.hash(name))

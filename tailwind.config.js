@@ -1,7 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./kernelboard/templates/**/*.html"],
-  safelist: [ 'code-block-fade' ],
+  safelist: [ 'code-block-fade',
+    {
+      pattern: /.*-square/, // colored squares
+    },
+    {
+      pattern: /.*-chip/, // colored chips
+    }
+   ],
   theme: {
     extend: {
       colors: {
