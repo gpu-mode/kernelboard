@@ -24,10 +24,7 @@ def create_app(test_config=None):
 
     Talisman(
         app,
-        content_security_policy={
-            'default-src': "'self'",
-            'script-src': "'self' https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
-        },
+        content_security_policy=None,
         force_https=app.config.get('TALISMAN_FORCE_HTTPS', True))
 
     try:
