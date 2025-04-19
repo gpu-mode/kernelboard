@@ -45,22 +45,24 @@ function copyCode() {
     document.execCommand('copy');
     document.body.removeChild(textArea);
     
-    const button = document.querySelector('button[onclick="copyCode()"]');
-    const originalText = button.textContent;
-    button.textContent = 'Copied!';
-    setTimeout(() => {
-        button.textContent = originalText;
-    }, 2000);
+    const copyButton = document.getElementById('copyCodeBtn');
+    if (copyButton) {
+        const originalText = copyButton.textContent;
+        copyButton.textContent = 'Copied!';
+        setTimeout(() => {
+            copyButton.textContent = originalText;
+        }, 2000);
+    }
 } 
 
 /**
- * Toggles the visibility of the rankings for a given GPU type.
- * @param {string} gpuId - The ID of the GPU type to toggle rankings for.
- * @param {number} totalCount - The total number of rankings to display.
+ * Toggles the visibility of the rankings for a given GPU type section.
+ * @param {HTMLElement} button - The button element that was clicked.
  */
-function toggleRankings(gpuId, totalCount) {
+function toggleRankings(button) {
+    const gpuId = button.getAttribute('data-gpu-id');
+    const totalCount = parseInt(button.getAttribute('data-count'));
     const section = document.getElementById('section-' + gpuId);
-    const button = section.querySelector('.rankings-btn');
     const rows = section.querySelectorAll('tr.rank-row');
     
     // Check if we're currently showing all (button text contains "Show Top 3")
@@ -87,3 +89,53 @@ function toggleRankings(gpuId, totalCount) {
         button.textContent = 'Show Top 3';
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const copyBtn = document.getElementById('copyCodeBtn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', copyCode);
+    }
+
+    // Add listeners for ranking toggle buttons
+    const rankingButtons = document.querySelectorAll('.rankings-btn');
+    rankingButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            toggleRankings(this); // Pass the clicked button element
+        });
+    });
+
+    const referenceImpl = document.getElementById('referenceImpl');
+    const toggleBtn = document.getElementById('toggleCodeBtn');
+
+    let isExpanded = false;
+    
+    if (toggleBtn && referenceImpl) {
+        const codeBlockFade = document.createElement('div');
+        codeBlockFade.className = 'code-block-fade';
+        // Only append fade if it doesn't exist
+        if (!referenceImpl.querySelector('.code-block-fade')) {
+             referenceImpl.appendChild(codeBlockFade);
+        }
+
+        toggleBtn.addEventListener('click', function() {
+            const currentFade = referenceImpl.querySelector('.code-block-fade'); // Get fade element again
+            if (isExpanded) {
+                referenceImpl.classList.remove('max-h-none');
+                referenceImpl.classList.add('max-h-[300px]');
+                referenceImpl.classList.remove('overflow-y-auto');
+                referenceImpl.classList.add('overflow-y-hidden');
+                toggleBtn.textContent = 'Show';
+                if(currentFade) currentFade.style.display = 'block'; // Check if fade exists
+                isExpanded = false;
+            } else {
+                referenceImpl.classList.remove('max-h-[300px]');
+                referenceImpl.classList.add('max-h-none');
+                referenceImpl.classList.remove('overflow-y-hidden');
+                referenceImpl.classList.add('overflow-y-auto');
+                toggleBtn.textContent = 'Hide';
+                 if(currentFade) currentFade.style.display = 'none'; // Check if fade exists
+                isExpanded = true;
+            }
+        });
+    }
+});
