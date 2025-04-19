@@ -12,7 +12,7 @@
                 <div class="leaderboard-tile">
                     <div class="leaderboard-tile-name">
                         {% set color = leaderboard['name']|to_color %}
-                        <div class="colored-square" style="background-color: {{ color }}"></div>
+                        <div class="{{ color }}-square""></div>
                         {{ leaderboard['name'] }}
                     </div>
 
