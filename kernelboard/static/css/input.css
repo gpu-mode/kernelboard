@@ -33,6 +33,46 @@ Appending --watch will watch for changes and update main.css automatically.
   .colored-square {
     @apply w-4 h-4 rounded inline-block mr-2;
   }
+  .coral-square {
+    @apply colored-square;
+    background-color: #FF6B6B;
+  }
+  .turquoise-square {
+    @apply colored-square;
+    background-color: #4ECDC4;
+  }
+  .sky-blue-square {
+    @apply colored-square;
+    background-color: #45B7D1;
+  }
+  .gray-aquamarine-square {
+    @apply colored-square;
+    background-color: #96CEB4;
+  }
+  .pale-yellow-square {
+    @apply colored-square;
+    background-color: #FFEEAD;
+  }
+  .dusky-rose-square {
+    @apply colored-square;
+    background-color: #D4A5A5;
+  }
+  .purple-square {
+    @apply colored-square;
+    background-color: #9B5DE5;
+  }
+  .medium-pink-square {
+    @apply colored-square;
+    background-color: #F15BB5;
+  }
+  .bright-blue-square {
+    @apply colored-square;
+    background-color: #00BBF9;
+  }
+  .aquamarine-square {
+    @apply colored-square;
+    background-color: #00F5D4;
+  }
   @keyframes shine {
     0% { transform: scale(1); }
     50% { transform: scale(1.1); }
@@ -144,6 +184,46 @@ Appending --watch will watch for changes and update main.css automatically.
   }
   .chip {
     @apply inline-block rounded-full;
+  }
+  .coral-chip {
+    @apply chip;
+    background-color: #FF6B6B40;
+  }
+  .turquoise-chip {
+    @apply chip;
+    background-color: #4ECDC440;
+  }
+  .sky-blue-chip {
+    @apply chip;
+    background-color: #45B7D140;
+  }
+  .gray-aquamarine-chip {
+    @apply chip;
+    background-color: #96CEB440;
+  }
+  .pale-yellow-chip {
+    @apply chip;
+    background-color: #FFEEAD40;
+  }
+  .dusky-rose-chip {
+    @apply chip;
+    background-color: #D4A5A540;
+  }
+  .purple-chip {
+    @apply chip;
+    background-color: #9B5DE540;
+  }
+  .medium-pink-chip {
+    @apply chip;
+    background-color: #F15BB540;
+  }
+  .bright-blue-chip {
+    @apply chip;
+    background-color: #00BBF940;
+  }
+  .aquamarine-chip {
+    @apply chip;
+    background-color: #00F5D440;
   }
   .leaderboard-grid {
     @apply grid grid-cols-1 md:grid-cols-3 gap-6 mb-8;

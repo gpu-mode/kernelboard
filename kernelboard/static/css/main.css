@@ -608,6 +608,96 @@ h3 {
   border-radius: 0.25rem;
 }
 
+.coral-square {
+  margin-right: 0.5rem;
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  border-radius: 0.25rem;
+  background-color: #FF6B6B;
+}
+
+.turquoise-square {
+  margin-right: 0.5rem;
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  border-radius: 0.25rem;
+  background-color: #4ECDC4;
+}
+
+.sky-blue-square {
+  margin-right: 0.5rem;
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  border-radius: 0.25rem;
+  background-color: #45B7D1;
+}
+
+.gray-aquamarine-square {
+  margin-right: 0.5rem;
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  border-radius: 0.25rem;
+  background-color: #96CEB4;
+}
+
+.pale-yellow-square {
+  margin-right: 0.5rem;
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  border-radius: 0.25rem;
+  background-color: #FFEEAD;
+}
+
+.dusky-rose-square {
+  margin-right: 0.5rem;
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  border-radius: 0.25rem;
+  background-color: #D4A5A5;
+}
+
+.purple-square {
+  margin-right: 0.5rem;
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  border-radius: 0.25rem;
+  background-color: #9B5DE5;
+}
+
+.medium-pink-square {
+  margin-right: 0.5rem;
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  border-radius: 0.25rem;
+  background-color: #F15BB5;
+}
+
+.bright-blue-square {
+  margin-right: 0.5rem;
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  border-radius: 0.25rem;
+  background-color: #00BBF9;
+}
+
+.aquamarine-square {
+  margin-right: 0.5rem;
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  border-radius: 0.25rem;
+  background-color: #00F5D4;
+}
+
 @keyframes shine {
   0% {
     transform: scale(1);
@@ -953,6 +1043,66 @@ h3 {
   border-radius: 9999px;
 }
 
+.coral-chip {
+  display: inline-block;
+  border-radius: 9999px;
+  background-color: #FF6B6B40;
+}
+
+.turquoise-chip {
+  display: inline-block;
+  border-radius: 9999px;
+  background-color: #4ECDC440;
+}
+
+.sky-blue-chip {
+  display: inline-block;
+  border-radius: 9999px;
+  background-color: #45B7D140;
+}
+
+.gray-aquamarine-chip {
+  display: inline-block;
+  border-radius: 9999px;
+  background-color: #96CEB440;
+}
+
+.pale-yellow-chip {
+  display: inline-block;
+  border-radius: 9999px;
+  background-color: #FFEEAD40;
+}
+
+.dusky-rose-chip {
+  display: inline-block;
+  border-radius: 9999px;
+  background-color: #D4A5A540;
+}
+
+.purple-chip {
+  display: inline-block;
+  border-radius: 9999px;
+  background-color: #9B5DE540;
+}
+
+.medium-pink-chip {
+  display: inline-block;
+  border-radius: 9999px;
+  background-color: #F15BB540;
+}
+
+.bright-blue-chip {
+  display: inline-block;
+  border-radius: 9999px;
+  background-color: #00BBF940;
+}
+
+.aquamarine-chip {
+  display: inline-block;
+  border-radius: 9999px;
+  background-color: #00F5D440;
+}
+
 .leaderboard-grid {
   margin-bottom: 2rem;
   display: grid;
@@ -1160,6 +1310,10 @@ h3 {
 
 .table {
   display: table;
+}
+
+.aspect-square {
+  aspect-ratio: 1 / 1;
 }
 
 .h-auto {
