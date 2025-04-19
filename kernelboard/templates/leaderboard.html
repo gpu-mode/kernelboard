@@ -18,7 +18,7 @@
 <div class="content-stack">
     <h1 class="font-mono">
         {% set color = name|to_color %}
-        <div class="colored-square" style="background-color: {{ color }}"></div>
+        <div class="{{ color }}-square"></div>
         {{ name }}
     </h1>
     
@@ -74,8 +74,7 @@
                     <div class="ranking-section" id="section-{{ gpu_type|lower|replace(' ', '-') }}">
                         <div class="flex justify-between items-center mb-2">
                             <h2 class="font-mono">
-                                <span class="chip px-3 py-1" 
-                                    style="background-color: {{ color }}40;">
+                                <span class="{{ color }}-chip px-3 py-1">
                                     {{ gpu_type }}
                                 </span>
                             </h2>
