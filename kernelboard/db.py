@@ -1,4 +1,5 @@
 import psycopg2
+import os
 from flask import g, Flask, current_app
 
 
