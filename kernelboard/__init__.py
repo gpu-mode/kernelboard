@@ -16,7 +16,6 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=os.getenv('SECRET_KEY'),
         DATABASE_URL=os.getenv('DATABASE_URL'),
-        REDIS_URL=os.getenv('REDIS_URL'),
         TALISMAN_FORCE_HTTPS=True,
     )
 
