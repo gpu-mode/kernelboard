@@ -45,13 +45,17 @@ Here's how to get started:
    pg_restore -d kernelboard path/to/snapshot/file
    ```
 
-4. Finally, create a .env file in the root directory of your sandbox with
-   SECRET_KEY and DATABASE_URL entries. The secret key can be anything you like;
-   `dev` will work well.
+5. You'll also need a Redis instance to store sessions. Again, feel free to set
+   this up in whatever way works best for you.
+
+6. Finally, create a .env file in the root directory of your sandbox with
+   SECRET_KEY, DATABASE_URL, and REDIS_URL entries. The secret key can be
+   anything you like; `dev` will work well.
 
    ```env
    SECRET_KEY=dev
    DATABASE_URL=postgresql://user:password@host:port/kernelboard
+   REDIS_URL=redis://localhost:6379
    ```
 
 ## Running tests
