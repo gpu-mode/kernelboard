@@ -6,6 +6,7 @@ import string
 import subprocess
 import time
 from kernelboard import create_app
+from kernelboard.env import check_env_vars
 
 
 def _short_random_string() -> str:
@@ -28,10 +29,10 @@ def _execute_sql(url: str, sql: str):
 
 
 @pytest.fixture(scope="session")
-def db_server():
-    """Starts a DB server and creates a template DB once per session."""
+def template_db():
+    """Creates a template database once per session."""
 
-    container_name = f"kernelboard_db_{_short_random_string()}"
+    container_name = f"kernelboard_{_short_random_string()}"
     port = 5433
     password = 'test'
     db_url = f"postgresql://postgres:{password}@localhost:{port}"
@@ -108,83 +109,15 @@ def db_server():
             print(f"Could not remove database container. Error: {e.stderr}")
 
 
-@pytest.fixture(scope="session")
-def redis_server():
-    """
-    Starts a Redis Docker container for the test session.
-    """
-    container_name = f"kernelboard_redis_{_short_random_string()}"
-    port = 6380
-    redis_url = f"redis://localhost:{port}/0"
-
-    docker_run_cmd = [
-        "docker", "run", "-d",
-        f"--name={container_name}",
-        f"-p", f"{port}:6379",
-        "--tmpfs", "/data",
-        "redis:7-alpine",
-        "redis-server", "--save", '""', "--appendonly", "no"
-    ]
-
-    try:
-        print(f"Attempting to start Redis container {container_name}...")
-        subprocess.run(docker_run_cmd, check=True, capture_output=True)
-        print(f"Redis container started.")
-
-        print(f"Waiting for Redis container to be ready...")
-        attempts = 0
-        max_attempts = 30
-        ready = False
-        while attempts < max_attempts:
-            time.sleep(1)
-            try:
-                docker_exec_cmd = [
-                    "docker", "exec", container_name,
-                    "redis-cli", "ping"
-                ]
-                result = subprocess.run(docker_exec_cmd, check=True, capture_output=True, text=True)
-                if "PONG" in result.stdout:
-                    print(f"Redis container is ready.")
-                    ready = True
-                    break
-            except subprocess.CalledProcessError as e:
-                print(f"Attempt {attempts + 1}/{max_attempts}: Redis container not ready yet: {e.stderr.strip()}")
-            attempts += 1
-
-        if not ready:
-            logs_cmd = ["docker", "logs", container_name]
-            logs_result = subprocess.run(logs_cmd, capture_output=True, text=True)
-            print(f"Container logs:\n{logs_result.stdout}\n{logs_result.stderr}")
-            raise TimeoutError(f"Redis container did not become ready within {max_attempts} attempts.")
-
-        yield redis_url
-
-    finally:
-        print(f"Stopping Redis container {container_name}...")
-        try:
-            subprocess.run(["docker", "stop", container_name], check=True, capture_output=True)
-            print(f"Redis container stopped.")
-        except subprocess.CalledProcessError as e:
-            print(f"Could not stop Redis container {container_name}. Error: {e.stderr}")
-
-
-        print(f"Removing Redis container {container_name}...")
-        try:
-            subprocess.run(["docker", "rm", container_name], check=True, capture_output=True)
-            print(f"Redis container removed.")
-        except subprocess.CalledProcessError as e:
-            print(f"Could not remove Redis container {container_name}. Error: {e.stderr}")
-
-
 @pytest.fixture
-def app(db_server: dict, redis_server: str):
+def app(template_db: dict):
     """
-    Creates a new test-specific DB for each test, configures the Flask app
-    with DB and Redis URLs, and cleans up.
+    Creates a new test-specific DB for each test, configures the Flask app,
+    and cleans up.
     """
 
-    db_url = db_server['db_url']
-    template_db = db_server['db_name']
+    db_url = template_db['db_url']
+    template_db = template_db['db_name']
     test_db = f"kernelboard_test_{_short_random_string()}"
 
     _execute_sql(db_url, f"CREATE DATABASE {test_db} TEMPLATE {template_db}")
@@ -193,7 +126,6 @@ def app(db_server: dict, redis_server: str):
         'TESTING': True,
         'SECRET_KEY': secrets.token_hex(),
         'DATABASE_URL': f"{db_url}/{test_db}",
-        'REDIS_URL': redis_server,
         'TALISMAN_FORCE_HTTPS': False,
     })
 
