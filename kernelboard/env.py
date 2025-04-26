@@ -9,7 +9,7 @@ def check_env_vars():
     required_env_vars = [
         'DATABASE_URL',
         'DISCORD_CLIENT_ID',
-        'DISCORD_TOKEN',
+        'DISCORD_CLIENT_SECRET',
         'REDIS_URL',
         'SECRET_KEY',
     ]

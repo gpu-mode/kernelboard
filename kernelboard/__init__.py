@@ -2,6 +2,7 @@ import os
 import redis
 from dotenv import load_dotenv
 from flask import Flask
+from flask_login import LoginManager
 from flask_session import Session
 from flask_talisman import Talisman
 from . import auth, color, db, env, error, health, index, leaderboard, news, score, time
@@ -27,19 +28,7 @@ def create_app(test_config=None):
         PERMANENT_SESSION_LIFETIME=1209600, # 14 days
         SESSION_TYPE='redis',
         SESSION_REDIS=redis.from_url(os.getenv('REDIS_URL')),
-        OAUTH2_PROVIDERS={
-            'discord': {
-                'client_id': os.getenv('DISCORD_CLIENT_ID'),
-                'client_secret': os.getenv('DISCORD_TOKEN'),
-                'authorize_url': 'https://discord.com/oauth2/authorize',
-                'token_url': 'https://discord.com/api/oauth2/token',
-                'userinfo': {
-                    'url': 'https://discord.com/api/users/@me',
-                    'identity': lambda json: json['id'],
-                },
-                'scopes': ['identify'],
-            }
-        },
+        OAUTH2_PROVIDERS=auth.providers(),
     )
 
     # Heroku Redis uses self-signed certificates:
@@ -54,6 +43,14 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
 
     Session(app)
+
+    login_manager = LoginManager()
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return auth.User(user_id) if user_id else None
+
+    login_manager.init_app(app)
 
     Talisman(
         app,
@@ -91,6 +88,7 @@ def create_app(test_config=None):
 
     app.register_blueprint(auth.blueprint)
 
+    app.errorhandler(401)(error.unauthorized)
     app.errorhandler(404)(error.page_not_found)
     app.errorhandler(500)(error.server_error)
 

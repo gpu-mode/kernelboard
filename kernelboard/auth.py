@@ -1,7 +1,8 @@
 # TODO: Tests
 from flask import abort, Blueprint, current_app as app, flash, redirect, \
     render_template, request, session, url_for
-from flask_login import current_user, login_user, logout_user
+from flask_login import current_user, login_user, logout_user, UserMixin
+import os
 from urllib.parse import urlencode
 import requests
 import secrets
@@ -10,13 +11,38 @@ import secrets
 blueprint = Blueprint('login', __name__)
 
 
+def providers():
+    """
+    Return OAuth2 provider information. 
+    """
+    return {
+        'discord': {
+            'client_id': os.getenv('DISCORD_CLIENT_ID'),
+            'client_secret': os.getenv('DISCORD_CLIENT_SECRET'),
+            'authorize_url': 'https://discord.com/oauth2/authorize',
+            'token_url': 'https://discord.com/api/oauth2/token',
+            'userinfo': {
+                'url': 'https://discord.com/api/users/@me',
+                'identity': lambda json: json['id'],
+            },
+            'scopes': ['identify'],
+        }
+    }
+
+
+
+class User(UserMixin):
+    def __init__(self, id):
+        self.id = id
+
+
 @blueprint.route('/login')
 def login():
     return render_template('login.html')
 
 
 @blueprint.route('/auth/<provider>')
-def auth_redirect(provider):
+def auth(provider):
     if not current_user.is_anonymous:
         return redirect(url_for('index'))
 
@@ -28,7 +54,7 @@ def auth_redirect(provider):
 
     query = urlencode({
         'client_id': provider_data['client_id'],
-        'redirect_uri': url_for('oauth2_callback', provider=provider, _external=True),
+        'redirect_uri': url_for('login.callback', provider=provider, _external=True),
         'response_type': 'code',
         'scope': ' '.join(provider_data['scopes']),
         'state': session['oauth2_state'],
@@ -63,24 +89,29 @@ def callback(provider):
         'client_secret': provider_data['client_secret'],
         'code': request.args['code'],
         'grant_type': 'authorization_code',
-        'redirect_uri': url_for('oauth2_callback', provider=provider,
+        'redirect_uri': url_for('login.callback', provider=provider,
                                 _external=True),
     }, headers={'Accept': 'application/json'})
+
     if response.status_code != 200:
         abort(401)
-    oauth2_token = response.json().get('access_token')
-    if not oauth2_token:
+
+    access_token = response.json().get('access_token') # TODO: Rename to access_token
+    if not access_token:
         abort(401)
 
     response = requests.get(provider_data['userinfo']['url'], headers={
-        'Authorization': 'Bearer ' + oauth2_token,
+        'Authorization': 'Bearer ' + access_token,
         'Accept': 'application/json',
     })
+
     if response.status_code != 200:
         abort(401)
-    identity = provider_data['userinfo']['identity'](response.json())
 
-    login_user(f'{provider}:{identity}')
+    identity = provider_data['userinfo']['identity'](response.json())
+    user = User(f'{provider}:{identity}')
+    login_user(user)
+
     return redirect(url_for('index'))
 
 
