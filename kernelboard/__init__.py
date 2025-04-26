@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_session import Session
 from flask_talisman import Talisman
-from . import color, db, env, error, health, index, leaderboard, news, score, time
+from . import auth, color, db, env, error, health, index, leaderboard, news, score, time
 
 def create_app(test_config=None):
     # Check if we're in development mode:
@@ -27,6 +27,19 @@ def create_app(test_config=None):
         PERMANENT_SESSION_LIFETIME=1209600, # 14 days
         SESSION_TYPE='redis',
         SESSION_REDIS=redis.from_url(os.getenv('REDIS_URL')),
+        OAUTH2_PROVIDERS={
+            'discord': {
+                'client_id': os.getenv('DISCORD_CLIENT_ID'),
+                'client_secret': os.getenv('DISCORD_TOKEN'),
+                'authorize_url': 'https://discord.com/oauth2/authorize',
+                'token_url': 'https://discord.com/api/oauth2/token',
+                'userinfo': {
+                    'url': 'https://discord.com/api/users/@me',
+                    'identity': lambda json: json['id'],
+                },
+                'scopes': ['identify'],
+            }
+        },
     )
 
     # Heroku Redis uses self-signed certificates:
@@ -75,6 +88,8 @@ def create_app(test_config=None):
 
     app.register_blueprint(news.blueprint)
     app.add_url_rule('/news', endpoint='news')
+
+    app.register_blueprint(auth.blueprint)
 
     app.errorhandler(404)(error.page_not_found)
     app.errorhandler(500)(error.server_error)
