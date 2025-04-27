@@ -1,6 +1,7 @@
 from unittest.mock import patch, MagicMock
 import redis
 
+
 def test_health(client):
     response = client.get('/health')
     assert response.status_code == 200
@@ -28,11 +29,12 @@ def test_health_database_error(client):
         assert json_data['service'] == 'kernelboard'
         mock_cursor.execute.assert_called_once()
 
+
 def test_health_redis_error(client):
     mock_conn = MagicMock()
     mock_conn.ping.side_effect = redis.exceptions.ConnectionError("Redis connection failed")
 
-    with patch('redis.from_url', return_value=mock_conn):
+    with patch('redis.Redis', return_value=mock_conn):
         response = client.get('/health')
         assert response.status_code == 500
         json_data = response.get_json()
