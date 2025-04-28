@@ -46,6 +46,19 @@
         </div>
     </header>
 
+    <!-- Flashed Messages -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flashes-container"> {# TODO: Styling for flashes #}
+          <ul class="flashes">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    {% endwith %}
+
     <!-- Main Content -->
     <main class="main-container">
         {% block content %}{% endblock %}
