@@ -1,4 +1,3 @@
-# TODO: Tests
 from flask import abort, Blueprint, current_app as app, flash, redirect, \
     render_template, request, session, url_for
 from flask_login import current_user, login_user, logout_user, UserMixin
@@ -95,7 +94,7 @@ def callback(provider):
     if response.status_code != 200:
         abort(401)
 
-    access_token = response.json().get('access_token') # TODO: Rename to access_token
+    access_token = response.json().get('access_token')
     if not access_token:
         abort(401)
 

@@ -35,7 +35,6 @@ def create_app(test_config=None):
     # https://devcenter.heroku.com/articles/heroku-redis#security-and-compliance
     # In Heroku we use the config key REDIS_SSL_CERT_REQS to have redis-py
     # accept self-signed certificates.
-    # TODO: Set in Heroku
     if 'REDIS_SSL_CERT_REQS' in os.environ:
         app.config['REDIS_SSL_CERT_REQS'] = os.getenv('REDIS_SSL_CERT_REQS')
 
