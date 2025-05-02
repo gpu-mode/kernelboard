@@ -4,6 +4,7 @@ version = "0.0.0"
 description = "Kernelboard is a webapp for GPU MODE."
 dependencies = [
     "flask",
+    "markdown",
 ]
 
 [build-system]

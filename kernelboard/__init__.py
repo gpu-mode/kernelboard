@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from flask import Flask
 from flask_talisman import Talisman
+import markdown
 from . import color, db, env, error, health, index, leaderboard, news, score, time
 
 def create_app(test_config=None):
@@ -27,7 +28,8 @@ def create_app(test_config=None):
         app,
         content_security_policy={
             'default-src': "'self'",
-            'script-src': "'self' https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+            'script-src': "'self' https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js",
+            'style-src': "'self' 'unsafe-inline'"
         },
         force_https=app.config.get('TALISMAN_FORCE_HTTPS', True))
 
@@ -44,6 +46,7 @@ def create_app(test_config=None):
     app.add_template_filter(score.format_score, 'format_score')
     app.add_template_filter(time.to_time_left, 'to_time_left')
     app.add_template_filter(time.format_datetime, 'format_datetime')
+    app.add_template_filter(lambda text: markdown.markdown(text, extensions=['fenced_code', 'tables', 'nl2br']), 'markdown')
 
     app.register_blueprint(health.blueprint)
     app.add_url_rule('/health', endpoint='health')

@@ -48,7 +48,7 @@
     <div>
         <div class="leaderboard-card">
             <h2>Description</h2>
-            <p class="whitespace-pre-wrap leading-relaxed">{{ description }}</p>
+            <div class="prose max-w-none">{{ description|markdown|safe }}</div>
         </div>
     </div>
 
