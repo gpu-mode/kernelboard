@@ -132,21 +132,3 @@ def index():
     return render_template('index.html', 
                          leaderboards=leaderboards,
                          now=datetime.now(timezone.utc))
-
-
-def select_highest_priority_gpu(top_users_by_gpu: dict) -> tuple[str, list]:
-    """
-    Select the highest priority GPU type that has data.
-    Returns tuple of (gpu_type, users) or None if no data available.
-    """
-    priority = ['B200', 'H100', 'MI300', 'A100', 'L4', 'T4']
-    
-    for gpu_type in priority:
-        if top_users_by_gpu.get(gpu_type):
-            return (gpu_type, top_users_by_gpu[gpu_type])
-            
-    if top_users_by_gpu:
-        return next(iter(top_users_by_gpu.items()))
-
-    return (None, None)
-
