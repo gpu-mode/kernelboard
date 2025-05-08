@@ -24,16 +24,15 @@
                         {{ leaderboard['gpu_types']|join(', ') }}
                     </div>
 
-                    {% set gpu_type, top_users = leaderboard.top_users_by_gpu | select_highest_priority_gpu %}
-                    {% if top_users %}
+                    {% if leaderboard.top_users %}
                         <div class="leaderboard-content mt-4">
                             <div class="score-box">
                                 <div class="text-center mb-2">
                                     <span class="chip px-2 py-0.5 text-sm bg-gray-100 text-gray-700">
-                                        {{ gpu_type }}
+                                        {{ leaderboard.priority_gpu_type }}
                                     </span>
                                 </div>
-                                {% for user_info in top_users %}
+                                {% for user_info in leaderboard.top_users %}
                                     <div class="score-row">
                                         <span>{{ user_info['user_name'] or "&nbsp;"|safe }}
                                             {% if user_info['rank'] == 1 %}

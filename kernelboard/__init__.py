@@ -40,7 +40,6 @@ def create_app(test_config=None):
     db.init_app(app)
 
     app.add_template_filter(color.to_color, 'to_color')
-    app.add_template_filter(index.select_highest_priority_gpu, 'select_highest_priority_gpu')
     app.add_template_filter(score.format_score, 'format_score')
     app.add_template_filter(time.to_time_left, 'to_time_left')
     app.add_template_filter(time.format_datetime, 'format_datetime')
