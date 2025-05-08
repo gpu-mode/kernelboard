@@ -15,14 +15,15 @@ def index():
     #     "name": "conv2d",
     #     "deadline": "2025-04-29T17:00:00-07:00",
     #     "gpu_types": ["L4", "T4"],
-    #     "top_users_by_gpu": {
-    #         "L4": [
-    #             {
-    #                 "rank": 1,
-    #                 "score": 0.123
-    #                 "user_name": "alice"
-    #             }, ...
-    #         ], ...
+    #     "priority_gpu_type": "L4",
+    #     "top_users": [
+    #         {
+    #             "rank": 1,
+    #             "score": 0.123
+    #             "user_name": "alice"
+    #         }, ...
+    #     ],
+    # }
 
     query = """
         WITH
@@ -39,8 +40,36 @@ def index():
             WHERE leaderboard_id IN (SELECT id FROM active_leaderboards)
         ),
 
+        -- Get the "highest priority" GPU type for each leaderboard.
+        priority_gpu_types AS (
+            SELECT leaderboard_id, gpu_type FROM (
+                SELECT
+                    leaderboard_id,
+                    gpu_type,
+                    -- Assign priority based on the how "capable" GPT-4o thought
+                    -- various GPU types were.
+                    ROW_NUMBER() OVER (
+                        PARTITION BY leaderboard_id
+                        ORDER BY
+                            CASE gpu_type
+                                WHEN 'B200' THEN 1
+                                WHEN 'H100' THEN 2
+                                WHEN 'MI300' THEN 3
+                                WHEN 'A100' THEN 4
+                                WHEN 'L4'   THEN 5
+                                WHEN 'T4'   THEN 6
+                                ELSE 7 -- Lowest priority for any other type.
+                            END ASC,
+                            gpu_type ASC
+                    ) as rn
+                FROM leaderboard.gpu_type
+                WHERE leaderboard_id IN (SELECT id FROM active_leaderboards)
+            ) ranked_gpu_types
+            WHERE rn = 1
+        ),
+
         -- Get each user's best run for each GPU type (runner) on the active
-        --leaderboards.
+        -- leaderboards.
         personal_best_candidates AS (
             SELECT r.runner AS runner,
                 s.leaderboard_id AS leaderboard_id,
@@ -51,6 +80,8 @@ def index():
             FROM leaderboard.runs r
                 JOIN leaderboard.submission s ON r.submission_id = s.id
                 JOIN active_leaderboards a ON s.leaderboard_id = a.id
+                JOIN priority_gpu_types p on p.leaderboard_id = a.id
+                    AND p.gpu_type = r.runner
                 LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
             WHERE NOT r.secret AND r.score IS NOT NULL AND r.passed
         ),
@@ -72,22 +103,21 @@ def index():
             'name', l.name,
             'deadline', l.deadline,
             'gpu_types', (SELECT jsonb_agg(gpu_type) FROM gpu_types g WHERE g.leaderboard_id = l.id),
-            'top_users_by_gpu',
+            'priority_gpu_type', (SELECT g.gpu_type FROM priority_gpu_types g WHERE g.leaderboard_id = l.id),
+            'top_users',
 
-                -- For each GPU type, get the top 3 users by rank.
-                (SELECT jsonb_object_agg(g.gpu_type, (
-                    SELECT jsonb_agg(
-                        jsonb_build_object(
-                            'rank', r.user_rank,
-                            'score', r.score,
-                            'user_name', r.user_name
-                        )
+                -- For the priority GPU type, get the top 3 users by rank.
+                (SELECT jsonb_agg(
+                    jsonb_build_object(
+                        'rank', r.user_rank,
+                        'score', r.score,
+                        'user_name', r.user_name
                     )
-                    FROM competitive_rankings r
-                    WHERE r.leaderboard_id = l.id
-                    AND r.runner = g.gpu_type
-                    AND r.user_rank <= 3
-                )) FROM gpu_types g)
+                    ORDER BY r.user_rank ASC
+                  )
+                  FROM competitive_rankings r
+                  WHERE r.leaderboard_id = l.id AND r.user_rank <= 3
+                )
         )
         FROM active_leaderboards l
         ORDER BY l.id DESC;
@@ -102,21 +132,3 @@ def index():
     return render_template('index.html', 
                          leaderboards=leaderboards,
                          now=datetime.now(timezone.utc))
-
-
-def select_highest_priority_gpu(top_users_by_gpu: dict) -> tuple[str, list]:
-    """
-    Select the highest priority GPU type that has data.
-    Returns tuple of (gpu_type, users) or None if no data available.
-    """
-    priority = ['B200', 'H100', 'MI300', 'A100', 'L4', 'T4']
-    
-    for gpu_type in priority:
-        if top_users_by_gpu.get(gpu_type):
-            return (gpu_type, top_users_by_gpu[gpu_type])
-            
-    if top_users_by_gpu:
-        return next(iter(top_users_by_gpu.items()))
-
-    return (None, None)
-
