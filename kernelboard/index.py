@@ -128,7 +128,7 @@ def index():
     with conn.cursor() as cur:
         cur.execute(query)
         leaderboards = [row[0] for row in cur.fetchall()]
-    
+
     return render_template('index.html', 
                          leaderboards=leaderboards,
                          now=datetime.now(timezone.utc))
