@@ -46,6 +46,27 @@
         </div>
     </header>
 
+    <!-- Default Toast Messages Container (Bottom Center) -->
+    <div id="toast-container-default" class="toast-container-default">
+        {# Default toasts will be dynamically added here by JavaScript #}
+    </div>
+
+    <!-- Hidden Template for Default Flash Messages -->
+    <div hidden>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {# Process only default 'message' category for toasts here #}
+                    {% if category == 'message' or category is none %}
+                        <div class="toast-template-default"
+                             data-message="{{ message }}">
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
     <!-- Main Content -->
     <main class="main-container">
         {% block content %}{% endblock %}
@@ -63,6 +84,7 @@
     </footer>
 
     <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/flash.js') }}"></script> {# Ensure flash script is linked #}
     {% block scripts %}{% endblock %}
 </body>
 </html> 
