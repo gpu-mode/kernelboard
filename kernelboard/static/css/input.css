@@ -11,6 +11,34 @@ Appending --watch will watch for changes and update main.css automatically.
 @tailwind components;
 @tailwind utilities;
 
+@keyframes shine {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
 @layer base {
   html {
     @apply overflow-y-scroll;
@@ -73,11 +101,6 @@ Appending --watch will watch for changes and update main.css automatically.
     @apply colored-square;
     background-color: #00F5D4;
   }
-  @keyframes shine {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-  }
   .medal {
     @apply inline-block ml-[5px];
     animation: shine 2s infinite;
@@ -125,7 +148,7 @@ Appending --watch will watch for changes and update main.css automatically.
   .header-link {
     @apply px-3 py-2 rounded-md text-sm font-medium text-gray-900 hover:bg-gray-100;
   }
-  .header-login-button {
+  .header-login-btn {
     @apply px-4 py-2 rounded-full bg-discord text-sm font-medium text-white hover:bg-discord/80;
   }
   .main-container {
@@ -287,4 +310,32 @@ Appending --watch will watch for changes and update main.css automatically.
   .news-item p {
     @apply mb-4
   }
+  .toast-container-default {
+    @apply fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center space-y-2 w-full max-w-sm pointer-events-none bg-white;
+  }
+  .toast-default {
+    @apply pointer-events-auto w-full overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5;
+    @apply text-toast-default bg-toast-default/5;
+    @apply p-4;
+  }
+  .toast-default-content {
+    @apply flex items-start;
+  }
+  .toast-default-message {
+    @apply text-sm font-medium;
+  }
+  .toast-default-close-btn {
+    @apply ml-auto;
+    @apply pl-3;
+    @apply inline-flex rounded-md bg-transparent text-current opacity-70 hover:opacity-100;
+    @apply focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2;
+  }
+}
+
+.animate-toast-in {
+  animation: toast-in 0.3s ease-out forwards;
+}
+
+.animate-toast-out {
+  animation: toast-out 0.3s ease-in forwards;
 }
