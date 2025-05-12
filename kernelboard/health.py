@@ -1,3 +1,4 @@
+import os
 from flask import Blueprint, current_app as app
 from .db import get_db_connection
 from .redis_connection import create_redis_connection
@@ -19,7 +20,8 @@ def health():
         app.logger.error(f"Database health check failed: {e}")
         all_checks_passed = False
 
-    redis_conn = create_redis_connection()
+    cert_reqs = os.getenv('REDIS_SSL_CERT_REQS')
+    redis_conn = create_redis_connection(cert_reqs=cert_reqs)
     if redis_conn == None:
         app.logger.error("redis_conn is None. Is REDIS_URL set?")
         all_checks_passed = False

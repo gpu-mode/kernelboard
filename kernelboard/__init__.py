@@ -1,11 +1,11 @@
 import os
-import redis
 from dotenv import load_dotenv
 from flask import Flask
 from flask_login import LoginManager
 from flask_session import Session
 from flask_talisman import Talisman
 from . import auth, color, db, env, error, health, index, leaderboard, news, score, time
+from .redis_connection import create_redis_connection
 
 def create_app(test_config=None):
     # Check if we're in development mode:
@@ -27,16 +27,16 @@ def create_app(test_config=None):
         SESSION_PERMANENT=True,
         PERMANENT_SESSION_LIFETIME=1209600, # 14 days
         SESSION_TYPE='redis',
-        SESSION_REDIS=redis.from_url(os.getenv('REDIS_URL')),
+
+        # Heroku Redis uses self-signed certificates:
+        # https://devcenter.heroku.com/articles/heroku-redis#security-and-compliance
+        # In Heroku we use the config key REDIS_SSL_CERT_REQS to have redis-py
+        # accept self-signed certificates.
+        SESSION_REDIS=create_redis_connection(
+            cert_reqs=os.getenv('REDIS_SSL_CERT_REQS')),
+
         OAUTH2_PROVIDERS=auth.providers(),
     )
-
-    # Heroku Redis uses self-signed certificates:
-    # https://devcenter.heroku.com/articles/heroku-redis#security-and-compliance
-    # In Heroku we use the config key REDIS_SSL_CERT_REQS to have redis-py
-    # accept self-signed certificates.
-    if 'REDIS_SSL_CERT_REQS' in os.environ:
-        app.config['REDIS_SSL_CERT_REQS'] = os.getenv('REDIS_SSL_CERT_REQS')
 
     if test_config is not None:
         app.config.from_mapping(test_config)
