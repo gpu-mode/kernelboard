@@ -1,18 +1,17 @@
-from flask import current_app as app
+import os
 import redis
 
 
-def create_redis_connection() -> redis.Redis | None:
+def create_redis_connection(cert_reqs: str | None = None) -> redis.Redis | None:
     """
     Creates a redis connection using application configuration.
     """
-    if 'REDIS_URL' not in app.config:
+    url = os.getenv('REDIS_URL')
+    if url is None:
         return None
 
-    url = app.config['REDIS_URL']
-    
     kwargs = {}
-    if 'REDIS_SSL_CERT_REQS' in app.config:
-        kwargs['ssl_cert_reqs'] = app.config['REDIS_SSL_CERT_REQS']
+    if cert_reqs:
+        kwargs['ssl_cert_reqs'] = cert_reqs
     
     return redis.from_url(url, **kwargs)
