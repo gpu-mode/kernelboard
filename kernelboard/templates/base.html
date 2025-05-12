@@ -46,9 +46,30 @@
         </div>
     </header>
 
+    <!-- Error Toast Messages Container (Top Center) -->
+    <div id="toast-container-error" class="toast-container-error">
+        {# Error toasts will be dynamically added here by JavaScript #}
+    </div>
+
     <!-- Default Toast Messages Container (Bottom Center) -->
     <div id="toast-container-default" class="toast-container-default">
         {# Default toasts will be dynamically added here by JavaScript #}
+    </div>
+
+    <!-- Hidden Template for Error Flash Messages -->
+    <div hidden>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {# Process only 'error' category for toasts here #}
+                    {% if category == 'error' %}
+                        <div class="toast-template-error"
+                             data-message="{{ message }}">
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
     </div>
 
     <!-- Hidden Template for Default Flash Messages -->
