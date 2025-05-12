@@ -11,6 +11,13 @@ def test_health(client):
     assert data['status'] == 'healthy'
 
 
+def assert_unhealthy(response):
+        assert response.status_code == 500
+        json_data = response.get_json()
+        assert json_data['status'] == 'unhealthy'
+        assert json_data['service'] == 'kernelboard'
+
+
 def test_health_database_error(client):
     mock_cursor = MagicMock()
     mock_cursor.execute.side_effect = Exception("Database query failed")
@@ -22,22 +29,19 @@ def test_health_database_error(client):
     mock_conn.cursor.return_value = mock_cursor
 
     with patch('kernelboard.health.get_db_connection', return_value=mock_conn):
-        response = client.get('/health')
-        assert response.status_code == 500
-        json_data = response.get_json()
-        assert json_data['status'] == 'unhealthy'
-        assert json_data['service'] == 'kernelboard'
+        assert_unhealthy(client.get('/health'))
         mock_cursor.execute.assert_called_once()
+
+
+def test_health_no_redis_config(client):
+    with patch('kernelboard.health.create_redis_connection', return_value=None):
+        assert_unhealthy(client.get('/health'))
 
 
 def test_health_redis_error(client):
     mock_conn = MagicMock()
     mock_conn.ping.side_effect = redis.exceptions.ConnectionError("Redis connection failed")
 
-    with patch('redis.Redis', return_value=mock_conn):
-        response = client.get('/health')
-        assert response.status_code == 500
-        json_data = response.get_json()
-        assert json_data['status'] == 'unhealthy'
-        assert json_data['service'] == 'kernelboard'
+    with patch('kernelboard.health.create_redis_connection', return_value=mock_conn):
+        assert_unhealthy(client.get('/health'));
         mock_conn.ping.assert_called_once()
