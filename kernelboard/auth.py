@@ -110,6 +110,7 @@ def callback(provider):
     user = User(f'{provider}:{identity}')
     login_user(user)
 
+    flash("You are logged in. Welcome!")
     return redirect(url_for('index'))
 
 
@@ -117,5 +118,5 @@ def callback(provider):
 def logout():
     logout_user()
     session.clear()
-    flash("You've been logged out.")
+    flash("You are logged out.")
     return redirect(url_for('index'))
