@@ -5,7 +5,7 @@ from flask_login import LoginManager
 from flask_session import Session
 from flask_talisman import Talisman
 from . import auth, color, db, env, error, health, index, leaderboard, news, score, time
-from .redis_connection import create_redis_connection
+from .redis_connection import get_redis_connection
 
 def create_app(test_config=None):
     # Check if we're in development mode:
@@ -32,7 +32,7 @@ def create_app(test_config=None):
         # https://devcenter.heroku.com/articles/heroku-redis#security-and-compliance
         # In Heroku we use the config key REDIS_SSL_CERT_REQS to have redis-py
         # accept self-signed certificates.
-        SESSION_REDIS=create_redis_connection(
+        SESSION_REDIS=get_redis_connection(
             cert_reqs=os.getenv('REDIS_SSL_CERT_REQS')),
 
         OAUTH2_PROVIDERS=auth.providers(),
