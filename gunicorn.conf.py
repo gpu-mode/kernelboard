@@ -8,9 +8,9 @@ bind = f"0.0.0.0:{PORT}"
 backlog = 2048
 
 # Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1
+workers = multiprocessing.cpu_count()
 worker_class = 'sync'
-worker_connections = 100
+worker_connections = 50
 timeout = 30
 keepalive = 2
 
