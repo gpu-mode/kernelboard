@@ -70,10 +70,16 @@ def callback(provider):
     if provider_data is None:
         abort(404)
 
-    if 'error' in request.args:
+    if any(k.startswith('error') for k in request.args):
+        errors = []
         for k, v in request.args.items():
             if k.startswith('error'):
-                flash(f'{k}: {v}')
+                if k == 'error': v = v.replace('_', ' ')
+                k = k.replace('_', ' ').capitalize()
+                errors.append(f'{k}: {v}')
+
+        message = '<ul>' + ''.join(f"<li>{e}</li>" for e in errors) + '</ul>'
+        flash(message, category='error')
         return redirect(url_for('index'))
 
     if request.args['state'] != session.get('oauth2_state'):
