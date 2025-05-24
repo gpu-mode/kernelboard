@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Login &ndash; GPU MODE{% endblock %}
+
+{% block content %}
+<div class="login-box">
+    <a href="{{ url_for('auth.auth', provider='discord') }}" 
+       class="login-button">
+        Sign in with Discord
+    </a>
+    <p class="text-s text-gray-600">
+        To handle logins, we use a necessary cookie. It's just for this feature.
+    </p>
+</div>
+{% endblock %}
