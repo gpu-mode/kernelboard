@@ -6,7 +6,13 @@ def check_env_vars():
     print a message and exit.
     """
 
-    required_env_vars = ['SECRET_KEY', 'DATABASE_URL', 'REDIS_URL']
+    required_env_vars = [
+        'DATABASE_URL',
+        'DISCORD_CLIENT_ID',
+        'DISCORD_CLIENT_SECRET',
+        'REDIS_URL',
+        'SECRET_KEY',
+    ]
     missing_env_vars = [var for var in required_env_vars if os.getenv(var) is None]
 
     if missing_env_vars:

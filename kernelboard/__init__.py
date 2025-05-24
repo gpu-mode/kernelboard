@@ -1,8 +1,11 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask
+from flask_login import LoginManager
+from flask_session import Session
 from flask_talisman import Talisman
-from . import color, db, env, error, health, index, leaderboard, news, score, time
+from . import auth, color, db, env, error, health, index, leaderboard, news, score, time
+from .redis_connection import create_redis_connection
 
 def create_app(test_config=None):
     # Check if we're in development mode:
@@ -18,10 +21,35 @@ def create_app(test_config=None):
         DATABASE_URL=os.getenv('DATABASE_URL'),
         REDIS_URL=os.getenv('REDIS_URL'),
         TALISMAN_FORCE_HTTPS=True,
+        SESSION_COOKIE_SECURE=True,
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE='Lax',
+        SESSION_PERMANENT=True,
+        PERMANENT_SESSION_LIFETIME=1209600, # 14 days
+        SESSION_TYPE='redis',
+
+        # Heroku Redis uses self-signed certificates:
+        # https://devcenter.heroku.com/articles/heroku-redis#security-and-compliance
+        # In Heroku we use the config key REDIS_SSL_CERT_REQS to have redis-py
+        # accept self-signed certificates.
+        SESSION_REDIS=create_redis_connection(
+            cert_reqs=os.getenv('REDIS_SSL_CERT_REQS')),
+
+        OAUTH2_PROVIDERS=auth.providers(),
     )
 
     if test_config is not None:
         app.config.from_mapping(test_config)
+
+    Session(app)
+
+    login_manager = LoginManager()
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return auth.User(user_id) if user_id else None
+
+    login_manager.init_app(app)
 
     Talisman(
         app,
@@ -56,6 +84,9 @@ def create_app(test_config=None):
     app.register_blueprint(news.blueprint)
     app.add_url_rule('/news', endpoint='news')
 
+    app.register_blueprint(auth.blueprint)
+
+    app.errorhandler(401)(error.unauthorized)
     app.errorhandler(404)(error.page_not_found)
     app.errorhandler(500)(error.server_error)
 
