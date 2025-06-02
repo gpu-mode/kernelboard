@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="content-stack">
-    <h1>Active Leaderboards</h1>
+    <h1>Leaderboards</h1>
     
     <div class="leaderboard-grid">
         {% for leaderboard in leaderboards %}
@@ -17,7 +17,7 @@
                     </div>
 
                     <div class="leaderboard-content">
-                        {{ leaderboard['deadline']|to_time_left }} remaining
+                        {{ leaderboard['deadline']|to_time_left }}
                     </div>
 
                     <div class="leaderboard-content text-sm">
