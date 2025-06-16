@@ -1547,6 +1547,11 @@ h3 {
   top: 0.5rem;
 }
 
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .mb-2 {
   margin-bottom: 0.5rem;
 }
@@ -1585,6 +1590,10 @@ h3 {
 
 .max-h-\[300px\] {
   max-height: 300px;
+}
+
+.w-1\/2 {
+  width: 50%;
 }
 
 .w-5 {
