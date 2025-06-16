@@ -2,10 +2,55 @@
 
 {% block title %}News &ndash; GPU MODE{% endblock %}
 
+{% block extra_head %}
+{{ super() }}
+<script id="mathjax" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+{% endblock %}
+
 {% block content %}
 
 <div class="content-stack">
 <h1>News and Announcements</h1>
+
+<div class="news-item">
+{% set color = 'TriMul'|to_color %}
+<h2><div class="{{ color }}-square"></div>
+(Mini) Competition #3: AlphaFold's Triangle Multiplicative Update
+(June 16, 2025)</h2>
+
+<p><i>“This is a really really fun + impactful problem for kernel devs.
+good luck :p” — az</i></p>
+<p>
+
+A lot of the kernels / problems you will see in these GPU MODE kernel writing
+competitions center around large language model training &mdash; our last
+competition, for example, centered around popular single-device kernels used in
+DeepSeek-V3/R1. Many future problems may also revolve around communication
+kernels where we provide a whole node such as the expert parallelism MoE.
+</p>
+
+<img src="{{ url_for('static', filename='images/2025-trimul.jpeg') }}"
+alt="AlphaFold Nobel Prize 2024" class="w-1/2 mx-auto block h-auto">
+
+<p>
+Many of these kernels we have in mind have already been heavily optimized by
+experts in labs like DeepSeek, OpenAI, Anthropic, Google DeepMind, etc. so we
+wanted to design some problems that were still interesting, but had real use
+cases when solved. The first problem that immediately came to mind was the
+Triangle Multiplicative Update used in AlphaFold2 and AlphaFold3, a series of
+extremely influential works in the BioML space that led to John Jumper and Demis
+Hassabis winning the Nobel Prize in Chemistry. This operator is particularly
+nasty due to its cubic \(O(n^3)\) operations. The peak memory of this operator is
+so bad that most implementations of AlphaFold3 (see Ligo's OSS reproduction and
+MIT's Boltz-2) keep the batch size during training at 1, despite the models
+being &lt;1B in parameter size!
+</p>
+
+<p>
+Now enough motivation, it's time to <b>get coding!</b>
+</p>
+
+</div>
 
 <div class="news-item">
 {% set color = 'AMD Developer Challenge 2025'|to_color %}
