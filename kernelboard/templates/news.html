@@ -8,6 +8,55 @@
 <h1>News and Announcements</h1>
 
 <div class="news-item">
+{% set color = 'AMD Competition Results'|to_color %}
+<h2><div class="{{ color }}-square"></div>
+AMD Competition Success: 30K+ Submissions and Recognition at Advancing AI (June 2025)</h2>
+
+<p>
+We are thrilled to share that GPU MODE was recognized on stage by Lisa Su at the <a href="https://www.amd.com/en/corporate/events/advancing-ai.html">Advancing AI</a> closing ceremony, where she said "I wanted to thank the GPU MODE team formed by talented developers from Meta, Hugging Face and MIT, they have been great partners throughout and we could not have done this without them."
+</p>
+
+<p>
+Our team built the infrastructure for the  <a href="https://www.datamonsters.com/amd-developer-challenge-2025">AMD $100K kernel competition</a>, which ran for 2 months and saw remarkable participation: over 30,000 submissions from 163+ teams. This volume exceeds the total number of kernels collected in <a href="https://huggingface.co/datasets/GPUMODE/KernelBook">KernelBook</a> from crawling all of Github and this represents a significant milestone in aggregating higher quality kernel data </p>
+
+<p>
+The results have been outstanding - the best competition kernels are faster than AMD's AITER baselines, all implemented in single files. It was an absolute pleasure meeting some of the top teams in person including Seb, hatoo, Snektron and the grand prize winners ColorsWind. https://www.gpumode.com/
+
+
+Several top competitors have generously shared their techniques:
+</p>
+
+<ul>
+    <li><a href="https://github.com/luongthecong123/fp8-quant-matmul">Luong The Cong's FP8 Quant MatMul</a></li>
+    <li><a href="https://seb-v.github.io/optimization/update/2025/01/20/Fast-GPU-Matrix-multiplication.html">Seb V's Fast GPU Matrix Implementation</a></li>
+    <li><a href="https://akashkarnatak.github.io/amd-challenge/">Akash Karnatak's Challenge Solutions</a></li>
+    <li><a href="https://www.bilibili.com/read/cv41954307/?opus_fallback=1">Fan Wenjie Technical Analysis</a></li>
+    <li><a href="https://github.com/Snektron/gpumode-amd-fp8-mm">Snektron's FP8 Matrix Multiplication</a></li>
+</ul>
+
+<p>
+We're planning to release all submissions as a permissively licensed dataset, with each solution representing unique tradeoffs between usability and performance. We're working closely with ROCm engineers to upstream the best kernels to PyTorch, leveraging its position as the premier distribution vehicle for kernels.
+</p>
+
+<p>
+In exciting academic news, our KernelBot platform has been accepted to the ICML CodeML workshop with two strong accepts! Reviewer #2 highlighted the virtuous loop we created: "The paper presents KernelBot, a platform for hosting code optimization competitions, specifically for GPU kernels. Users can submit their implementations and let the system rank them. This serves to (i) educate users how to write efficient GPU kernels, (ii) improve the efficiency of existing GPU kernels, and (iii) collect high quality data for GPU programs that can be used to train generative models."
+</p>
+
+<p>
+KernelBot represents our third major competition infrastructure project, following the NeurIPS LLM efficiency competition and Hacker Cup. We're grateful to our coauthors Driss Guessous and Supriya, with special thanks to Joe Isaacson for helping cultivate this passion. We've learned that the key to sustainable benchmarking projects is making them social and ensuring fast cold starts.
+</p>
+
+<p>
+We're also excited to announce that we're building a GPU MODE team at Meta, starting with Anita Katahoire. This marks an exciting new chapter in our journey to accelerate AI research through kernel optimization.
+</p>
+
+<p>
+A big thank you to the KernelLLM team for inspiration, the GPU MODE community and of course our amazing collaborators at AMD for making this possible.
+</p>
+
+</div>
+
+<div class="news-item">
 {% set color = 'AMD Developer Challenge 2025'|to_color %}
 <h2><div class="{{ color }}-square"></div>
 AMD Developer Challenge 2025: Inference Sprint (April 15, 2025)</h2>
