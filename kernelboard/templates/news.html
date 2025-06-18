@@ -8,16 +8,54 @@
 <h1>News and Announcements</h1>
 
 <div class="news-item">
+{% set color = 'Triangle Multiplicative Update'|to_color %}
+<h2><div class="{{ color }}-square"></div>
+New competition problem: Triangle Multiplicative Update (June 18, 2025)</h2>
+
+<p>
+We are excited to announce a really exciting and challenging GPU competition problem on the GPU MODE leaderboard that you can optimize across NVIDIA (A100, H100, B200) and AMD hardware (MI300)! This is our first problem across multiple hardware vendors, and is also particularly challenging (<a href="https://x.com/a1zhang">@a1zhang</a> has been particularly excited about it for months). You will be optimizing the <b>Triangle Multiplicative Update kernel</b> from the landmark <a href="https://deepmind.google/science/alphafold/">AlphaFold2/3</a> line of work that won a Nobel Prize!
+</p>
+
+<p>
+Funnily enough, while writing up this problem, we noticed that NVIDIA actually released that they had been working on this kernel in their cuEquivariance library — what a coincidence! We ask that participants do not use this library in their solutions, as it is closed source (we will be automatically and manually removing these solutions on the leaderboard). Honestly though, I’m confident that you all can easily beat their solution!
+</p>
+
+<img src="{{ url_for('static', filename='images/trimul_teaser.png') }}"
+alt="New competition problem: Triangle Multiplicative Update" class="max-w-[50%] h-auto">
+
+<p>
+<b>Why a BioML kernel?<b> A lot of the kernels / problems you will see in these GPU MODE kernel writing competitions center around large language model training — our last competition, for example, centered around popular single-device kernels used in DeepSeek-V3/R1. Many future problems may also revolve around communication kernels where we provide a whole node such as the expert parallelism MoE.
+</p>
+
+<img src="{{ url_for('static', filename='images/google.png') }}"
+alt="" class="max-w-[50%] h-auto">
+
+<p>
+However, many of these kernels we have in mind have already been heavily optimized by experts in labs like DeepSeek, OpenAI, Anthropic, Google DeepMind, etc. so we wanted to design some problems that were still interesting, but had real use cases when solved. The first problem that immediately came to mind was the Triangle Multiplicative Update used in AlphaFold2 and AlphaFold3, a series of extremely influential works in the BioML space that led to <a href="https://www.nobelprize.org/prizes/chemistry/2024/press-release/">John Jumper and Demis Hassabis winning the Nobel Prize in Chemistry</a>. 
+This operator is particularly nasty due to its cubic O(n^3) operations. The peak memory of this operator is so bad that most implementations of AlphaFold3 (see <a href="https://github.com/Ligo-Biosciences/AlphaFold3">Ligo’s OSS reproduction</a> and MIT’s <a href="https://github.com/jwohlwend/boltz">Boltz-2</a>) keep the batch size during training at 1, despite the models being less than 1B in parameter size!
+</p>
+
+<p>
+<b>Note:</b> There will be no huge cash prizes from big company sponsors for this competition, but we will be providing never-before-seen merch for winners for free!
+</p>
+
+<p>
+Good luck to everyone! 
+</p>
+
+</div>
+
+<div class="news-item">
 {% set color = 'AMD Competition Results'|to_color %}
 <h2><div class="{{ color }}-square"></div>
-AMD Competition Success: 30K+ Submissions and Recognition at Advancing AI (June 2025)</h2>
+AMD Competition Success: 30K+ Submissions and Recognition at Advancing AI (June 12, 2025)</h2>
 
 <p>
 We are thrilled to share that GPU MODE was recognized on stage by Dr Lisa Su at the <a href="https://www.amd.com/en/corporate/events/advancing-ai.html">Advancing AI</a> closing ceremony, where she said "I wanted to thank the GPU MODE team formed by talented developers from Meta, Hugging Face and MIT, they have been great partners throughout and we could not have done this without them." Back when GPU MODE was just a humble reading group, we never imagined we would be recognized on stage by one of the greatest CEO's of our time.
 </p>
 
 <img src="{{ url_for('static', filename='images/lisa.jpeg') }}"
-alt="Lisa Su recognizing GPU MODE at Advancing AI" class="max-w-full h-auto">
+alt="Lisa Su recognizing GPU MODE at Advancing AI" class="max-w-[50%] h-auto">
 <p class="text-sm text-gray-600 italic">We were missing the giga cracked Erik (ngc92)</p>
 
 
