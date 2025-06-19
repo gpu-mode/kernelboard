@@ -129,6 +129,12 @@ To build the React app and serve it through the Flask backend at `http://localho
 ```bash
 cd frontend && npm run build
 ```
+or at root:
+```bash
+```
+npm run heroku-postbuild
+```
+
 then run the Flask server:
 ```
 flask --app kernelboard run --debug
