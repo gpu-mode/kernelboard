@@ -68,7 +68,6 @@ these steps to run the test suite:
    ```shell
    pip install -e .
    ```
-
    This tells `pip` to install the project in editable mode, so that as you make
    changes to your local sandbox, you only need to reinstall if you make
    metadata changes such as adding new dependencies.
