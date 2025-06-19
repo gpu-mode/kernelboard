@@ -96,9 +96,9 @@ def create_app(test_config=None):
     app.errorhandler(404)(error.page_not_found)
     app.errorhandler(500)(error.server_error)
 
-    @app.route('/api/about_info')
-    def get_about_info():
-        return jsonify({'message': 'Kernelboard, your friendly leaderboard.'})
+    @app.route('/api/about')
+    def get_about():
+        return jsonify({'message': 'Kernelboard, your friendly leaderboard.'}), 200
 
     @app.route("/kb/", defaults={"path": ""})
     @app.route("/kb/<path:path>")
