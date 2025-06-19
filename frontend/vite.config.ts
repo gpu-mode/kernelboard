@@ -4,9 +4,9 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/app/',
+  base: '/kb/',
   build: {
-    outDir: path.resolve(__dirname, '../static/app'),
+    outDir: path.resolve(__dirname, '../kernelboard/static/kb'),
     emptyOutDir: true,
   },
   server: {

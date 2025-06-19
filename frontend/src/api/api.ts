@@ -1,10 +1,8 @@
-export const getAbout = async () => {
-    try {
-      const res = await fetch(`/api/hello`);
-      console.log(res);
-      return res.json();
-    } catch (err) {
-      console.error("Fetch failed fetchMessage:", err);
-      throw err;
-    }
-  };
+export async function fetchAboutInfo(): Promise<string> {
+  const res = await fetch("/api/about_info");
+  if (!res.ok) {
+    throw new Error(`Failed to fetch: ${res.status}`);
+  }
+  const data = await res.json();
+  return data.message;
+}
