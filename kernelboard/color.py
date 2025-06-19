@@ -1,5 +1,6 @@
 import mmh3
 
+
 def to_color(name: str) -> str:
     """Convert name to a color using the murmur3 hash"""
 
