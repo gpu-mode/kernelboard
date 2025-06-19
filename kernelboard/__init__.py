@@ -98,7 +98,7 @@ def create_app(test_config=None):
 
     @app.route('/api/about')
     def get_about():
-        return jsonify({'message': 'Kernelboard, your friendly leaderboard.'}), 200
+        return jsonify({'message': 'Kernelboard, your friendly leaderboard.'}), 200 
 
     @app.route("/kb/", defaults={"path": ""})
     @app.route("/kb/<path:path>")
