@@ -5,7 +5,7 @@ import redis
 def test_health(client):
     response = client.get('/health')
     assert response.status_code == 200
-    
+
     data = response.get_json()
     assert data['service'] == 'kernelboard'
     assert data['status'] == 'healthy'
@@ -34,7 +34,7 @@ def test_health_database_error(client):
 
 
 def test_health_no_redis_config(client):
-    with patch('kernelboard.health.create_redis_connection', return_value=None):
+    with patch('kernelboard.health.get_redis_connection', return_value=None):
         assert_unhealthy(client.get('/health'))
 
 
@@ -42,6 +42,6 @@ def test_health_redis_error(client):
     mock_conn = MagicMock()
     mock_conn.ping.side_effect = redis.exceptions.ConnectionError("Redis connection failed")
 
-    with patch('kernelboard.health.create_redis_connection', return_value=mock_conn):
+    with patch('kernelboard.health.get_redis_connection', return_value=mock_conn):
         assert_unhealthy(client.get('/health'));
         mock_conn.ping.assert_called_once()
