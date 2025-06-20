@@ -98,11 +98,14 @@ def create_app(test_config=None):
 
     @app.route('/api/about')
     def get_about():
-        return jsonify({'message': 'Kernelboard, your friendly leaderboard.'}), 200 
+        return jsonify({'message': 'Kernelboard, your friendly leaderboard.'}), 200
 
+    # Route for serving React frontend from the /kb/ path
+    # # This handles both the base path `/kb/` and any subpath `/kb/<path>`
     @app.route("/kb/", defaults={"path": ""})
     @app.route("/kb/<path:path>")
     def serve_react(path):
+        # set the react static binary path
         static_dir = os.path.join(app.static_folder, "kb")
         full_path = os.path.join(static_dir, path)
 
