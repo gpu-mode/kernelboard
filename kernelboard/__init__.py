@@ -9,6 +9,7 @@ from .redis_connection import create_redis_connection
 from flask import send_from_directory
 from flask import jsonify
 
+
 def create_app(test_config=None):
     # Check if we're in development mode:
     is_dev = os.getenv('FLASK_DEBUG') == '1'
@@ -38,7 +39,7 @@ def create_app(test_config=None):
         # https://devcenter.heroku.com/articles/heroku-redis#security-and-compliance
         # In Heroku we use the config key REDIS_SSL_CERT_REQS to have redis-py
         # accept self-signed certificates.
-        SESSION_REDIS=create_redis_connection(
+        SESSION_REDIS=get_redis_connection(
             cert_reqs=os.getenv('REDIS_SSL_CERT_REQS')),
 
         OAUTH2_PROVIDERS=auth.providers(),
