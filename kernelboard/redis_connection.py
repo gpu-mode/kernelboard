@@ -1,13 +1,9 @@
 import os
 import redis
 
-import os
-import redis
-
 _redis_client = None
 
 def get_redis_connection(cert_reqs: str | None = None) -> redis.Redis | None:
-    def get_redis_connection(cert_reqs: str | None = None) -> redis.Redis | None:
     """
     Retrieves or initializes a singleton redis connection.
     Retrieves or initializes a singleton redis connection.
