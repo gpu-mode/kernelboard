@@ -31,7 +31,6 @@ def index():
         -- Get basic information about active leaderboards.
         active_leaderboards AS (
             SELECT id, name, deadline FROM leaderboard.leaderboard
-            WHERE deadline > NOW()
         ),
 
         -- Get all the GPU types for each leaderboard.
