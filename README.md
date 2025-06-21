@@ -68,6 +68,7 @@ these steps to run the test suite:
    ```shell
    pip install -e .
    ```
+
    This tells `pip` to install the project in editable mode, so that as you make
    changes to your local sandbox, you only need to reinstall if you make
    metadata changes such as adding new dependencies.
@@ -115,42 +116,3 @@ heroku local web
 
 The gunicorn server will use port 8000, so visit http://localhost:8000/health
 (instead of port 5000, used by the Flask server).
-
-## React Web App [WIP]
-
-The React frontend is currently under development. Here's how to run it and view your changes locally.
-
-### Build for Flask (Static Mode)
-To build the React app and serve it through the Flask backend at `http://localhost:5000/kb/`:
-
-1. Make changes to your React code.
-2. Run the following command to rebuild the static assets:
-
-```bash
-cd frontend && npm run build
-```
-or at root:
-```bash
-```
-npm run heroku-postbuild
-```
-
-then run the Flask server:
-```
-flask --app kernelboard run --debug
-```
-
-> **Note:** You need to re-run this command **every time** you update the React code, as Flask serves from the generated `build/` folder.
-
-### Development Mode (Live Reload)
-To preview React changes instantly (without rebuilding manually each time):
-1. Start the Flask backend server as shown above.
-2. In a new terminal, run:
-
-```bash
-cd frontend && npm run dev
-```
-
-3. Open the React dev server (e.g. `http://localhost:5173/kb/about`) in your browser.
-
-> In this mode, the React app is served separately with hot-reloading. Use it for faster iteration during development.
