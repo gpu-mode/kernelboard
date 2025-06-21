@@ -376,29 +376,6 @@ Appending --watch will watch for changes and update main.css automatically.
     @apply inline-flex rounded-md bg-transparent text-current opacity-70 hover:opacity-100;
     @apply focus:outline-none focus:ring-2 focus:ring-toast-error focus:ring-offset-2;
   }
-  .toast-container-error {
-    @apply fixed top-20 left-1/2 -translate-x-1/2 z-50;
-    @apply flex flex-col items-center space-y-2;
-    @apply w-full max-w-sm pointer-events-none bg-white;
-  }
-  .toast-error {
-    @apply pointer-events-auto w-full overflow-hidden rounded-lg shadow-lg;
-    @apply ring-1 ring-toast-error/20;
-    @apply text-toast-error bg-toast-error/10;
-    @apply p-4;
-  }
-  .toast-error-content {
-    @apply flex items-start;
-  }
-  .toast-error-message {
-    @apply text-sm font-medium;
-  }
-  .toast-error-close-btn {
-    @apply ml-auto;
-    @apply pl-3;
-    @apply inline-flex rounded-md bg-transparent text-current opacity-70 hover:opacity-100;
-    @apply focus:outline-none focus:ring-2 focus:ring-toast-error focus:ring-offset-2;
-  }
   .toast-container-default {
     @apply fixed bottom-4 left-1/2 -translate-x-1/2 z-50;
     @apply flex flex-col items-center space-y-2;
