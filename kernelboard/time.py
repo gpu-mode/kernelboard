@@ -19,12 +19,12 @@ def _to_time_left(deadline: str | datetime, now: datetime) -> str | None:
         d = deadline
 
     if d <= now:
-        return 'ended'
+        return None
         
     delta = d - now
     days = delta.days
     hours = delta.seconds // 3600
-    return f"{days} {'day' if days == 1 else 'days'} {hours} {'hour' if hours == 1 else 'hours'} remaining"
+    return f"{days} {"day" if days == 1 else "days"} {hours} {"hour" if hours == 1 else "hours"}"
 
 
 def format_datetime(dt: datetime | str) -> str:

@@ -6,8 +6,6 @@ from flask_session import Session
 from flask_talisman import Talisman
 from . import auth, color, db, env, error, health, index, leaderboard, news, score, time
 from .redis_connection import get_redis_connection
-from flask import send_from_directory
-from flask import jsonify
 
 def create_app(test_config=None):
     # Check if we're in development mode:
@@ -17,11 +15,7 @@ def create_app(test_config=None):
 
     env.check_env_vars()
 
-    app = Flask(
-    __name__,
-    instance_relative_config=True
-    )
-
+    app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY=os.getenv('SECRET_KEY'),
         DATABASE_URL=os.getenv('DATABASE_URL'),
@@ -96,21 +90,4 @@ def create_app(test_config=None):
     app.errorhandler(404)(error.page_not_found)
     app.errorhandler(500)(error.server_error)
 
-    @app.route('/api/about')
-    def get_about():
-        return jsonify({'message': 'Kernelboard, your friendly leaderboard.'}), 200
-
-    # Route for serving React frontend from the /kb/ path
-    # # This handles both the base path `/kb/` and any subpath `/kb/<path>`
-    @app.route("/kb/", defaults={"path": ""})
-    @app.route("/kb/<path:path>")
-    def serve_react(path):
-        # set the react static binary path
-        static_dir = os.path.join(app.static_folder, "kb")
-        full_path = os.path.join(static_dir, path)
-
-        if path != "" and os.path.exists(full_path):
-            return send_from_directory(static_dir, path)
-        else:
-            return send_from_directory(static_dir, "index.html")
     return app

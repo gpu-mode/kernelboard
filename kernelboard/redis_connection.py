@@ -1,9 +1,6 @@
 import os
 import redis
 
-import os
-import redis
-
 _redis_client = None
 
 def get_redis_connection(cert_reqs: str | None = None) -> redis.Redis | None:
@@ -19,6 +16,6 @@ def get_redis_connection(cert_reqs: str | None = None) -> redis.Redis | None:
         kwargs = {}
         if cert_reqs and url.startswith('rediss://'):
              kwargs['ssl_cert_reqs'] = cert_reqs
-
+        
         _redis_client = redis.from_url(url, **kwargs)
     return _redis_client
