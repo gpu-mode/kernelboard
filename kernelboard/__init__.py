@@ -18,8 +18,8 @@ def create_app(test_config=None):
     env.check_env_vars()
 
     app = Flask(
-    __name__,
-    instance_relative_config=True
+        __name__,
+        instance_relative_config=True
     )
 
     app.config.from_mapping(
