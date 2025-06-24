@@ -92,13 +92,11 @@ def leaderboard(leaderboard_id: int):
     if lang == 'py':
         lang = 'Python'
         
-    description = leaderboard_data['description']
-    if description is not None:
-        description = description.replace('\\n', '\n')
+    description = leaderboard_data['description'] or ''
+    description = description.replace('\\n', '\n')
         
-    reference = leaderboard_data['reference']
-    if reference is not None:
-        reference = reference.replace('\\n', '\n')
+    reference = leaderboard_data['reference'] or ''
+    reference = reference.replace('\\n', '\n')
         
     gpu_types = leaderboard_data['gpu_types']
     gpu_types.sort()
