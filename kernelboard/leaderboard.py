@@ -17,7 +17,7 @@ def leaderboard(leaderboard_id: int):
                 name,
                 deadline,
                 task->>'lang' AS lang,
-                task->>'description' AS description,
+                description AS description,
                 task->'files'->>'reference.py' AS reference
             FROM leaderboard.leaderboard
             WHERE id = %(leaderboard_id)s
@@ -91,7 +91,9 @@ def leaderboard(leaderboard_id: int):
     lang = leaderboard_data['lang']
     if lang == 'py':
         lang = 'Python'
-        
+
+    print(leaderboard_data)
+
     description = leaderboard_data['description'] or ''
     description = description.replace('\\n', '\n')
         

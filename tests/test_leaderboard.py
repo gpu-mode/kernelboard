@@ -35,7 +35,7 @@ def test_leaderboard_mathjax(client, app):
         conn = get_db_connection()
         with conn.cursor() as cur:
             # Fetch original description.
-            cur.execute("SELECT task->>'description' FROM leaderboard.leaderboard WHERE id = 339")
+            cur.execute("SELECT description FROM leaderboard.leaderboard WHERE id = 339")
             result = cur.fetchone()
             description = result[0]
 
@@ -46,7 +46,7 @@ def test_leaderboard_mathjax(client, app):
             cur.execute(
                 """
                 UPDATE leaderboard.leaderboard
-                SET task = jsonb_set(task, '{description}', to_jsonb(%(new_desc)s::text))
+                SET description = %(new_desc)s
                 WHERE id = 339
                 """,
                 {'new_desc': new_description}
