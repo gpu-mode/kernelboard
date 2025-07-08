@@ -17,11 +17,7 @@ interface Props {
 export default function AppLayout({ children }: Props) {
   return (
     <Box display="flex" flexDirection="column" minHeight="100vh">
-      <AppBar position="static">
-        <Toolbar>
-          <NavBar />
-        </Toolbar>
-      </AppBar>
+      <NavBar />
       {/* main content */}
       <Container
         component="main"
