@@ -91,8 +91,6 @@ def leaderboard(leaderboard_id: int):
     if lang == "py":
         lang = "Python"
 
-    print(leaderboard_data)
-
     description = leaderboard_data["description"] or ""
     description = description.replace("\\n", "\n")
 

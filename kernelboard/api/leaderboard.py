@@ -28,12 +28,12 @@ def leaderboard(leaderboard_id: int):
 
     data = result[0]
 
-    res = toApiLeaderBoardItem(data)
+    res = to_api_leaderboard_item(data)
     return http_success(res)
 
 
 # converts db record to api
-def toApiLeaderBoardItem(data: dict[str, Any]):
+def to_api_leaderboard_item(data: dict[str, Any]):
     leaderboard_data = data["leaderboard"]
     name = leaderboard_data["name"]
     deadline = leaderboard_data["deadline"]
@@ -42,8 +42,6 @@ def toApiLeaderBoardItem(data: dict[str, Any]):
     lang = leaderboard_data["lang"]
     if lang == "py":
         lang = "Python"
-
-    print(leaderboard_data)
 
     description = leaderboard_data["description"] or ""
     description = description.replace("\\n", "\n")
