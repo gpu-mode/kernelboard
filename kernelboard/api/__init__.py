@@ -16,7 +16,10 @@ def create_api_blueprint():
 
     @api.route("/about")
     def get_about():
-        return http_success(data={"message": "Kernelboard, your friendly leaderboard."})
+        return http_success(
+            data={
+                "message": "Kernelboard, your friendly leaderboard."
+            })
 
     api.register_blueprint(leaderboard_bp)
     api.register_blueprint(leaderboard_metadata_bp)
