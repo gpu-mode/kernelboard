@@ -9,7 +9,7 @@ leaderboard_metadata_bp = Blueprint(
 )
 
 
-@leaderboard_metadata_bp.route("")
+@leaderboard_metadata_bp.route("", methods=["GET"])
 def index():
     # Get a list of JSON objects like the following to build the active
     # leaderboard tiles:

@@ -9,7 +9,7 @@ from http import HTTPStatus
 leaderboard_bp = Blueprint("leaderboard_bp", __name__, url_prefix="/leaderboard")
 
 
-@leaderboard_bp.route("/<int:leaderboard_id>")
+@leaderboard_bp.route("/<int:leaderboard_id>", methods=["GET"])
 def leaderboard(leaderboard_id: int):
     conn = get_db_connection()
     query = _get_query()
