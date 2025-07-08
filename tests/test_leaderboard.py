@@ -1,4 +1,4 @@
-from kernelboard.db import get_db_connection
+from kernelboard.lib.db import get_db_connection
 
 def test_leaderboard(client):
     response = client.get('/leaderboard/339')
@@ -41,7 +41,7 @@ def test_leaderboard_mathjax(client, app):
 
             # Update the description to include a LaTeX expression.
             latex = r"$$\sum_{i=1?^n i$$"
-            new_description = f"{latex} {description}" 
+            new_description = f"{latex} {description}"
 
             cur.execute(
                 """

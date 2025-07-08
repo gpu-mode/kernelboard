@@ -10,6 +10,7 @@ def to_color(name: str) -> str:
         'coral',
         'turquoise',
         'sky-blue',
+        
         'gray-aquamarine',
         'pale-yellow',
         'dusky-rose',

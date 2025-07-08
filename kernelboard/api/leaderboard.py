@@ -1,11 +1,92 @@
-from flask import abort, Blueprint, render_template
+from typing import Any
+from flask import abort, Blueprint, jsonify
 from kernelboard.lib.db import get_db_connection
 from kernelboard.time import to_time_left
+from kernelboard.lib.status_code import HttpStatusCode, success
 
-blueprint = Blueprint('leaderboard', __name__, url_prefix='/leaderboard')
+leaderboard_bp = Blueprint("leaderboard_bp", __name__, url_prefix="/leaderboard")
 
-@blueprint.route('/<int:leaderboard_id>')
+
+@leaderboard_bp.route("/<int:leaderboard_id>")
 def leaderboard(leaderboard_id: int):
+    conn = get_db_connection()
+
+    query = getQuery()
+
+    with conn.cursor() as cur:
+        cur.execute(query, {"leaderboard_id": leaderboard_id})
+        result = cur.fetchone()
+
+    if (
+        result is None
+        or len(result) == 0
+        or not result[0]
+        or not result[0].get("leaderboard", "")
+    ):
+        abort(HttpStatusCode.NOT_FOUND)
+        return
+
+    data = result[0]
+
+    res = toApiLeaderBoardItem(data)
+    return success(res)
+
+
+# converts db record to api
+def toApiLeaderBoardItem(data: dict[str, Any]):
+    leaderboard_data = data["leaderboard"]
+    name = leaderboard_data["name"]
+    deadline = leaderboard_data["deadline"]
+    time_left = to_time_left(deadline)
+
+    lang = leaderboard_data["lang"]
+    if lang == "py":
+        lang = "Python"
+
+    print(leaderboard_data)
+
+    description = leaderboard_data["description"] or ""
+    description = description.replace("\\n", "\n")
+
+    reference = leaderboard_data["reference"] or ""
+    reference = reference.replace("\\n", "\n")
+
+    gpu_types = leaderboard_data["gpu_types"]
+    gpu_types.sort()
+
+    rankings = {}
+    for gpu_type, ranking_ in data["rankings"].items():
+        ranking = []
+        prev_score = None
+
+        if ranking_ is not None:
+            for i, entry in enumerate(ranking_):
+                entry["rank"] = i + 1
+
+                if prev_score is not None:
+                    entry["prev_score"] = entry["score"] - prev_score
+                else:
+                    entry["prev_score"] = None
+
+                ranking.append(entry)
+
+                prev_score = entry["score"]
+
+        if len(ranking) > 0:
+            rankings[gpu_type] = ranking
+    return {
+        "name": name,
+        "deadline": deadline,
+        "time_left": time_left,
+        "lang": lang,
+        "gpu_types": gpu_types,
+        "description": description,
+        "reference": reference,
+        "rankings": rankings,
+    }
+
+
+def getQuery():
     query = """
         WITH
 
@@ -68,66 +149,4 @@ def leaderboard(leaderboard_id: int):
             ) FROM leaderboard_info)
         ) AS result FROM (SELECT gpu_type FROM gpu_types) g;
     """
-
-    conn = get_db_connection()
-
-    with conn.cursor() as cur:
-        cur.execute(query, {'leaderboard_id': leaderboard_id})
-        result = cur.fetchone()
-
-    if result is None or not result[0] or not result[0]['leaderboard']:
-        abort(404)
-
-    data = result[0]
-
-    # Extract leaderboard info
-    leaderboard_data = data['leaderboard']
-    name = leaderboard_data['name']
-    deadline = leaderboard_data['deadline']
-    time_left = to_time_left(deadline)
-
-    lang = leaderboard_data['lang']
-    if lang == 'py':
-        lang = 'Python'
-
-    print(leaderboard_data)
-
-    description = leaderboard_data['description'] or ''
-    description = description.replace('\\n', '\n')
-
-    reference = leaderboard_data['reference'] or ''
-    reference = reference.replace('\\n', '\n')
-
-    gpu_types = leaderboard_data['gpu_types']
-    gpu_types.sort()
-
-    rankings = {}
-    for gpu_type, ranking_ in data['rankings'].items():
-        ranking = []
-        prev_score = None
-
-        if ranking_ is not None:
-            for i, entry in enumerate(ranking_):
-                entry['rank'] = i + 1
-
-                if prev_score is not None:
-                    entry['prev_score'] = entry['score'] - prev_score
-                else:
-                    entry['prev_score'] = None
-
-                ranking.append(entry)
-
-                prev_score = entry['score']
-
-        if len(ranking) > 0:
-            rankings[gpu_type] = ranking
-
-    return render_template('leaderboard.html',
-                         name=name,
-                         deadline=deadline,
-                         time_left=time_left,
-                         lang=lang,
-                         gpu_types=gpu_types,
-                         description=description,
-                         reference=reference,
-                         rankings=rankings)
+    return query

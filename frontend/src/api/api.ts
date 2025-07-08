@@ -3,6 +3,6 @@ export async function fetchAboutInfo(): Promise<string> {
   if (!res.ok) {
     throw new Error(`Failed to fetch: ${res.status}`);
   }
-  const data = await res.json();
-  return data.message;
+  const r = await res.json();
+  return r.data.message;
 }
