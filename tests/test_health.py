@@ -1,6 +1,5 @@
 from unittest.mock import patch, MagicMock
 import redis
-import json
 
 
 def test_health(client):

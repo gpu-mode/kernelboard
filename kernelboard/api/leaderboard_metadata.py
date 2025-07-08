@@ -34,9 +34,9 @@ def index():
         cur.execute(query)
         leaderboards = [row[0] for row in cur.fetchall()]
 
-    for l in leaderboards:
-        if l["gpu_types"] is None:
-            l["gpu_types"] = []
+    for lb in leaderboards:
+        if lb["gpu_types"] is None:
+            lb["gpu_types"] = []
 
     return http_success(
         {"leaderboards": leaderboards, "now": datetime.now(timezone.utc)}
