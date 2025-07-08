@@ -66,6 +66,7 @@ def create_app(test_config=None):
     Talisman(
         app,
         content_security_policy=csp,
+        content_security_policy=csp,
         force_https=app.config.get("TALISMAN_FORCE_HTTPS", True),
     )
 
@@ -74,6 +75,7 @@ def create_app(test_config=None):
     except OSError:
         if not os.path.exists(app.instance_path):
             raise
+
 
     db.init_app(app)
 
@@ -113,8 +115,10 @@ def create_app(test_config=None):
         full_path = os.path.join(static_dir, path)
 
         if path != "" and os.path.exists(full_path):
-            return send_from_directory(static_dir, path)
+            response = send_from_directory(static_dir, path)
         else:
-            return send_from_directory(static_dir, "index.html")
+            response = send_from_directory(static_dir, "index.html")
+        return response
+
 
     return app
