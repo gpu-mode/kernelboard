@@ -14,8 +14,12 @@ def check_env_vars():
         "REDIS_URL",
         "SECRET_KEY",
     ]
-    missing_env_vars = [var for var in required_env_vars if os.getenv(var) is None]
+    missing_env_vars = [
+        var for var in required_env_vars if os.getenv(var) is None
+    ]
 
     if missing_env_vars:
-        print(f"Missing required environment variables: {', '.join(missing_env_vars)}")
+        print(
+            f"Missing required environment variables: {', '.join(missing_env_vars)}"
+        )
         exit(1)
