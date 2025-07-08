@@ -8,11 +8,13 @@ export interface NavLink {
   external?: boolean; // 是否外链（新窗口打开）
 }
 
-const MainAppBar = styled(AppBar)(({ theme }) => ({
+const MainAppBar = styled(AppBar)(({}) => ({
   backgroundColor: "white",
   color: "black",
   boxShadow: "none",
   borderBottom: "1px solid #ddd",
+  width: "100%",
+  maxWidth: "100vw",
 }));
 
 const MainToolbar = styled(Toolbar)({
