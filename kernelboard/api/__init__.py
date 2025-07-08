@@ -11,8 +11,9 @@ def create_api_blueprint():
 
     Developer Guidelines:
 
-    1. For simple routes (e.g., /about, /ping), define them directly in this function
-       using @api.route(). These should be lightweight and self-contained.
+    1. For simple routes (e.g., /about, /ping), define them directly
+       in this function using @api.route(). These should be lightweight
+        and self-contained.
 
        Example:
            @api.route("/ping", methods=["GET"])
@@ -20,7 +21,8 @@ def create_api_blueprint():
                return http_success(data="pong")
 
     2. For complex, grouped, or growing route sets (e.g., leaderboard, jobs),
-       define them in their own sub-blueprints under api/routes/ and register them here.
+       define them in their own sub-blueprints under api/routes/ and
+       register them here.
 
        Example:
            from .routes.leaderboard import leaderboard_bp
@@ -38,7 +40,7 @@ def create_api_blueprint():
 
     api = Blueprint("api", __name__, url_prefix="/api")
 
-    # register error handlers, see https://flask.palletsprojects.com/en/2.0.x/patterns/errorhandlers/
+    # register error handlers, use can use abort() to trigger .items()
     @api.app_errorhandler(HTTPException)
     def handle_api_http_exception(e):
         return http_error(
@@ -48,7 +50,9 @@ def create_api_blueprint():
     # TODO(yangw-dev): remove this after the testing is complete
     @api.route("/about")
     def get_about():
-        return http_success(data={"message": "Kernelboard, your friendly leaderboard."})
+        return http_success(
+            data={"message": "Kernelboard, your friendly leaderboard."}
+        )
 
     # register blueprints
     api.register_blueprint(leaderboard_bp)

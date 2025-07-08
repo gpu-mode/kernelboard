@@ -2,7 +2,9 @@ import os
 import redis
 
 
-def create_redis_connection(cert_reqs: str | None = None) -> redis.Redis | None:
+def create_redis_connection(
+    cert_reqs: str | None = None,
+) -> redis.Redis | None:
     """
     Creates a redis connection using application configuration.
     """
