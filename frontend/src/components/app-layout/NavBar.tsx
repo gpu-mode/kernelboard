@@ -49,7 +49,7 @@ export default function NavBar() {
       ⚡ <Box ml={1}>GPU MODE</Box>
     </Link>
   );
-  
+
   return (
     <MainAppBar position="static">
       <MainToolbar>
