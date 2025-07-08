@@ -1,12 +1,12 @@
 import os
 from flask import Blueprint, current_app as app
-from .db import get_db_connection
-from .redis_connection import create_redis_connection
+from kernelboard.lib.db import get_db_connection
+from kernelboard.lib.status_code import HttpStatusCode, success, error
+from kernelboard.lib.redis_connection import create_redis_connection
 from urllib.parse import urlparse
 
 
 blueprint = Blueprint('health', __name__, url_prefix='/health')
-
 
 @blueprint.route('')
 def health():
@@ -33,12 +33,14 @@ def health():
             all_checks_passed = False
 
     if all_checks_passed:
-        return {
+        return success({
             'status': 'healthy',
             'service': 'kernelboard'
-        }, 200
+        })
     else:
-        return {
-            'status': 'unhealthy',
-            'service': 'kernelboard'
-        }, 500
+        return error(
+            message="Kernelboard is unhealthy",
+            code=10404,
+            status_code=HttpStatusCode.INTERNAL_SERVER_ERROR,
+            data={"status": "unhealthy", "service": "kernelboard"}
+            )

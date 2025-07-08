@@ -4,8 +4,10 @@ from flask import Flask
 from flask_login import LoginManager
 from flask_session import Session
 from flask_talisman import Talisman
-from . import auth, color, db, env, error, health, index, leaderboard, news, score, time
-from .redis_connection import create_redis_connection
+from kernelboard.lib import db, env
+from kernelboard import auth, color, error, health, index, leaderboard, news, score, time
+from kernelboard.api import register_api_routes
+from kernelboard.lib.redis_connection import create_redis_connection
 from flask import send_from_directory
 from flask import jsonify
 
@@ -88,6 +90,7 @@ def create_app(test_config=None):
     app.add_url_rule('/leaderboard/<int:id>', endpoint='leaderboard')
 
     app.register_blueprint(news.blueprint)
+    register_api_routes(app)
     app.add_url_rule('/news', endpoint='news')
 
     app.register_blueprint(auth.blueprint)
@@ -96,9 +99,6 @@ def create_app(test_config=None):
     app.errorhandler(404)(error.page_not_found)
     app.errorhandler(500)(error.server_error)
 
-    @app.route('/api/about')
-    def get_about():
-        return jsonify({'message': 'Kernelboard, your friendly leaderboard.'}), 200
 
     # Route for serving React frontend from the /kb/ path
     # # This handles both the base path `/kb/` and any subpath `/kb/<path>`

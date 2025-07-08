@@ -1,12 +1,15 @@
 from flask import Blueprint, render_template
 from datetime import datetime, timezone
+from kernelboard.api.leaderboard import getQuery
 from kernelboard.lib.db import get_db_connection
+from kernelboard.lib.status_code import success
+
+leaderboard_metadata_bp = Blueprint(
+    "leaderboard_metadata_bp", __name__, url_prefix="/leaderboard-metadata"
+)
 
 
-blueprint = Blueprint('index', __name__, url_prefix='/')
-
-
-@blueprint.route('')
+@leaderboard_metadata_bp.route("")
 def index():
     # Get a list of JSON objects like the following to build the active
     # leaderboard tiles:
@@ -25,6 +28,20 @@ def index():
     #     ],
     # }
 
+    conn = get_db_connection()
+    query = getQuery()
+    with conn.cursor() as cur:
+        cur.execute(query)
+        leaderboards = [row[0] for row in cur.fetchall()]
+
+    for l in leaderboards:
+        if l["gpu_types"] is None:
+            l["gpu_types"] = []
+
+    return success({"leaderboards": leaderboards, "now": datetime.now(timezone.utc)})
+
+
+def getQuery():
     query = """
         WITH
 
@@ -121,17 +138,4 @@ def index():
         FROM active_leaderboards l
         ORDER BY l.id DESC;
         """
-
-    conn = get_db_connection()
-
-    with conn.cursor() as cur:
-        cur.execute(query)
-        leaderboards = [row[0] for row in cur.fetchall()]
-
-    for l in leaderboards:
-        if l['gpu_types'] is None:
-            l['gpu_types'] = []
-
-    return render_template('index.html',
-                         leaderboards=leaderboards,
-                         now=datetime.now(timezone.utc))
+    return query
