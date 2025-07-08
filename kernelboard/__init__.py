@@ -65,7 +65,6 @@ def create_app(test_config=None):
     Talisman(
         app,
         content_security_policy=csp,
-        content_security_policy=csp,
         force_https=app.config.get("TALISMAN_FORCE_HTTPS", True),
     )
 
