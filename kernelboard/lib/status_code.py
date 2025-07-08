@@ -21,8 +21,8 @@ def make_response(data=None, message="Success", code=0, status_code=HttpStatusCo
         "data": data
     }), int(status_code)
 
-def success(data=None, message="Success"):
+def httpSuccess(data=None, message="Success"):
     return make_response(data=data, message=message, code=0, status_code=HttpStatusCode.OK)
 
-def error(message="Error", code=10000, status_code=HttpStatusCode.INTERNAL_SERVER_ERROR, data=None):
+def httpError(message="Error", code=10000, status_code=HttpStatusCode.INTERNAL_SERVER_ERROR, data=None):
     return make_response(data=data, message=message, code=code, status_code=status_code)
