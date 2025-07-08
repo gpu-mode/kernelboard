@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template
 from datetime import datetime, timezone
 from kernelboard.lib.db import get_db_connection
-from kernelboard.lib.status_code import httpSuccess
+from kernelboard.lib.status_code import http_success
+
 
 leaderboard_metadata_bp = Blueprint(
     "leaderboard_metadata_bp", __name__, url_prefix="/leaderboard-metadata"
@@ -37,7 +38,7 @@ def index():
         if l["gpu_types"] is None:
             l["gpu_types"] = []
 
-    return httpSuccess(
+    return http_success(
         {"leaderboards": leaderboards, "now": datetime.now(timezone.utc)}
     )
 
