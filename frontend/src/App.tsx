@@ -9,9 +9,9 @@ function App() {
   return (
     <BrowserRouter basename="/kb">
       <AppLayout>
-      <Routes>
-        <Route path="/about" element={<About />} />
-      </Routes>
+        <Routes>
+          <Route path="/about" element={<About />} />
+        </Routes>
       </AppLayout>
     </BrowserRouter>
   );
