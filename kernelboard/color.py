@@ -7,17 +7,16 @@ def to_color(name: str) -> str:
     # Somewhat vibrant color palette.
     # These names must match the -square and -chip classes in input.css.
     colors = [
-        'coral',
-        'turquoise',
-        'sky-blue',
-        
-        'gray-aquamarine',
-        'pale-yellow',
-        'dusky-rose',
-        'purple',
-        'medium-pink',
-        'bright-blue',
-        'aquamarine',
+        "coral",
+        "turquoise",
+        "sky-blue",
+        "gray-aquamarine",
+        "pale-yellow",
+        "dusky-rose",
+        "purple",
+        "medium-pink",
+        "bright-blue",
+        "aquamarine",
     ]
 
     hash = abs(mmh3.hash(name))

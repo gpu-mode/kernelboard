@@ -37,7 +37,9 @@ def index():
         if l["gpu_types"] is None:
             l["gpu_types"] = []
 
-    return httpSuccess({"leaderboards": leaderboards, "now": datetime.now(timezone.utc)})
+    return httpSuccess(
+        {"leaderboards": leaderboards, "now": datetime.now(timezone.utc)}
+    )
 
 
 def _get_query():
