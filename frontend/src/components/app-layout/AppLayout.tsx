@@ -23,7 +23,13 @@ export default function AppLayout({ children }: Props) {
         </Toolbar>
       </AppBar>
       {/* main content */}
-      <Container component="main">{children}</Container>
+      <Container
+        component="main"
+        maxWidth="lg"
+        sx={{ flexGrow: 1, mt: 4, mb: 8 }}
+      >
+        {children}
+      </Container>
       <Footer />
     </Box>
   );
