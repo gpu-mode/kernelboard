@@ -7,29 +7,25 @@ def test_to_time_left():
         _to_time_left(
             "2025-03-25 12:00:00+00:00",
             datetime(2025, 3, 24, 0, 0, 0, tzinfo=timezone.utc),
-        )
-        == "1 day 12 hours remaining"
+        ) == "1 day 12 hours remaining"
     )
     assert (
         _to_time_left(
             "2025-03-24 12:00:00+00:00",
             datetime(2025, 3, 24, 0, 0, 0, tzinfo=timezone.utc),
-        )
-        == "0 days 12 hours remaining"
+        ) == "0 days 12 hours remaining"
     )
     assert (
         _to_time_left(
             "2025-03-26 12:00:00+00:00",
             datetime(2025, 3, 24, 11, 0, 0, tzinfo=timezone.utc),
-        )
-        == "2 days 1 hour remaining"
+        ) == "2 days 1 hour remaining"
     )
     assert (
         _to_time_left(
             datetime(2025, 3, 25, 12, 0, 0, tzinfo=timezone.utc),
             datetime(2025, 3, 24, 0, 0, 0, tzinfo=timezone.utc),
-        )
-        == "1 day 12 hours remaining"
+        ) == "1 day 12 hours remaining"
     )
 
     assert to_time_left("1970-01-01 00:00:00+00:00") == "ended"

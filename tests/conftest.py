@@ -1,10 +1,11 @@
 import psycopg2
-from requests import get
+from kernelboard import create_app
 import pytest
 import random
 import string
 import subprocess
-import os
+import time
+import secrets
 
 
 def get_test_redis_url(port: int):
@@ -30,14 +31,6 @@ def get_test_db_info():
 def _short_random_string() -> str:
     """Returns a random string of 6 lowercase letters."""
     return "".join(random.choice(string.ascii_lowercase) for i in range(6))
-
-
-def test_print_cwd():
-    print("Current working directory:", os.getcwd())
-
-
-def test_check_psql_path():
-    subprocess.run(["which", "psql"], check=True)
 
 
 def _execute_sql(url: str, sql: str):
@@ -80,9 +73,9 @@ def db_server():
         "run",
         "-d",
         f"--name={container_name}",
-        f"-e",
+        "-e",
         f"POSTGRES_PASSWORD={password}",
-        f"-p",
+        "-p",
         f"{port}:5432",
         "--tmpfs",
         "/var/lib/postgresql/data",
@@ -92,9 +85,9 @@ def db_server():
     try:
         print(f"Attempting to start database container {container_name}...")
         subprocess.run(docker_run_cmd, check=True, capture_output=True)
-        print(f"Database container started.")
+        print("Database container started.")
 
-        print(f"Waiting for database container to be ready...")
+        print("Waiting for database container to be ready...")
         attempts = 0
         max_attempts = 30
         ready = False
@@ -113,7 +106,7 @@ def db_server():
                     docker_exec_cmd, check=True, capture_output=True, text=True
                 )
                 if "accepting connections" in result.stdout:
-                    print(f"Database container is ready.")
+                    print("Database container is ready.")
                     ready = True
                     break
             except subprocess.CalledProcessError as e:
@@ -155,21 +148,21 @@ def db_server():
         yield {"db_url": db_url, "db_name": db_name}
 
     finally:
-        print(f"Stopping database container...")
+        print("Stopping database container...")
         try:
             subprocess.run(
                 ["docker", "stop", container_name], check=True, capture_output=True
             )
-            print(f"Database container stopped.")
+            print("Database container stopped.")
         except subprocess.CalledProcessError as e:
             print(f"Could not stop database container. Error: {e.stderr}")
 
-        print(f"Removing database container...")
+        print("Removing database container...")
         try:
             subprocess.run(
                 ["docker", "rm", container_name], check=True, capture_output=True
             )
-            print(f"Container removed.")
+            print("Container removed.")
         except subprocess.CalledProcessError as e:
             print(f"Could not remove database container. Error: {e.stderr}")
 
@@ -188,8 +181,8 @@ def redis_server():
         "run",
         "-d",
         f"--name={container_name}",
-        f"-p",
-        f"{port}:6379",
+        "-p",
+        "{port}:6379",
         "--tmpfs",
         "/data",
         "redis:7-alpine",
@@ -203,9 +196,9 @@ def redis_server():
     try:
         print(f"Attempting to start Redis container {container_name}...")
         subprocess.run(docker_run_cmd, check=True, capture_output=True)
-        print(f"Redis container started.")
+        print("Redis container started.")
 
-        print(f"Waiting for Redis container to be ready...")
+        print("Waiting for Redis container to be ready...")
         attempts = 0
         max_attempts = 30
         ready = False
@@ -223,7 +216,7 @@ def redis_server():
                     docker_exec_cmd, check=True, capture_output=True, text=True
                 )
                 if "PONG" in result.stdout:
-                    print(f"Redis container is ready.")
+                    print("Redis container is ready.")
                     ready = True
                     break
             except subprocess.CalledProcessError as e:
@@ -248,7 +241,7 @@ def redis_server():
             subprocess.run(
                 ["docker", "stop", container_name], check=True, capture_output=True
             )
-            print(f"Redis container stopped.")
+            print("Redis container stopped.")
         except subprocess.CalledProcessError as e:
             print(f"Could not stop Redis container {container_name}. Error: {e.stderr}")
 
@@ -257,7 +250,7 @@ def redis_server():
             subprocess.run(
                 ["docker", "rm", container_name], check=True, capture_output=True
             )
-            print(f"Redis container removed.")
+            print("Redis container removed.")
         except subprocess.CalledProcessError as e:
             print(
                 f"Could not remove Redis container {container_name}. Error: {e.stderr}"

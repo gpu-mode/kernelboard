@@ -1,6 +1,3 @@
-import re
-from bs4 import BeautifulSoup
-
 
 def test_index(client):
     response = client.get("/api/leaderboard-metadata")

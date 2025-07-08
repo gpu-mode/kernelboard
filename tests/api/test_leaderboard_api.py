@@ -1,5 +1,4 @@
 from kernelboard.lib.db import get_db_connection
-import json
 
 
 def test_leaderboard(client):

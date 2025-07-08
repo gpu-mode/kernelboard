@@ -1,5 +1,5 @@
 from typing import Any
-from flask import abort, Blueprint, jsonify
+from flask import abort, Blueprint
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.time import to_time_left
 from kernelboard.lib.status_code import http_success
@@ -17,12 +17,7 @@ def leaderboard(leaderboard_id: int):
         cur.execute(query, {"leaderboard_id": leaderboard_id})
         result = cur.fetchone()
 
-    if (
-        result is None
-        or len(result) == 0
-        or not result[0]
-        or not result[0].get("leaderboard", "")
-    ):
+    if is_result_invalid(result):
         abort(HTTPStatus.NOT_FOUND)
         return
 
@@ -148,3 +143,14 @@ def _get_query():
         ) AS result FROM (SELECT gpu_type FROM gpu_types) g;
     """
     return query
+
+
+def is_result_invalid(result):
+    if result is None:
+        return True
+    if len(result) == 0:
+        return True
+    if not result[0] or not result[0]["leaderboard"]:
+        return True
+
+    return False
