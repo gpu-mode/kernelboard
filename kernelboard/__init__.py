@@ -55,7 +55,6 @@ def create_app(test_config=None):
 
     login_manager.init_app(app)
 
-
     csp = {
         "default-src": ["'self'"],
         "script-src": "'self' https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js",
