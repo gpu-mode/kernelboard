@@ -1,16 +1,16 @@
 import { Box, Container, Link, styled, Typography } from "@mui/material";
 
 export const FooterLinkContainer = styled(Container)(({ theme }) => ({
-    maxWidth: '100%',
-    display: 'flex',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    gap: theme.spacing(2),
-    alignItems: 'center',
-  }));
+  maxWidth: "100%",
+  display: "flex",
+  justifyContent: "center",
+  flexWrap: "wrap",
+  gap: theme.spacing(2),
+  alignItems: "center",
+}));
 
 export default function Footer() {
- const links = [
+  const links = [
     { label: "Discord", href: "https://discord.gg/gpumode" },
     { label: "X", href: "https://x.com/GPU_MODE" },
     { label: "YouTube", href: "https://www.youtube.com/@GPUMODE" },
