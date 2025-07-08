@@ -2,7 +2,9 @@ from typing import Any
 from flask import abort, Blueprint, jsonify
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.time import to_time_left
-from kernelboard.lib.status_code import HttpStatusCode, httpSuccess
+from kernelboard.lib.status_code import http_success
+from http import HTTPStatus
+
 
 leaderboard_bp = Blueprint("leaderboard_bp", __name__, url_prefix="/leaderboard")
 
@@ -21,13 +23,13 @@ def leaderboard(leaderboard_id: int):
         or not result[0]
         or not result[0].get("leaderboard", "")
     ):
-        abort(HttpStatusCode.NOT_FOUND)
+        abort(HTTPStatus.NOT_FOUND)
         return
 
     data = result[0]
 
     res = toApiLeaderBoardItem(data)
-    return httpSuccess(res)
+    return http_success(res)
 
 
 # converts db record to api
