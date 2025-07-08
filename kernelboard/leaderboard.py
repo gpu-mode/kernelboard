@@ -1,6 +1,6 @@
 from flask import abort, Blueprint, render_template
 from kernelboard.lib.db import get_db_connection
-from kernelboard.time import to_time_left
+from kernelboard.lib.time import to_time_left
 
 blueprint = Blueprint('leaderboard', __name__, url_prefix='/leaderboard')
 

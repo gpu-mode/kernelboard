@@ -4,8 +4,8 @@ from flask import Flask
 from flask_login import LoginManager
 from flask_session import Session
 from flask_talisman import Talisman
-from kernelboard.lib import db, env
-from kernelboard import auth, color, error, health, index, leaderboard, news, score, time
+from kernelboard.lib import db, env, time, score
+from kernelboard import auth, color, error, health, index, leaderboard, news
 from kernelboard.api import register_api_routes
 from kernelboard.lib.redis_connection import create_redis_connection
 from flask import send_from_directory
@@ -98,7 +98,6 @@ def create_app(test_config=None):
     app.errorhandler(401)(error.unauthorized)
     app.errorhandler(404)(error.page_not_found)
     app.errorhandler(500)(error.server_error)
-
 
     # Route for serving React frontend from the /kb/ path
     # # This handles both the base path `/kb/` and any subpath `/kb/<path>`
