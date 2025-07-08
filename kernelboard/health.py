@@ -1,7 +1,7 @@
 import os
 from flask import Blueprint, current_app as app
 from kernelboard.lib.db import get_db_connection
-from kernelboard.lib.status_code import HttpStatusCode, success, error
+from kernelboard.lib.status_code import HttpStatusCode, httpSuccess, httpError, httpSuccess
 from kernelboard.lib.redis_connection import create_redis_connection
 from urllib.parse import urlparse
 
@@ -33,12 +33,12 @@ def health():
             all_checks_passed = False
 
     if all_checks_passed:
-        return success({
+        return httpSuccess({
             'status': 'healthy',
             'service': 'kernelboard'
         })
     else:
-        return error(
+        return httpError(
             message="Kernelboard is unhealthy",
             code=10404,
             status_code=HttpStatusCode.INTERNAL_SERVER_ERROR,
