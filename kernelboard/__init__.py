@@ -9,7 +9,6 @@ from kernelboard import auth, color, error, health, index, leaderboard, news
 from kernelboard.api import create_api_blueprint
 from kernelboard.lib.redis_connection import create_redis_connection
 from flask import send_from_directory
-from flask import jsonify
 
 
 def create_app(test_config=None):

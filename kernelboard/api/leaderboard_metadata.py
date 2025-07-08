@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint
 from datetime import datetime, timezone
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.status_code import http_success

@@ -7,8 +7,6 @@ from kernelboard.lib.status_code import (
 )
 from http import HTTPStatus
 from kernelboard.lib.redis_connection import create_redis_connection
-from urllib.parse import urlparse
-
 
 blueprint = Blueprint("health", __name__, url_prefix="/health")
 
