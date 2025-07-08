@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+
 def to_time_left(deadline: str | datetime) -> str | None:
     """
     Calculate time left until deadline.
@@ -19,8 +20,8 @@ def _to_time_left(deadline: str | datetime, now: datetime) -> str | None:
         d = deadline
 
     if d <= now:
-        return 'ended'
-        
+        return "ended"
+
     delta = d - now
     days = delta.days
     hours = delta.seconds // 3600
@@ -34,4 +35,4 @@ def format_datetime(dt: datetime | str) -> str:
     if isinstance(dt, str):
         dt = datetime.fromisoformat(dt)
 
-    return dt.strftime('%Y-%m-%d %H:%M UTC')
+    return dt.strftime("%Y-%m-%d %H:%M UTC")

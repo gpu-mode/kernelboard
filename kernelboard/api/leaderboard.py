@@ -6,6 +6,7 @@ from kernelboard.lib.status_code import HttpStatusCode, httpSuccess
 
 leaderboard_bp = Blueprint("leaderboard_bp", __name__, url_prefix="/leaderboard")
 
+
 @leaderboard_bp.route("/<int:leaderboard_id>")
 def leaderboard(leaderboard_id: int):
     conn = get_db_connection()

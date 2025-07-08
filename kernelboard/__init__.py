@@ -6,43 +6,40 @@ from flask_session import Session
 from flask_talisman import Talisman
 from kernelboard.lib import db, env, time, score
 from kernelboard import auth, color, error, health, index, leaderboard, news
-from kernelboard.api import register_api_routes
+from kernelboard.api import create_api_blueprint
 from kernelboard.lib.redis_connection import create_redis_connection
 from flask import send_from_directory
 from flask import jsonify
 
+
 def create_app(test_config=None):
     # Check if we're in development mode:
-    is_dev = os.getenv('FLASK_DEBUG') == '1'
+    is_dev = os.getenv("FLASK_DEBUG") == "1"
     if is_dev:
         load_dotenv()
 
     env.check_env_vars()
 
-    app = Flask(
-        __name__,
-        instance_relative_config=True
-    )
+    app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_mapping(
-        SECRET_KEY=os.getenv('SECRET_KEY'),
-        DATABASE_URL=os.getenv('DATABASE_URL'),
-        REDIS_URL=os.getenv('REDIS_URL'),
+        SECRET_KEY=os.getenv("SECRET_KEY"),
+        DATABASE_URL=os.getenv("DATABASE_URL"),
+        REDIS_URL=os.getenv("REDIS_URL"),
         TALISMAN_FORCE_HTTPS=True,
         SESSION_COOKIE_SECURE=True,
         SESSION_COOKIE_HTTPONLY=True,
-        SESSION_COOKIE_SAMESITE='Lax',
+        SESSION_COOKIE_SAMESITE="Lax",
         SESSION_PERMANENT=True,
-        PERMANENT_SESSION_LIFETIME=1209600, # 14 days
-        SESSION_TYPE='redis',
-
+        PERMANENT_SESSION_LIFETIME=1209600,  # 14 days
+        SESSION_TYPE="redis",
         # Heroku Redis uses self-signed certificates:
         # https://devcenter.heroku.com/articles/heroku-redis#security-and-compliance
         # In Heroku we use the config key REDIS_SSL_CERT_REQS to have redis-py
         # accept self-signed certificates.
         SESSION_REDIS=create_redis_connection(
-            cert_reqs=os.getenv('REDIS_SSL_CERT_REQS')),
-
+            cert_reqs=os.getenv("REDIS_SSL_CERT_REQS")
+        ),
         OAUTH2_PROVIDERS=auth.providers(),
     )
 
@@ -62,10 +59,11 @@ def create_app(test_config=None):
     Talisman(
         app,
         content_security_policy={
-            'default-src': "'self'",
-            'script-src': "'self' https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+            "default-src": "'self'",
+            "script-src": "'self' https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js",
         },
-        force_https=app.config.get('TALISMAN_FORCE_HTTPS', True))
+        force_https=app.config.get("TALISMAN_FORCE_HTTPS", True),
+    )
 
     try:
         os.makedirs(app.instance_path)
@@ -75,23 +73,25 @@ def create_app(test_config=None):
 
     db.init_app(app)
 
-    app.add_template_filter(color.to_color, 'to_color')
-    app.add_template_filter(score.format_score, 'format_score')
-    app.add_template_filter(time.to_time_left, 'to_time_left')
-    app.add_template_filter(time.format_datetime, 'format_datetime')
+    app.add_template_filter(color.to_color, "to_color")
+    app.add_template_filter(score.format_score, "format_score")
+    app.add_template_filter(time.to_time_left, "to_time_left")
+    app.add_template_filter(time.format_datetime, "format_datetime")
 
     app.register_blueprint(health.blueprint)
-    app.add_url_rule('/health', endpoint='health')
+    app.add_url_rule("/health", endpoint="health")
 
     app.register_blueprint(index.blueprint)
-    app.add_url_rule('/', endpoint='index')
+    app.add_url_rule("/", endpoint="index")
 
     app.register_blueprint(leaderboard.blueprint)
-    app.add_url_rule('/leaderboard/<int:id>', endpoint='leaderboard')
+    app.add_url_rule("/leaderboard/<int:id>", endpoint="leaderboard")
 
     app.register_blueprint(news.blueprint)
-    register_api_routes(app)
-    app.add_url_rule('/news', endpoint='news')
+    if not app.blueprints.get("api"):
+        api = create_api_blueprint()
+        app.register_blueprint(api)
+    app.add_url_rule("/news", endpoint="news")
 
     app.register_blueprint(auth.blueprint)
 
@@ -112,4 +112,5 @@ def create_app(test_config=None):
             return send_from_directory(static_dir, path)
         else:
             return send_from_directory(static_dir, "index.html")
+
     return app

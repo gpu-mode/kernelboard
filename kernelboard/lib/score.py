@@ -1,7 +1,7 @@
 def format_score(score: float) -> str:
     """
     Format score as a string with 3 decimal places.
-    
+
     Args:
         score: The score in seconds.
 

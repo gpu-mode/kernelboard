@@ -2,9 +2,10 @@ from flask import Blueprint, render_template
 from datetime import datetime, timezone
 from kernelboard.lib.db import get_db_connection
 
-blueprint = Blueprint('index', __name__, url_prefix='/')
+blueprint = Blueprint("index", __name__, url_prefix="/")
 
-@blueprint.route('')
+
+@blueprint.route("")
 def index():
     # Get a list of JSON objects like the following to build the active
     # leaderboard tiles:
@@ -127,9 +128,9 @@ def index():
         leaderboards = [row[0] for row in cur.fetchall()]
 
     for l in leaderboards:
-        if l['gpu_types'] is None:
-            l['gpu_types'] = []
+        if l["gpu_types"] is None:
+            l["gpu_types"] = []
 
-    return render_template('index.html',
-                         leaderboards=leaderboards,
-                         now=datetime.now(timezone.utc))
+    return render_template(
+        "index.html", leaderboards=leaderboards, now=datetime.now(timezone.utc)
+    )
