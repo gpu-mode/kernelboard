@@ -55,7 +55,6 @@ def create_app(test_config=None):
 
     login_manager.init_app(app)
 
-
     csp = {
         "default-src": ["'self'"],
         "script-src": "'self' https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js",
@@ -75,7 +74,6 @@ def create_app(test_config=None):
     except OSError:
         if not os.path.exists(app.instance_path):
             raise
-
 
     db.init_app(app)
 
@@ -115,10 +113,8 @@ def create_app(test_config=None):
         full_path = os.path.join(static_dir, path)
 
         if path != "" and os.path.exists(full_path):
-            response = send_from_directory(static_dir, path)
+            return send_from_directory(static_dir, path)
         else:
-            response = send_from_directory(static_dir, "index.html")
-        return response
-
+            return send_from_directory(static_dir, "index.html")
 
     return app
