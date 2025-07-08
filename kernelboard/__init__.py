@@ -59,7 +59,7 @@ def create_app(test_config=None):
     csp = {
         "default-src": ["'self'"],
         "script-src": "'self' https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js",
-        "style-src": ["'self'", "'unsafe-inline'"],  # new ui needs inline styles
+        "style-src": ["'self'", "'unsafe-inline'"],  # new ui needs inline styles ,
         "font-src": ["'self'"],
     }
 
