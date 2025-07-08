@@ -1,7 +1,7 @@
 from typing import Any
 from flask import abort, Blueprint, jsonify
 from kernelboard.lib.db import get_db_connection
-from kernelboard.time import to_time_left
+from kernelboard.lib.time import to_time_left
 from kernelboard.lib.status_code import HttpStatusCode, success
 
 leaderboard_bp = Blueprint("leaderboard_bp", __name__, url_prefix="/leaderboard")

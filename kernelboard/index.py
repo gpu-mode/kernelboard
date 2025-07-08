@@ -2,9 +2,7 @@ from flask import Blueprint, render_template
 from datetime import datetime, timezone
 from kernelboard.lib.db import get_db_connection
 
-
 blueprint = Blueprint('index', __name__, url_prefix='/')
-
 
 @blueprint.route('')
 def index():
