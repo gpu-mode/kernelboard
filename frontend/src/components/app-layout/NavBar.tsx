@@ -7,30 +7,13 @@ import {
   mediumText,
 } from "../common/styles/shared_style";
 import FlashOnOutlinedIcon from "@mui/icons-material/FlashOnOutlined";
-import { brandStyle, flashIconStyle } from "./styles";
+import { appBarStyle, brandStyle, flashIconStyle } from "./styles";
 
 export interface NavLink {
   label: string;
   href: string;
   external?: boolean; // 是否外链（新窗口打开）
 }
-
-const MainAppBar = styled(AppBar)(({}) => ({
-  backgroundColor: "white",
-  color: "black",
-  boxShadow: "none",
-  borderBottom: "1px solid #ddd",
-  width: "100%",
-  maxWidth: "100vw",
-}));
-
-const MainToolbar = styled(Toolbar)({
-  gap: 16, // 2 * 8px spacing unit
-});
-
-const MainNavBarTitle = styled(Box)({
-  marginRight: 30, // 2 * 8px spacing unit
-});
 
 export default function NavBar() {
   const links: NavLink[] = [
@@ -54,24 +37,21 @@ export default function NavBar() {
 
   const Brand = () => {
     return (
-      <Link
-        href="/"
-        underline="none"
-        color="inherit"
-        sx={brandStyle}
-      >
-        <Box sx={{ ...flexRowCenter }}>
-          <FlashOnOutlinedIcon sx={flashIconStyle} />
-          <Box>GPU MODE</Box>
-        </Box>
-      </Link>
+      <Box sx={brandStyle}>
+        <Link href="/" underline="none" color="inherit">
+          <Box sx={{ ...flexRowCenter }}>
+            <FlashOnOutlinedIcon sx={flashIconStyle} />
+            <Box>GPU MODE</Box>
+          </Box>
+        </Link>
+      </Box>
     );
   };
 
   return (
-    <MainAppBar position="static">
-      <MainToolbar>
-        <MainNavBarTitle>{brand}</MainNavBarTitle>
+    <AppBar position="static" sx={appBarStyle}>
+      <Toolbar>
+        <Brand />
         <Box sx={flexRowCenterMediumGap}>
           {links.map(({ label, href, external }) => (
             <Link
@@ -89,7 +69,7 @@ export default function NavBar() {
             </Link>
           ))}
         </Box>
-      </MainToolbar>
-    </MainAppBar>
+      </Toolbar>
+    </AppBar>
   );
 }
