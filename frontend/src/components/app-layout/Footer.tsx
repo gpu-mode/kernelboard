@@ -9,6 +9,13 @@ export const FooterLinkContainer = styled(Container)(({ theme }) => ({
   alignItems: "center",
 }));
 
+export const FooterBox = styled(Box)(({ theme }) => ({
+  borderTop: "1px solid #ddd",
+  paddingTop: theme.spacing(2),
+  paddingBottom: theme.spacing(2),
+  textAlign: "center",
+}));
+
 export default function Footer() {
   const links = [
     { label: "Discord", href: "https://discord.gg/gpumode" },
@@ -18,14 +25,7 @@ export default function Footer() {
   ];
 
   return (
-    <Box
-      component="footer"
-      sx={{
-        borderTop: "1px solid #ddd",
-        py: 2,
-        textAlign: "center",
-      }}
-    >
+    <FooterBox>
       <FooterLinkContainer>
         {links.map(({ label, href }) => (
           <Link
@@ -41,6 +41,6 @@ export default function Footer() {
           © 2025 GPU MODE
         </Typography>
       </FooterLinkContainer>
-    </Box>
+    </FooterBox>
   );
 }
