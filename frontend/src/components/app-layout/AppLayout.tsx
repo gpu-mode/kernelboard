@@ -1,10 +1,6 @@
 import {
-  AppBar,
-  Toolbar,
-  Link,
   Box,
   Container,
-  Typography,
 } from "@mui/material";
 import type { ReactNode } from "react";
 import NavBar from "./NavBar";
