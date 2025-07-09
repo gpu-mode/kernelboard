@@ -1,6 +1,13 @@
 // components/NavBar.tsx
-import React from "react";
 import { AppBar, Toolbar, Link, Box, styled } from "@mui/material";
+import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
+import {
+  flexRowCenter,
+  flexRowCenterMediumGap,
+  mediumText,
+} from "../common/styles/shared_style";
+import FlashOnOutlinedIcon from "@mui/icons-material/FlashOnOutlined";
+import { flashIconStyle } from "./styles";
 
 export interface NavLink {
   label: string;
@@ -19,6 +26,10 @@ const MainAppBar = styled(AppBar)(({}) => ({
 
 const MainToolbar = styled(Toolbar)({
   gap: 16, // 2 * 8px spacing unit
+});
+
+const MainNavBarTitle = styled(Box)({
+  marginRight: 30, // 2 * 8px spacing unit
 });
 
 export default function NavBar() {
@@ -46,28 +57,35 @@ export default function NavBar() {
       href="/"
       underline="none"
       color="inherit"
-      sx={{ display: "flex", alignItems: "center", fontWeight: "bold" }}
+      sx={{ ...flexRowCenter, ...mediumText, fontWeight: "bold" }}
     >
-      ⚡ <Box ml={1}>GPU MODE</Box>
+      <Box sx={{ ...flexRowCenter, ...mediumText }}>
+        <FlashOnOutlinedIcon sx={flashIconStyle} /> <Box>GPU MODE</Box>
+      </Box>
     </Link>
   );
 
   return (
     <MainAppBar position="static">
       <MainToolbar>
-        {brand}
-        {links.map(({ label, href, external }) => (
-          <Link
-            key={label}
-            href={href}
-            target={external ? "_blank" : undefined}
-            rel={external ? "noopener" : undefined}
-            underline="none"
-            color="inherit"
-          >
-            {label}
-          </Link>
-        ))}
+        <MainNavBarTitle>{brand}</MainNavBarTitle>
+        <Box sx={flexRowCenterMediumGap}>
+          {links.map(({ label, href, external }) => (
+            <Link
+              key={label}
+              href={href}
+              target={external ? "_blank" : undefined}
+              rel={external ? "noopener" : undefined}
+              underline="none"
+              color="inherit"
+            >
+              <Box sx={{ ...flexRowCenter, ...mediumText }}>
+                {label}
+                {external && <ArrowOutwardIcon sx={{ fontSize: 18 }} />}
+              </Box>
+            </Link>
+          ))}
+        </Box>
       </MainToolbar>
     </MainAppBar>
   );
