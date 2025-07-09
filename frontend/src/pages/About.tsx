@@ -9,6 +9,7 @@ export default function About() {
       setData(d);
     });
   }, []);
+
   return (
     <div>
       <h1>About us</h1>

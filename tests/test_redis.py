@@ -1,4 +1,5 @@
-from kernelboard.redis_connection import create_redis_connection
+from kernelboard.lib.redis_connection import create_redis_connection
+
 
 def test_get_and_close_redis_connection(app):
     with app.app_context():

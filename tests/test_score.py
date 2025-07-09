@@ -1,4 +1,5 @@
-from kernelboard.score import format_score
+from kernelboard.lib.score import format_score
+
 
 def test_format_score():
     assert format_score(0) == "0.000μs"
