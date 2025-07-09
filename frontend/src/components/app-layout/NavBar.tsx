@@ -7,7 +7,7 @@ import {
   mediumText,
 } from "../common/styles/shared_style";
 import FlashOnOutlinedIcon from "@mui/icons-material/FlashOnOutlined";
-import { flashIconStyle } from "./styles";
+import { brandStyle, flashIconStyle } from "./styles";
 
 export interface NavLink {
   label: string;
@@ -52,18 +52,21 @@ export default function NavBar() {
     },
   ];
 
-  const brand = (
-    <Link
-      href="/"
-      underline="none"
-      color="inherit"
-      sx={{ ...flexRowCenter, ...mediumText, fontWeight: "bold" }}
-    >
-      <Box sx={{ ...flexRowCenter, ...mediumText }}>
-        <FlashOnOutlinedIcon sx={flashIconStyle} /> <Box>GPU MODE</Box>
-      </Box>
-    </Link>
-  );
+  const Brand = () => {
+    return (
+      <Link
+        href="/"
+        underline="none"
+        color="inherit"
+        sx={brandStyle}
+      >
+        <Box sx={{ ...flexRowCenter }}>
+          <FlashOnOutlinedIcon sx={flashIconStyle} />
+          <Box>GPU MODE</Box>
+        </Box>
+      </Link>
+    );
+  };
 
   return (
     <MainAppBar position="static">
