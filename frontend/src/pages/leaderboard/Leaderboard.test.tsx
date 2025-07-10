@@ -1,10 +1,4 @@
-import {
-  render,
-  screen,
-  waitFor,
-  fireEvent,
-  within,
-} from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import { vi, expect, it, describe } from "vitest";
 import Leaderboard from "./Leaderboard";
 import * as apiHook from "../../lib/hooks/useApi";
@@ -64,13 +58,12 @@ describe("Leaderboard", () => {
     render(<Leaderboard />);
     expect(screen.getByText(mockName)).toBeInTheDocument();
 
-
     expect(screen.getByText(/reference implementation/i)).toBeInTheDocument();
     expect(screen.getByText(mockReference)).toBeInTheDocument();
 
     expect(screen.getByText(/description/i)).toBeInTheDocument();
     expect(screen.getByText(mockDescription)).toBeInTheDocument();
-    
+
     expect(screen.getByText("user1")).toBeInTheDocument();
     expect(screen.getByText("user2")).toBeInTheDocument();
   });
