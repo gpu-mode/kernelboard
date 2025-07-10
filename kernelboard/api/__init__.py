@@ -45,7 +45,7 @@ def create_api_blueprint():
     def handle_api_http_exception(e):
         return http_error(
             message=e.description, code=10000 + e.code, status_code=e.code
-        )
+    )
 
     # TODO(yangw-dev): remove this after the testing is complete
     @api.route("/about")
@@ -57,4 +57,5 @@ def create_api_blueprint():
     # register blueprints
     api.register_blueprint(leaderboard_bp)
     api.register_blueprint(leaderboard_metadata_bp)
+
     return api

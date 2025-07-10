@@ -3,9 +3,14 @@
   "dependencies": {
     "tailwindcss": "^3.4.17"
   },
-
-    "scripts": {
-      "heroku-postbuild": "cd frontend && npm install --include=dev && npm run build"
-    }
-
+  "scripts": {
+    "heroku-postbuild": "cd frontend && npm install --include=dev && npm run build"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@types/jest": "^30.0.0",
+    "jest": "^30.0.4",
+    "jsdom": "^26.1.0"
+  }
 }
