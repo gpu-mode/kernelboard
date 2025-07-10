@@ -13,7 +13,7 @@ export default function About() {
   return (
     <div>
       <h1>About us</h1>
-      <div> {data} </div>
+      <div>{data} </div>
     </div>
   );
 }

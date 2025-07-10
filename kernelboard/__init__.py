@@ -94,6 +94,7 @@ def create_app(test_config=None):
     if not app.blueprints.get("api"):
         api = create_api_blueprint()
         app.register_blueprint(api)
+        
     app.add_url_rule("/news", endpoint="news")
 
     app.register_blueprint(auth.blueprint)

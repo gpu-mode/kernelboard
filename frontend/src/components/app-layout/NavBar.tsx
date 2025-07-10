@@ -16,7 +16,6 @@ export interface NavLink {
 }
 
 export default function NavBar() {
-  
   const links: NavLink[] = [
     { label: "News", href: "/news" },
     {
