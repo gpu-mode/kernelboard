@@ -1,5 +1,7 @@
 import { createTheme, type Components } from "@mui/material/styles";
 
+// the global styles apply to app-wide
+
 const MuiCardGlobalStyle: Components["MuiCard"] = {
   styleOverrides: {
     root: {
