@@ -19,37 +19,37 @@ interface CodeBlockProps {
 
 export const styles = {
   container: {
-    position: 'relative',
-    border: '1px solid #ddd',
+    position: "relative",
+    border: "1px solid #ddd",
     borderRadius: 2,
-    bgcolor: '#f9f9f9',
-    fontFamily: 'monospace',
-    overflow: 'hidden',
+    bgcolor: "#f9f9f9",
+    fontFamily: "monospace",
+    overflow: "hidden",
   },
 
   copyButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
     zIndex: 1,
   },
 
   toggleText: {
-    cursor: 'pointer',
-    color: 'primary.main',
-    display: 'inline-flex',
-    alignItems: 'center',
-    userSelect: 'none',
+    cursor: "pointer",
+    color: "primary.main",
+    display: "inline-flex",
+    alignItems: "center",
+    userSelect: "none",
   },
 
   fadeOverlay: (theme: Theme): SxProps<Theme> => ({
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     height: 48,
     background: `linear-gradient(to bottom, rgba(249,249,249,0), ${theme.palette.background.paper})`,
-    pointerEvents: 'none',
+    pointerEvents: "none",
   }),
 
   prestyle(expanded: boolean, maxHeight: number): SxProps<Theme> {
@@ -57,11 +57,11 @@ export const styles = {
       m: 0,
       px: 2,
       py: 2,
-      maxHeight: expanded ? 'none' : `${maxHeight}px`,
-      overflowX: 'auto',
-      overflowY: expanded ? 'visible' : 'hidden',
-      whiteSpace: 'pre',
-      position: 'relative',
+      maxHeight: expanded ? "none" : `${maxHeight}px`,
+      overflowX: "auto",
+      overflowY: expanded ? "visible" : "hidden",
+      whiteSpace: "pre",
+      position: "relative",
     };
   },
 };
@@ -80,8 +80,6 @@ export default function CodeBlock({ code, maxHeight = 160 }: CodeBlockProps) {
 
   // dynamically render the pre based on the expanded state
 
-
-
   return (
     <Box sx={styles.container}>
       {/* Copy Button */}
@@ -95,7 +93,6 @@ export default function CodeBlock({ code, maxHeight = 160 }: CodeBlockProps) {
 
       {/* Code */}
       <Box component="pre" sx={styles.prestyle(expanded, maxHeight)}>
-
         <code>{code}</code>
         {!expanded && <Box sx={styles.fadeOverlay(theme)} />}
       </Box>

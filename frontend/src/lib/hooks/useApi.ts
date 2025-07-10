@@ -21,11 +21,11 @@ export function fetcherApiCallback<T, Args extends any[]>(
         return result;
       } catch (e: any) {
         if (e instanceof APIError) {
-            setError(e.message);
-            setErrorStatus(e.status)
-          } else {
-            setError(e.message);
-          }
+          setError(e.message);
+          setErrorStatus(e.status);
+        } else {
+          setError(e.message);
+        }
       } finally {
         setLoading(false);
       }

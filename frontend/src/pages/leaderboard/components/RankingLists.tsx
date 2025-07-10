@@ -80,7 +80,9 @@ const formatUs = (s: number) => (s * 1e6).toFixed(3) + "μs";
 
 export default function RankingsList({ rankings }: RankingsListProps) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [colorHash, _] = useState<string>(Math.random().toString(36).slice(2, 8));
+  const [colorHash, _] = useState<string>(
+    Math.random().toString(36).slice(2, 8),
+  );
 
   const toggleExpanded = (field: string) => {
     setExpanded((prev) => ({
@@ -89,19 +91,20 @@ export default function RankingsList({ rankings }: RankingsListProps) {
     }));
   };
 
-
   return (
     <Stack spacing={3} sx={styles.rankingListSection}>
       {Object.entries(rankings).map(([field, items]) => {
-        if (items.length==0){
-          return (<Box key={field}>
-            <Box sx={styles.header}>
-              <RankingTitleBadge name={field} colorHash={colorHash} />
+        if (items.length == 0) {
+          return (
+            <Box key={field}>
+              <Box sx={styles.header}>
+                <RankingTitleBadge name={field} colorHash={colorHash} />
               </Box>
               <Stack spacing={0.5}>
-              <span> no submissions</span>
+                <span> no submissions</span>
               </Stack>
-            </Box>)
+            </Box>
+          );
         }
         const isExpanded = expanded[field] ?? false;
         const visibleItems = isExpanded ? items : items.slice(0, 3);
