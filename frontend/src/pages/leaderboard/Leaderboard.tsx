@@ -9,7 +9,6 @@ import RankingsList from "./components/RankingLists";
 import CodeBlock from "../../components/codeblock/CodeBlock";
 import { ErrorAlert } from "../../components/error-alert/ErrorAlert";
 
-
 export const CardTitle = styled(Typography)(({ theme }) => ({
   fontSize: "1.5rem",
   fontWeight: "bold",
@@ -17,7 +16,8 @@ export const CardTitle = styled(Typography)(({ theme }) => ({
 
 export default function Leaderboard() {
   const { id } = useParams<{ id: string }>();
-  const { data, loading, error, errorStatus, call } = fetcherApiCallback(fetchLeaderBoard);
+  const { data, loading, error, errorStatus, call } =
+    fetcherApiCallback(fetchLeaderBoard);
 
   useEffect(() => {
     if (!id) {
