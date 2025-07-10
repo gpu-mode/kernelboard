@@ -93,7 +93,7 @@ export default function RankingsList({ rankings }: RankingsListProps) {
 
   return (
     <Stack spacing={3} sx={styles.rankingListSection}>
-      {Object.entries(rankings).map(([field, items]) => {
+      {Object.entries(rankings).map(([field, items], ridx) => {
         if (items.length == 0) {
           return (
             <Box key={field}>
@@ -113,7 +113,11 @@ export default function RankingsList({ rankings }: RankingsListProps) {
             <Box sx={styles.header}>
               <RankingTitleBadge name={field} colorHash={colorHash} />
               {items.length > 3 && (
-                <Button onClick={() => toggleExpanded(field)} size="small">
+                <Button
+                  data-testid={`ranking-show-all-button-${ridx}`}
+                  onClick={() => toggleExpanded(field)}
+                  size="small"
+                >
                   {isExpanded ? "Hide" : `Show all (${items.length})`}
                 </Button>
               )}
@@ -126,6 +130,7 @@ export default function RankingsList({ rankings }: RankingsListProps) {
                   marginBottom={2}
                   key={idx}
                   sx={styles.rankingRow}
+                  data-testid={`ranking-${ridx}-row`}
                 >
                   <Grid size={3}>
                     <Typography sx={styles.name}>

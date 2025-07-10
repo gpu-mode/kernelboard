@@ -100,6 +100,7 @@ export default function CodeBlock({ code, maxHeight = 160 }: CodeBlockProps) {
       {/* Toggle */}
       <Box sx={{ textAlign: "center", py: 1 }}>
         <Typography
+          data-testid="codeblock-show-all-toggle"
           variant="body2"
           sx={styles.toggleText}
           onClick={() => setExpanded((e) => !e)}
