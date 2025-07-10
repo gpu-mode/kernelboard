@@ -15,6 +15,7 @@ const mockName = "test-game";
 describe("Leaderboard", () => {
   const mockCall = vi.fn();
   it("renders nam, description, gpu types and rankings", async () => {
+    // setup
     const mockData = {
       deadline: mockDeadline,
       description: mockDescription,
@@ -55,7 +56,10 @@ describe("Leaderboard", () => {
       mockHookReturn,
     );
 
+    // render
     render(<Leaderboard />);
+
+    // asserts
     expect(screen.getByText(mockName)).toBeInTheDocument();
 
     expect(screen.getByText(/reference implementation/i)).toBeInTheDocument();
@@ -103,6 +107,7 @@ describe("Leaderboard", () => {
   });
 
   it("shows no submission message when no rankings are present", () => {
+    // setup
     const mockData = {
       name: "test-empty",
       description: "",
@@ -125,12 +130,16 @@ describe("Leaderboard", () => {
       mockHookReturn,
     );
 
+    // render
     render(<Leaderboard />);
+
+    // asserts
     expect(screen.getByText("test-empty")).toBeInTheDocument();
     expect(screen.getByText(/no submissions/i)).toBeInTheDocument();
   });
 
-  it("does not show expand button if ranking is less than 3 items", () => {
+  it("does not show expand button if ranking is less than 4 items", () => {
+    // setup
     const mockData = {
       name: "test-empty",
       description: " ",
@@ -176,14 +185,17 @@ describe("Leaderboard", () => {
       mockHookReturn,
     );
 
+    // render
     render(<Leaderboard />);
 
+    // asserts
     expect(
       screen.queryByTestId("ranking-show-all-button-0"),
     ).not.toBeInTheDocument();
   });
 
   it("does  show expand button if ranking is more than 3 items", () => {
+    // setup
     const mockData = {
       name: "test-empty",
       description: " ",
@@ -236,8 +248,10 @@ describe("Leaderboard", () => {
       mockHookReturn,
     );
 
+    // render
     render(<Leaderboard />);
 
+    // asserts
     const button = screen.queryByTestId("ranking-show-all-button-0");
     expect(button).toBeInTheDocument();
     expect(screen.queryAllByTestId("ranking-0-row")).toHaveLength(3);
@@ -250,6 +264,7 @@ describe("Leaderboard", () => {
   });
 
   it("toggles expanded state for codeblock on click", () => {
+    // setup
     const mockData = {
       name: "test-empty",
       description: " ",
@@ -273,8 +288,10 @@ describe("Leaderboard", () => {
       mockHookReturn,
     );
 
+    // render
     render(<Leaderboard />);
 
+    // asserts
     const toggle = screen.getByTestId("codeblock-show-all-toggle");
     expect(within(toggle).getByText(/show more/i)).toBeInTheDocument();
 
