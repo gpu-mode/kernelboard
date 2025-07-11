@@ -43,7 +43,6 @@ def list_news_items():
             reverse=True
         )
 
-
         return http_success(data=sorted_news_contents)
     except Exception as e:
         return http_error(

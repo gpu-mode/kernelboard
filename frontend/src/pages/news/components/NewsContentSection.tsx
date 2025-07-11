@@ -5,6 +5,7 @@ const styles = {
   content: {
     flex: 1,
     px: 3,
+    minWidth: "600px",
   },
   section: {
     scrollMarginTop: "80px",
@@ -39,7 +40,19 @@ export function NewsContentSection({
           <Typography variant="body2" color="text.secondary" gutterBottom>
             {item.date} • {item.category}
           </Typography>
-          <ReactMarkdown>{item.markdown}</ReactMarkdown>
+          <ReactMarkdown
+            components={{
+              img: ({ node, ...props }) => (
+                <img
+                  style={{ maxWidth: "100%", height: "auto" }}
+                  {...props}
+                  alt={props.alt}
+                />
+              ),
+            }}
+          >
+            {item.markdown}
+          </ReactMarkdown>
         </Box>
       ))}
     </Box>
