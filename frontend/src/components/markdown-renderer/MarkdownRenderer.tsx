@@ -23,6 +23,10 @@ const defaultImageProps: MarkdownRendererImageProps = {
   align: "center",
 };
 
+// A markdown renderer handles the image with caption
+// notice we use rehypeRaw to allow to let react-markdown
+// recognize <figure> in md string, this allows us to create
+// image with caption
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   content,
   imageProps,
