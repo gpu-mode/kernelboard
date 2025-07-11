@@ -2,7 +2,7 @@
 id: amd-dev-challenge-2025
 title: "AMD Developer Challenge 2025: Inference Sprint"
 date: 2025-04-15
-category: "AMD Developer Challenge"
+category: "AMD"
 ---
 
 We are excited to announce the $100K competition hosted by

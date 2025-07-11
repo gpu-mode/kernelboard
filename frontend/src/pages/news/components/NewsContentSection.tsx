@@ -1,5 +1,14 @@
 import { Box, Typography } from "@mui/material";
-import ReactMarkdown from "react-markdown";
+import { lazy } from "react";
+
+// Lazy-load MarkdownRenderer to avoid large initial JS chunks.
+// This helps address the Vite warning:
+// "(!) Some chunks are larger than 500 kB after minification."
+// ReactMarkdown + rehype plugins + MUI can bloat the bundle,
+// so we split this into a separate async chunk.
+const MarkdownRenderer = lazy(
+  () => import("../../../components/markdown-renderer/MarkdownRenderer"),
+);
 
 const styles = {
   content: {
@@ -40,19 +49,16 @@ export function NewsContentSection({
           <Typography variant="body2" color="text.secondary" gutterBottom>
             {item.date} • {item.category}
           </Typography>
-          <ReactMarkdown
-            components={{
-              img: ({ node, ...props }) => (
-                <img
-                  style={{ maxWidth: "100%", height: "auto" }}
-                  {...props}
-                  alt={props.alt}
-                />
-              ),
+          <MarkdownRenderer
+            content={item.markdown}
+            imageProps={{
+              maxWidth: "800px",
+              width: "100%",
+              minWidth: "200px",
+              height: "auto",
+              align: "center",
             }}
-          >
-            {item.markdown}
-          </ReactMarkdown>
+          />
         </Box>
       ))}
     </Box>
