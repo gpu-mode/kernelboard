@@ -30,7 +30,7 @@ export default function News() {
   if (error) return <ErrorAlert status={errorStatus} message={error} />;
 
   return (
-    <Box sx={styles.container}>
+    <Box sx={styles.container} id="news">
       <Sidebar data={data} scrollTo={scrollTo} />
       <NewsContentSection data={data} sectionRefs={sectionRefs} />
     </Box>

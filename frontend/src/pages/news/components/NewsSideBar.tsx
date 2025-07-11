@@ -12,7 +12,7 @@ const styles = {
     position: "sticky",
     top: 80,
     alignSelf: "flex-start",
-    height: "calc(100vh - 200px)",
+    height: "calc(100vh - 150px)",
     overflowY: "auto",
     borderRight: "1px solid #ddd",
     width: "20vw",
