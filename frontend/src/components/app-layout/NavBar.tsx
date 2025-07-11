@@ -49,7 +49,7 @@ export default function NavBar() {
   };
 
   return (
-    <AppBar position="static" sx={appBarStyle}>
+    <AppBar position="fixed" sx={appBarStyle}>
       <Toolbar>
         <Brand />
         <Box sx={flexRowCenterMediumGap}>
