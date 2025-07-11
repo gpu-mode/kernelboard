@@ -194,7 +194,7 @@ describe("Leaderboard", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("does  show expand button if ranking is more than 3 items", () => {
+  it("does show expand button if ranking is more than 3 items", () => {
     // setup
     const mockData = {
       name: "test-empty",
