@@ -59,7 +59,7 @@ export default function Leaderboard() {
     <Box>
       <h1>{data.name}</h1>
       <Grid container spacing={2} marginBottom={2}>
-        {info_items.map((info,idx) => (
+        {info_items.map((info, idx) => (
           <Grid size={{ xs: 12, md: 4 }} key={idx}>
             <Card>
               <CardContent>

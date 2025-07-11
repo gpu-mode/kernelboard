@@ -7,8 +7,10 @@ describe("App", () => {
   it("renders the App component", () => {
     // lead route to /kb/about for unit testing
     <MemoryRouter initialEntries={["/kb/about"]}>
-      render(<App />);
-    </MemoryRouter>
+      render(
+      <App />
+      );
+    </MemoryRouter>;
     screen.debug(); // prints out the jsx in the App component unto the command line
   });
 });
