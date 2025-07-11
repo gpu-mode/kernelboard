@@ -33,6 +33,7 @@ describe("News", () => {
   });
 
   it("shows loading state", () => {
+    // prepare
     const mockHookReturn = {
       data: null,
       loading: true,
@@ -45,11 +46,15 @@ describe("News", () => {
       mockHookReturn,
     );
 
+    // render
     render(<News />);
+
+    // asserts
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
 
   it("shows error message", () => {
+    // prepare
     const mockHookReturn = {
       data: null,
       loading: false,
@@ -62,11 +67,15 @@ describe("News", () => {
       mockHookReturn,
     );
 
+    // render
     render(<News />);
+
+    // asserts
     expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
   });
 
   it("renders news items and markdown", () => {
+    // prepare
     const mockHookReturn = {
       data: mockData,
       loading: false,
@@ -79,8 +88,10 @@ describe("News", () => {
       mockHookReturn,
     );
 
+    // render
     render(<News />);
 
+    // asserts
     expect(screen.getByText("News and Announcements")).toBeInTheDocument();
 
     const sidebar = screen.getByTestId("news-sidbar");
@@ -95,6 +106,7 @@ describe("News", () => {
   });
 
   it("calls scrollIntoView when sidebar item is clicked", () => {
+    // prepare
     const scrollIntoViewMock = vi.fn();
 
     const mockHookReturn = {
@@ -109,10 +121,10 @@ describe("News", () => {
       mockHookReturn,
     );
 
-    // Render page
+    // render
     render(<News />);
 
-    // Asserts
+    // asserts
     const sidebar = screen.getByTestId("news-sidbar");
     const newsContent = screen.getByTestId("news-content");
 
@@ -124,7 +136,7 @@ describe("News", () => {
       });
     }
 
-    // click a button in Sidebar
+    // click a button to navigate to item 2 in Sidebar
     const button = within(sidebar).getByTestId("news-sidbar-button-news-2");
     fireEvent.click(button);
 

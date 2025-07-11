@@ -35,7 +35,7 @@ alt="" style="width: 50% !important; height: 50% !important; max-width: 50% !imp
 </center>
 
 <p>
-However, many of these kernels we have in mind have already been heavily optimized by experts in labs like DeepSeek, OpenAI, Anthropic, Google DeepMind, etc. so we wanted to design some problems that were still interesting, but had real use cases when solved. The first problem that immediately came to mind was the Triangle Multiplicative Update used in AlphaFold2 and AlphaFold3, a series of extremely influential works in the BioML space that led to <a href="https://www.nobelprize.org/prizes/chemistry/2024/press-release/">John Jumper and Demis Hassabis winning the Nobel Prize in Chemistry</a>. 
+However, many of these kernels we have in mind have already been heavily optimized by experts in labs like DeepSeek, OpenAI, Anthropic, Google DeepMind, etc. so we wanted to design some problems that were still interesting, but had real use cases when solved. The first problem that immediately came to mind was the Triangle Multiplicative Update used in AlphaFold2 and AlphaFold3, a series of extremely influential works in the BioML space that led to <a href="https://www.nobelprize.org/prizes/chemistry/2024/press-release/">John Jumper and Demis Hassabis winning the Nobel Prize in Chemistry</a>.
 This operator is particularly nasty due to its cubic O(n^3) operations. The peak memory of this operator is so bad that most implementations of AlphaFold3 (see <a href="https://github.com/Ligo-Biosciences/AlphaFold3">Ligo’s OSS reproduction</a> and MIT’s <a href="https://github.com/jwohlwend/boltz">Boltz-2</a>) keep the batch size during training at 1, despite the models being less than 1B in parameter size!
 </p>
 
@@ -44,7 +44,7 @@ This operator is particularly nasty due to its cubic O(n^3) operations. The peak
 </p>
 
 <p>
-Good luck to everyone! 
+Good luck to everyone!
 </p>
 
 </div>
@@ -161,4 +161,3 @@ alt="2025 AMD Developer Challenge: Inference Sprint" class="max-w-full h-auto">
 </div>
 
 {% endblock %}
-

@@ -2,13 +2,15 @@
 id: amd-competition-success
 title: "AMD Competition Success: 30K+ Submissions and Recognition at Advancing AI"
 date: 2025-06-12
-category: "AMD Developer Challenge"
+category: "AMD"
 ---
 
 We are thrilled to share that GPU MODE was recognized on stage by Dr Lisa Su at the [Advancing AI](https://www.amd.com/en/corporate/events/advancing-ai.html) closing ceremony, where she said "I wanted to thank the GPU MODE team formed by talented developers from Meta, Hugging Face and MIT, they have been great partners throughout and we could not have done this without them." Back when GPU MODE was just a humble reading group, we never imagined we would be recognized on stage by one of the greatest CEO's of our time.
 
-![Lisa Su recognizing GPU MODE at Advancing AI](/static/images/lisa.jpeg)
-*We were missing the giga cracked Erik (ngc92)*
+<figure>
+  <img src="/static/images/lisa.jpeg" alt="Lisa Su recognizing GPU MODE at Advancing AI" />
+  <figcaption>We were missing the giga cracked Erik (ngc92)</figcaption>
+</figure>
 
 Our team built the infrastructure for the [AMD $100K kernel competition](https://www.datamonsters.com/amd-developer-challenge-2025), which ran for 2 months and saw remarkable participation: over 30,000 submissions from 163+ teams. This volume exceeds the total number of kernels collected in [KernelBook](https://huggingface.co/datasets/GPUMODE/KernelBook) from crawling all of Github and this represents a significant milestone in aggregating higher quality kernel data.
 

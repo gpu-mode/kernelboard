@@ -2,7 +2,7 @@
 id: triangle-multiplication
 title: "New competition problem: Triangle Multiplicative Update"
 date: 2025-06-24
-category: "Triangle Multiplicative"
+category: "General"
 ---
 
 We are excited to announce a really exciting and challenging GPU competition problem on the GPU MODE leaderboard that you can optimize across NVIDIA (A100, H100, B200) and AMD hardware (MI300)! This is our first problem across multiple hardware vendors, and is also particularly challenging ([@a1zhang](https://x.com/a1zhang) has been particularly excited about it for months). You will be optimizing the **Triangle Multiplicative Update kernel** from the landmark [AlphaFold2/3](https://deepmind.google/science/alphafold/) line of work that won a Nobel Prize! Here is the **official problem writeup**: [https://tinyurl.com/gpumode-trimul](https://tinyurl.com/gpumode-trimul)
