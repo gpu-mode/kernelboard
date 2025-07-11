@@ -5,7 +5,7 @@ date: 2025-06-12
 category: "AMD"
 ---
 
-We are thrilled to share that GPU MODE was recognized on stage by Dr Lisa Su at the [Advancing AI](https://www.amd.com/en/corporate/events/advancing-ai.html) closing ceremony, where she said "I wanted to thank the GPU MODE team formed by talented developers from Meta, Hugging Face and MIT, they have been great partners throughout and we could not have done this without them." Back when GPU MODE was just a humble reading group, we never imagined we would be recognized on stage by one of the greatest CEO's of our time.
+We are thrilled to share that GPU MODE was recognized on stage by Dr Lisa Su at the [Advancing AI](https://www.amd.com/en/corporate/events/advancing-ai.html) closing ceremony, where she said "I wanted to thank the GPU MODE team formed by talented developers from Meta, Hugging Face and MIT, they have been great partners throughout and we could not have done this without them." Back when GPU MODE was just a humble reading group, we never imagined we would be recognized on stage by one of the greatest CEOs of our time.
 
 <figure>
   <img src="/static/images/lisa.jpeg" alt="Lisa Su recognizing GPU MODE at Advancing AI" />
