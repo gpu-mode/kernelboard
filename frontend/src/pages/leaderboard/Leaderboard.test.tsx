@@ -14,7 +14,7 @@ const mockName = "test-game";
 
 describe("Leaderboard", () => {
   const mockCall = vi.fn();
-  it("renders nam, description, gpu types and rankings", async () => {
+  it("renders name, description, gpu types and rankings", async () => {
     // setup
     const mockData = {
       deadline: mockDeadline,
