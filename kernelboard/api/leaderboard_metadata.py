@@ -8,7 +8,6 @@ leaderboard_metadata_bp = Blueprint(
     "leaderboard_metadata_bp", __name__, url_prefix="/leaderboard-metadata"
 )
 
-
 @leaderboard_metadata_bp.route("", methods=["GET"])
 def index():
     # Get a list of JSON objects like the following to build the active

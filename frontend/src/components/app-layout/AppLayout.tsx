@@ -12,13 +12,7 @@ export default function AppLayout({ children }: Props) {
     <Box display="flex" flexDirection="column" minHeight="100vh">
       <NavBar />
       {/* main content */}
-      <Container
-        component="main"
-        maxWidth="lg"
-        sx={{ flexGrow: 1, mt: 4, mb: 8 }}
-      >
-        {children}
-      </Container>
+      <Box sx={{ flexGrow: 1, mt: 10, mb: 2 }}>{children}</Box>
       <Footer />
     </Box>
   );
