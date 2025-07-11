@@ -22,11 +22,20 @@ const defaultImageProps: MarkdownRendererImageProps = {
   height: "auto",
   align: "center",
 };
-
-// A markdown renderer handles the image with caption
-// notice we use rehypeRaw to allow to let react-markdown
-// recognize <figure> in md string, this allows us to create
-// image with caption
+/**
+ * MarkdownRenderer renders Markdown content with support for images and captions.
+ *
+ * It uses `react-markdown` along with `rehypeRaw` to allow parsing of raw HTML
+ * such as <figure> and <figcaption> tags directly inside Markdown strings.
+ *
+ * This enables image + caption blocks to be rendered semantically and styled consistently.
+ *
+ * WARNING:
+ * Do **not** use this component to render **untrusted** or **user-submitted** Markdown content.
+ * `rehypeRaw` allows raw HTML to be parsed and injected into the DOM,
+ * which could lead to Cross-Site Scripting (XSS) vulnerabilities
+ * if malicious HTML like <img onerror="..."> or <script> is included.
+ */
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   content,
   imageProps,
