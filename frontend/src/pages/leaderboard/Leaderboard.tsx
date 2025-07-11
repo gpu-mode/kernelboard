@@ -51,7 +51,7 @@ export default function Leaderboard() {
     { title: "Language", content: <span>{data.lang}</span> },
     {
       title: "GPU types",
-      content: <span>data.gpu_types.join(" ,")</span>,
+      content: <span>{data.gpu_types.join(" ,")}</span>,
     },
   ];
 
