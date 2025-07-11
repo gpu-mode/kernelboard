@@ -1,16 +1,10 @@
-import { useState } from "react";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import {
-  Box,
-  Typography,
-  Button,
-  Stack,
-  type SxProps,
-  type Theme,
-  Grid,
-} from "@mui/material";
-import { grey } from "@mui/material/colors";
+import {useState} from "react";
+import {Box, Button, Grid, Stack, type SxProps, type Theme, Typography,} from "@mui/material";
+import {grey} from "@mui/material/colors";
 import RankingTitleBadge from "./RankingTitleBadge";
+
+import {formatMicroseconds} from "../../../lib/utils/ranking.ts";
+import {getMedalIcon} from "../../../components/common/medal.tsx";
 
 interface RankingItem {
   file_name: string;
@@ -23,12 +17,6 @@ interface RankingItem {
 interface RankingsListProps {
   rankings: Record<string, RankingItem[]>;
 }
-
-const medalStyle = (color: string): SxProps<Theme> => ({
-  color,
-  fontSize: "1.1rem",
-  verticalAlign: "middle",
-});
 
 const styles: Record<string, SxProps<Theme>> = {
   rankingListSection: {
@@ -68,15 +56,6 @@ const styles: Record<string, SxProps<Theme>> = {
     minWidth: "90px",
   },
 };
-
-const getMedalIcon = (rank: number) => {
-  if (rank === 1) return <EmojiEventsIcon sx={medalStyle("#FFD700")} />;
-  if (rank === 2) return <EmojiEventsIcon sx={medalStyle("#C0C0C0")} />;
-  if (rank === 3) return <EmojiEventsIcon sx={medalStyle("#CD7F32")} />;
-  return null;
-};
-
-const formatUs = (s: number) => (s * 1e6).toFixed(3) + "μs";
 
 export default function RankingsList({ rankings }: RankingsListProps) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -139,12 +118,12 @@ export default function RankingsList({ rankings }: RankingsListProps) {
                   </Grid>
                   <Grid size={3}>
                     <Typography sx={styles.score}>
-                      {formatUs(item.score)}
+                      {formatMicroseconds(item.score)}
                     </Typography>
                   </Grid>
                   <Grid size={3}>
                     <Typography sx={styles.delta}>
-                      {item.prev_score > 0 && `+${formatUs(item.prev_score)}`}
+                      {item.prev_score > 0 && `+${formatMicroseconds(item.prev_score)}`}
                     </Typography>
                   </Grid>
                   <Grid size={3}>
