@@ -31,7 +31,7 @@ def list_news_items():
                         news_contents.append(news_content)
                     except HttpError as e:
                         logger.warning(
-                            f"[warning] failed to load news content:{target_file}, due to:{e.message}"
+                            f"[warning] failed to load news content:{target_file}, due to: {e.message}"
                         )
                         # skip the error news content
                         continue
