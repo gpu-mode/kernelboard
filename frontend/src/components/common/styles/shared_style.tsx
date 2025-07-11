@@ -1,3 +1,6 @@
+import styled from "@emotion/styled";
+import { Box, Container } from "@mui/material";
+
 export const flexRowCenter = {
   display: "flex",
   alignItems: "center",
@@ -13,3 +16,9 @@ export const flexRowCenterMediumGap = {
 export const mediumText = {
   fontSize: "1.25rem",
 };
+
+export const PageMainContainer = styled(Container)(() => ({
+  maxWidth: "lg",
+  mt: 4,
+  ml: 4,
+}));

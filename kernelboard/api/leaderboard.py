@@ -1,14 +1,14 @@
 from typing import Any
 from flask import Blueprint
+from flask import Blueprint
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.time import to_time_left
+from kernelboard.lib.status_code import http_error, http_success
 from kernelboard.lib.status_code import http_error, http_success
 from http import HTTPStatus
 
 
-leaderboard_bp = Blueprint(
-    "leaderboard_bp", __name__, url_prefix="/leaderboard"
-)
+leaderboard_bp = Blueprint("leaderboard_bp", __name__, url_prefix="/leaderboard")
 
 
 @leaderboard_bp.route("/<int:leaderboard_id>", methods=["GET"])
@@ -22,8 +22,8 @@ def leaderboard(leaderboard_id: int):
     if is_result_invalid(result):
         return http_error(
             f"canonot find leaderboard with id {leaderboard_id}",
-            10000+HTTPStatus.NOT_FOUND,
-            HTTPStatus.NOT_FOUND
+            10000 + HTTPStatus.NOT_FOUND,
+            HTTPStatus.NOT_FOUND,
         )
 
     data = result[0]
