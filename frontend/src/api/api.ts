@@ -7,15 +7,6 @@ export class APIError extends Error {
   }
 }
 
-export class APIError extends Error {
-  status: number;
-  constructor(message: string, status: number) {
-    super(message);
-    this.name = "APIError";
-    this.status = status;
-  }
-}
-
 export async function fetchAboutInfo(): Promise<string> {
   const res = await fetch("/api/about");
   if (!res.ok) {
