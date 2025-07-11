@@ -62,9 +62,7 @@ def auth(provider):
     query = urlencode(
         {
             "client_id": provider_data["client_id"],
-            "redirect_uri": url_for(
-                "auth.callback", provider=provider, _external=True
-            ),
+            "redirect_uri": url_for("auth.callback", provider=provider, _external=True),
             "response_type": "code",
             "scope": " ".join(provider_data["scopes"]),
             "state": session["oauth2_state"],
@@ -109,9 +107,7 @@ def callback(provider):
             "client_secret": provider_data["client_secret"],
             "code": request.args["code"],
             "grant_type": "authorization_code",
-            "redirect_uri": url_for(
-                "auth.callback", provider=provider, _external=True
-            ),
+            "redirect_uri": url_for("auth.callback", provider=provider, _external=True),
         },
         headers={"Accept": "application/json"},
     )

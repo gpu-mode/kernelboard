@@ -3,6 +3,7 @@ from werkzeug.exceptions import HTTPException
 from kernelboard.lib.status_code import http_error, http_success
 from kernelboard.api.leaderboard import leaderboard_bp
 from kernelboard.api.leaderboard_metadata import leaderboard_metadata_bp
+from kernelboard.api.news import news_bp
 
 
 def create_api_blueprint():
@@ -50,12 +51,11 @@ def create_api_blueprint():
     # TODO(yangw-dev): remove this after the testing is complete
     @api.route("/about")
     def get_about():
-        return http_success(
-            data={"message": "Kernelboard, your friendly leaderboard."}
-        )
+        return http_success(data={"message": "Kernelboard, your friendly leaderboard."})
 
     # register blueprints
     api.register_blueprint(leaderboard_bp)
+    api.register_blueprint(news_bp)
     api.register_blueprint(leaderboard_metadata_bp)
 
     return api
