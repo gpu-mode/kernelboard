@@ -3,9 +3,7 @@
   "dependencies": {
     "tailwindcss": "^3.4.17"
   },
-
-    "scripts": {
-      "heroku-postbuild": "cd frontend && npm install --include=dev && npm run build"
-    }
-
+  "scripts": {
+    "heroku-postbuild": "cd frontend && npm install --include=dev && npm run build"
+  }
 }

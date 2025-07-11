@@ -1,8 +1,8 @@
 from typing import Any
-from flask import abort, Blueprint
+from flask import Blueprint
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.time import to_time_left
-from kernelboard.lib.status_code import http_success
+from kernelboard.lib.status_code import http_error, http_success
 from http import HTTPStatus
 
 
@@ -20,8 +20,11 @@ def leaderboard(leaderboard_id: int):
         result = cur.fetchone()
 
     if is_result_invalid(result):
-        abort(HTTPStatus.NOT_FOUND)
-        return
+        return http_error(
+            f"canonot find leaderboard with id {leaderboard_id}",
+            10000+HTTPStatus.NOT_FOUND,
+            HTTPStatus.NOT_FOUND
+        )
 
     data = result[0]
 

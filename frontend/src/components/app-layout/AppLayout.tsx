@@ -1,7 +1,4 @@
-import {
-  Box,
-  Container,
-} from "@mui/material";
+import { Box, Container } from "@mui/material";
 import type { ReactNode } from "react";
 import NavBar from "./NavBar";
 import Footer from "./Footer";
