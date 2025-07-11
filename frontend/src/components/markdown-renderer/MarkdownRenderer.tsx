@@ -22,6 +22,7 @@ const defaultImageProps: MarkdownRendererImageProps = {
   height: "auto",
   align: "center",
 };
+
 /**
  * MarkdownRenderer renders Markdown content with support for images and captions.
  *
