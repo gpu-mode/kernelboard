@@ -17,7 +17,7 @@ export const mediumText = {
   fontSize: "1.25rem",
 };
 
-export const PageBox = styled(Container)(({ theme }) => ({
+export const PageMainContainer = styled(Container)(() => ({
   maxWidth: "lg",
   mt: 4,
   ml: 4,

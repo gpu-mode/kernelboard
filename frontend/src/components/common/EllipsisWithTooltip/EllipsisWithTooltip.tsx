@@ -18,7 +18,7 @@ const styles = {
   }),
 };
 
-// auto show tooltip for full string if it's truncated by nowrap
+// EllipsisWithTooltip: auto show tooltip with full string if it's truncated by nowrap
 export const EllipsisWithTooltip: React.FC<Props> = ({
   text,
   variant = "body2",
