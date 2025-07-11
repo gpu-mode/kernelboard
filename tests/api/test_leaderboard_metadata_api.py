@@ -1,4 +1,3 @@
-
 def test_index(client):
     response = client.get("/api/leaderboard-metadata")
     assert response.status_code == 200

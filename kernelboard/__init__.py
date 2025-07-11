@@ -9,6 +9,7 @@ from kernelboard import auth, color, error, health, index, leaderboard, news
 from kernelboard.api import create_api_blueprint
 from kernelboard.lib.redis_connection import create_redis_connection
 from flask import send_from_directory
+from kernelboard.lib.logging import configure_logging
 
 
 def create_app(test_config=None):
@@ -20,6 +21,9 @@ def create_app(test_config=None):
     env.check_env_vars()
 
     app = Flask(__name__, instance_relative_config=True)
+
+    # set logging for flask app
+    configure_logging(app)
 
     app.config.from_mapping(
         SECRET_KEY=os.getenv("SECRET_KEY"),
