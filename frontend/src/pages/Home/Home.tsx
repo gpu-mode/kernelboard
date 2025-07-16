@@ -57,7 +57,7 @@ export default function Home() {
       {leaderboards.length > 0 ? (
         <Grid container spacing={3}>
           {leaderboards.map((leaderboard) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={leaderboard.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={leaderboard.id}>
               <LeaderboardTile leaderboard={leaderboard} />
             </Grid>
           ))}
