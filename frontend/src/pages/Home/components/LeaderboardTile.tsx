@@ -17,6 +17,23 @@ const styles = {
       boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
     },
   },
+  priorityGpuType: {
+    backgroundColor: "#f5f5f5",
+    color: "#666",
+    fontSize: "0.75rem",
+  },
+  topUsersList: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    py: 0.5,
+    borderBottom: user.rank < leaderboard.top_users!.length ? "1px solid #eee" : "none",
+  },
+  userScore: {
+    fontFamily: "monospace",
+    fontSize: "0.75rem",
+    color: "text.secondary",
+  },
 };
 
 interface TopUser {
@@ -73,11 +90,7 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
               <Chip
                 label={leaderboard.priority_gpu_type}
                 size="small"
-                sx={{
-                  backgroundColor: "#f5f5f5",
-                  color: "#666",
-                  fontSize: "0.75rem",
-                }}
+                sx={styles.priorityGpuType}
               />
             </Box>
 
@@ -86,13 +99,7 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
               {leaderboard.top_users.map((user) => (
                 <Box
                   key={user.rank}
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    py: 0.5,
-                    borderBottom: user.rank < leaderboard.top_users!.length ? "1px solid #eee" : "none",
-                  }}
+                  sx={styles.topUsersList}
                 >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                     <Typography variant="body2" sx={{ fontWeight: user.rank <= 3 ? "bold" : "normal" }}>
@@ -106,11 +113,7 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
                   </Box>
                   <Typography
                     variant="body2"
-                    sx={{
-                      fontFamily: "monospace",
-                      fontSize: "0.75rem",
-                      color: "text.secondary",
-                    }}
+                    sx={styles.userScore}
                   >
                     {formatMicroseconds(user.score)}
                   </Typography>
