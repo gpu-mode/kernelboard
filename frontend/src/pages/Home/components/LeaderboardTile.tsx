@@ -27,7 +27,6 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     py: 0.5,
-    borderBottom: user.rank < leaderboard.top_users!.length ? "1px solid #eee" : "none",
   },
   userScore: {
     fontFamily: "monospace",
@@ -99,7 +98,10 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
               {leaderboard.top_users.map((user) => (
                 <Box
                   key={user.rank}
-                  sx={styles.topUsersList}
+                  sx={{
+                    ...styles.topUsersList,
+                    borderBottom: user.rank < leaderboard.top_users!.length ? "1px solid #eee" : "none",
+                  }}
                 >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                     <Typography variant="body2" sx={{ fontWeight: user.rank <= 3 ? "bold" : "normal" }}>
