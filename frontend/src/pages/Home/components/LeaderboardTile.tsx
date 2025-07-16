@@ -4,6 +4,21 @@ import { getMedalIcon } from "../../../components/common/medal.tsx";
 import { getTimeLeft } from "../../../lib/date/utils.ts";
 import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
 
+const styles = {
+  leaderboardCard: {
+    textDecoration: "none",
+    color: "inherit",
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+    "&:hover": {
+      transform: "translateY(-2px)",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+    },
+  },
+};
+
 interface TopUser {
   rank: number;
   score: number;
@@ -30,18 +45,7 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
     <Card
       component={Link}
       to={`/leaderboard/${leaderboard.id}`}
-      sx={{
-        textDecoration: "none",
-        color: "inherit",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-        "&:hover": {
-          transform: "translateY(-2px)",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-        },
-      }}
+      sx={styles.leaderboardCard}
     >
       <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
         {/* Leaderboard Name */}
