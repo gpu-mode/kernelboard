@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 
 // Lazy-load MarkdownRenderer to avoid large initial JS chunks.
 // This helps address the Vite warning:
@@ -49,16 +49,18 @@ export function NewsContentSection({
           <Typography variant="body2" color="text.secondary" gutterBottom>
             {item.date} • {item.category}
           </Typography>
-          <MarkdownRenderer
-            content={item.markdown}
-            imageProps={{
-              maxWidth: "800px",
-              width: "100%",
-              minWidth: "200px",
-              height: "auto",
-              align: "center",
-            }}
-          />
+          <Suspense fallback={<div>Loading content...</div>}>
+            <MarkdownRenderer
+              content={item.markdown}
+              imageProps={{
+                maxWidth: "800px",
+                width: "100%",
+                minWidth: "200px",
+                height: "auto",
+                align: "center",
+              }}
+            />
+          </Suspense>
         </Box>
       ))}
     </Box>
