@@ -2,7 +2,7 @@ from flask import Blueprint
 from werkzeug.exceptions import HTTPException
 from kernelboard.lib.status_code import http_error, http_success
 from kernelboard.api.leaderboard import leaderboard_bp
-from kernelboard.api.leaderboard_metadata import leaderboard_metadata_bp
+from kernelboard.api.leaderboard_summaries import leaderboard_summaries_bp
 from kernelboard.api.news import news_bp
 
 
@@ -56,6 +56,6 @@ def create_api_blueprint():
     # register blueprints
     api.register_blueprint(leaderboard_bp)
     api.register_blueprint(news_bp)
-    api.register_blueprint(leaderboard_metadata_bp)
+    api.register_blueprint(leaderboard_summaries_bp)
 
     return api

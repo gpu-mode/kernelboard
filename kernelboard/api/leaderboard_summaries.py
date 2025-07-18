@@ -4,12 +4,12 @@ from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.status_code import http_success
 
 
-leaderboard_metadata_bp = Blueprint(
-    "leaderboard_metadata_bp", __name__, url_prefix="/leaderboard-metadata"
+leaderboard_summaries_bp = Blueprint(
+    "leaderboard_summaries_bp", __name__, url_prefix="/leaderboard-summaries"
 )
 
 
-@leaderboard_metadata_bp.route("", methods=["GET"])
+@leaderboard_summaries_bp.route("", methods=["GET"])
 def index():
     # Get a list of JSON objects like the following
     # to build the active leaderboard tiles:
