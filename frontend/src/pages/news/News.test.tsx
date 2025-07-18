@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { render, screen, fireEvent, within, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import News from "./News"; // 假设你当前文件路径为 pages/News.tsx
 import * as apiHook from "../../lib/hooks/useApi";
@@ -6,6 +6,11 @@ import * as apiHook from "../../lib/hooks/useApi";
 // 统一 mock useApi hook
 vi.mock("../../lib/hooks/useApi", () => ({
   fetcherApiCallback: vi.fn(),
+}));
+
+// Mock MarkdownRenderer to avoid lazy loading issues in tests
+vi.mock("../../components/markdown-renderer/MarkdownRenderer", () => ({
+  default: ({ content }: { content: string }) => <div>{content}</div>,
 }));
 
 const mockCall = vi.fn();
@@ -74,7 +79,7 @@ describe("News", () => {
     expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
   });
 
-  it("renders news items and markdown", () => {
+  it("renders news items and markdown", async () => {
     // prepare
     const mockHookReturn = {
       data: mockData,
@@ -102,7 +107,11 @@ describe("News", () => {
 
     expect(within(newsContent).getByText("Title One")).toBeInTheDocument();
     expect(within(newsContent).getByText("Title Two")).toBeInTheDocument();
-    expect(within(newsContent).getByText(/content one/i)).toBeInTheDocument();
+
+    // Wait for the markdown content to load
+    await waitFor(() => {
+      expect(within(newsContent).getByText(/content one/i)).toBeInTheDocument();
+    });
   });
 
   it("calls scrollIntoView when sidebar item is clicked", () => {
