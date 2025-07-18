@@ -1,5 +1,5 @@
 def test_index(client):
-    response = client.get("/api/leaderboard-metadata")
+    response = client.get("/api/leaderboard-summaries")
     assert response.status_code == 200
     res = response.get_json()
     leaderboards = res.get("data", {}).get("leaderboards", [])
@@ -10,7 +10,7 @@ def test_leaderboard_metadata(client):
     """
     Test that the leaderboard IDs are in decreasing order.
     """
-    response = client.get("/api/leaderboard-metadata")
+    response = client.get("/api/leaderboard-summaries")
     res = response.get_json()
     leaderboards = res.get("data", {}).get("leaderboards", [])
 

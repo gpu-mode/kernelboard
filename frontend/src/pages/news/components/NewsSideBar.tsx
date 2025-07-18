@@ -5,7 +5,7 @@ import {
   ListItemText,
   Typography,
 } from "@mui/material";
-import { EllipsisWithTooltip } from "../../../components/common/EllipsisWithTooltip/EllipsisWithTooltip";
+import { EllipsisWithTooltip } from "../../../components/common/EllipsisWithTooltip";
 
 const styles = {
   sidebar: {
