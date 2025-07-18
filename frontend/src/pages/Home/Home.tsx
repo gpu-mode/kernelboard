@@ -1,7 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useEffect } from "react";
-import { fetchAllLeaderboards } from "../../api/api";
+import { fetchLeaderboardSummaries } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { ErrorAlert } from "../../components/error-alert/ErrorAlert";
 import LeaderboardTile from "./components/LeaderboardTile";
@@ -21,14 +21,14 @@ interface LeaderboardData {
   top_users: TopUser[] | null;
 }
 
-interface AllLeaderboards {
+interface LeaderboardSummaries {
   leaderboards: LeaderboardData[];
   now: string;
 }
 
 export default function Home() {
   const { data, loading, error, errorStatus, call } =
-    fetcherApiCallback<AllLeaderboards, any[]>(fetchAllLeaderboards);
+    fetcherApiCallback<LeaderboardSummaries, any[]>(fetchLeaderboardSummaries);
 
   useEffect(() => {
     call();
