@@ -18,6 +18,7 @@ function App() {
         <AppLayout>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/leaderboard/:id" element={<Leaderboard />} />
             <Route path="/news" element={<News />} />
