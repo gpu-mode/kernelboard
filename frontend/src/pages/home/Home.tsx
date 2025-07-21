@@ -50,7 +50,7 @@ export default function Home() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h3" component="h1" sx={{ mb: 3, fontWeight: "bold" }}>
+      <Typography variant="h1" component="h1" sx={{ mb: 3, fontWeight: "bold" }}>
         Leaderboards
       </Typography>
 
