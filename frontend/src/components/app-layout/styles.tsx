@@ -19,6 +19,7 @@ export const brandStyle: SxProps<Theme> = {
   ...flexRowCenter,
   ...mediumText,
   fontWeight: "bold",
+  ml: -2, // Negative left margin to reduce space from left edge
   mr: {
     xs: 2, // margin on extra-small screens
     sm: 4, // margin on small screens
