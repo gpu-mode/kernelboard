@@ -1,5 +1,5 @@
 // components/NavBar.tsx
-import { AppBar, Toolbar, Link, Box, styled } from "@mui/material";
+import { AppBar, Toolbar, Link, Box } from "@mui/material";
 import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 import {
   flexRowCenter,
@@ -8,6 +8,7 @@ import {
 } from "../common/styles/shared_style";
 import FlashOnOutlinedIcon from "@mui/icons-material/FlashOnOutlined";
 import { appBarStyle, brandStyle, flashIconStyle } from "./styles";
+import { ConstrainedContainer } from "./ConstrainedContainer";
 
 export interface NavLink {
   label: string;
@@ -50,26 +51,28 @@ export default function NavBar() {
 
   return (
     <AppBar position="fixed" sx={appBarStyle}>
-      <Toolbar>
-        <Brand />
-        <Box sx={flexRowCenterMediumGap}>
-          {links.map(({ label, href, external }) => (
-            <Link
-              key={label}
-              href={href}
-              target={external ? "_blank" : undefined}
-              rel={external ? "noopener" : undefined}
-              underline="none"
-              color="inherit"
-            >
-              <Box sx={{ ...flexRowCenter, ...mediumText }}>
-                {label}
-                {external && <ArrowOutwardIcon sx={{ fontSize: 18 }} />}
-              </Box>
-            </Link>
-          ))}
-        </Box>
-      </Toolbar>
+      <ConstrainedContainer>
+        <Toolbar sx={{ px: 0 }}>
+          <Brand />
+          <Box sx={flexRowCenterMediumGap}>
+            {links.map(({ label, href, external }) => (
+              <Link
+                key={label}
+                href={href}
+                target={external ? "_blank" : undefined}
+                rel={external ? "noopener" : undefined}
+                underline="none"
+                color="inherit"
+              >
+                <Box sx={{ ...flexRowCenter, ...mediumText }}>
+                  {label}
+                  {external && <ArrowOutwardIcon sx={{ fontSize: 18 }} />}
+                </Box>
+              </Link>
+            ))}
+          </Box>
+        </Toolbar>
+      </ConstrainedContainer>
     </AppBar>
   );
 }

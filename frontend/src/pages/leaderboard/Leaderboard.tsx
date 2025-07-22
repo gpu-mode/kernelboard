@@ -8,7 +8,6 @@ import { toDateUtc } from "../../lib/date/utils";
 import RankingsList from "./components/RankingLists";
 import CodeBlock from "../../components/codeblock/CodeBlock";
 import { ErrorAlert } from "../../components/error-alert/ErrorAlert";
-import { PageMainContainer } from "../../components/common/styles/shared_style";
 
 export const CardTitle = styled(Typography)(({ theme }) => ({
   fontSize: "1.5rem",
@@ -57,7 +56,7 @@ export default function Leaderboard() {
   ];
 
   return (
-    <PageMainContainer>
+    <Box>
       <h1>{data.name}</h1>
       <Grid container spacing={2} marginBottom={2}>
         {info_items.map((info, idx) => (
@@ -90,6 +89,6 @@ export default function Leaderboard() {
       <Box>
         <RankingsList rankings={data.rankings} />
       </Box>
-    </PageMainContainer>
+    </Box>
   );
 }
