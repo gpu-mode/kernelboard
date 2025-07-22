@@ -18,6 +18,10 @@ const styles = {
       boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
       borderColor: (theme: any) => theme.palette.custom.secondary,
     },
+    padding: 1,
+    "& .MuiCardContent-root:last-child": {
+      paddingBottom: 1,
+    },
   },
   priorityGpuType: {
     backgroundColor: "#f5f5f5",
@@ -28,7 +32,7 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    py: 0.5,
+    py: 0.25,
   },
   userScore: {
     fontFamily: "monospace",
@@ -36,7 +40,6 @@ const styles = {
     color: "text.secondary",
   },
   userName: {
-    //fontFamily: "monospace",
     fontSize: "0.9rem",
     color: "text.secondary",
   },
@@ -72,7 +75,7 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
     >
       <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
         {/* Leaderboard Name */}
-        <Box sx={{ mb: 2 }}>
+        <Box sx={{ mb: 1 }}>
           <Typography variant="h6" component="h3" sx={{ fontFamily: "monospace" }}>
             <ColoredSquare name={leaderboard.name} />
             {leaderboard.name}
@@ -80,12 +83,12 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
         </Box>
 
         {/* Time Left */}
-        <Typography variant="body1" sx={{ mb: 1, color: "text.secondary" }}>
+        <Typography variant="body1" sx={{ color: "text.secondary" }}>
           {timeLeft}
         </Typography>
 
         {/* GPU Types */}
-        <Typography variant="body2" sx={{ mb: 2, color: "text.secondary", fontSize: "0.875rem" }}>
+        <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.875rem" }}>
           {leaderboard.gpu_types.join(", ")}
         </Typography>
 
@@ -93,7 +96,7 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
         {leaderboard.top_users && leaderboard.top_users.length > 0 && (
           <Box sx={{ mt: "auto" }}>
             {/* Priority GPU Type Chip */}
-            <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 1, mb: 1 }}>
               <Chip
                 label={leaderboard.priority_gpu_type}
                 size="small"
