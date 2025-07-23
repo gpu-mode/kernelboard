@@ -10,7 +10,6 @@ export const defaultRedirectMap: Record<number, string> = {
   500: "/500",
   0: "/500", // uknown error
 };
-
 /**
  * A reusable UI hook for handling API data fetching with loading and error state management.
  *
@@ -24,9 +23,9 @@ export const defaultRedirectMap: Record<number, string> = {
  * ### `call`
  * Unlike hooks that fetch automatically on mount, this design exposes a `call` function
  * so users can explicitly decide when and how to fetch data. This is especially useful for:
- * - fetching data based on dynamic parameters (e.g., with `useEffect`)
- * - re-fetching on user action (e.g., button click action)
- * - delaying fetch until certain conditions are met
+ * - Fetching data based on dynamic parameters (e.g., inside `useEffect`)
+ * - Re-fetching on user action (e.g., button click)
+ * - Delaying fetch until certain conditions are met
  *
  * ### Example usage
  * ```ts
@@ -39,8 +38,16 @@ export const defaultRedirectMap: Record<number, string> = {
  *
  * @template T - The return type of the fetcher function
  * @template Args - The parameter types of the fetcher function
- * @param fetcher - A function that returns a promise of type T
- * @param redirectMap - A map that defines the navigation guidance if error happens
+ * @param fetcher - A function that returns a promise of type `T`
+ * @param redirectMap - A map of HTTP status codes to redirect routes (default fallback):
+ * ```ts
+ * export const defaultRedirectMap: Record<number, string> = {
+ *   401: '/401',
+ *   404: '/404',
+ *   500: '/500',
+ *   0: '/500', // 0 indicates unknown error
+ * };
+ * ```
  * @returns An object with `data`, `loading`, `error`, `errorStatus`, and `call`
  */
 export function fetcherApiCallback<T, Args extends any[]>(
