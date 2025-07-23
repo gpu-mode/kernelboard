@@ -7,21 +7,21 @@ describe("getMedalIcon", () => {
     it("returns a gold-colored EmojiEventsIcon", () => {
       const result = getMedalIcon(1);
       expect(result).not.toBeNull();
-      
+
       const { container } = render(result!);
-      const icon = container.querySelector('svg');
-      
+      const icon = container.querySelector("svg");
+
       expect(icon).toBeInTheDocument();
-      expect(icon).toHaveAttribute('data-testid', 'EmojiEventsIcon');
+      expect(icon).toHaveAttribute("data-testid", "EmojiEventsIcon");
     });
 
     it("applies gold color styling", () => {
       const result = getMedalIcon(1);
       const { container } = render(result!);
-      const icon = container.querySelector('svg');
-      
+      const icon = container.querySelector("svg");
+
       // Check if the icon has the gold color applied via sx prop
-      expect(icon).toHaveStyle({ color: '#FFD700' });
+      expect(icon).toHaveStyle({ color: "#FFD700" });
     });
   });
 
@@ -29,21 +29,21 @@ describe("getMedalIcon", () => {
     it("returns a silver-colored EmojiEventsIcon", () => {
       const result = getMedalIcon(2);
       expect(result).not.toBeNull();
-      
+
       const { container } = render(result!);
-      const icon = container.querySelector('svg');
-      
+      const icon = container.querySelector("svg");
+
       expect(icon).toBeInTheDocument();
-      expect(icon).toHaveAttribute('data-testid', 'EmojiEventsIcon');
+      expect(icon).toHaveAttribute("data-testid", "EmojiEventsIcon");
     });
 
     it("applies silver color styling", () => {
       const result = getMedalIcon(2);
       const { container } = render(result!);
-      const icon = container.querySelector('svg');
-      
+      const icon = container.querySelector("svg");
+
       // Check if the icon has the silver color applied via sx prop
-      expect(icon).toHaveStyle({ color: '#C0C0C0' });
+      expect(icon).toHaveStyle({ color: "#C0C0C0" });
     });
   });
 
@@ -51,21 +51,21 @@ describe("getMedalIcon", () => {
     it("returns a bronze-colored EmojiEventsIcon", () => {
       const result = getMedalIcon(3);
       expect(result).not.toBeNull();
-      
+
       const { container } = render(result!);
-      const icon = container.querySelector('svg');
-      
+      const icon = container.querySelector("svg");
+
       expect(icon).toBeInTheDocument();
-      expect(icon).toHaveAttribute('data-testid', 'EmojiEventsIcon');
+      expect(icon).toHaveAttribute("data-testid", "EmojiEventsIcon");
     });
 
     it("applies bronze color styling", () => {
       const result = getMedalIcon(3);
       const { container } = render(result!);
-      const icon = container.querySelector('svg');
-      
+      const icon = container.querySelector("svg");
+
       // Check if the icon has the bronze color applied via sx prop
-      expect(icon).toHaveStyle({ color: '#CD7F32' });
+      expect(icon).toHaveStyle({ color: "#CD7F32" });
     });
   });
 
@@ -99,25 +99,25 @@ describe("getMedalIcon", () => {
   describe("icon styling consistency", () => {
     it("applies consistent font size to all medal icons", () => {
       const ranks = [1, 2, 3];
-      
-      ranks.forEach(rank => {
+
+      ranks.forEach((rank) => {
         const result = getMedalIcon(rank);
         const { container } = render(result!);
-        const icon = container.querySelector('svg');
-        
-        expect(icon).toHaveStyle({ fontSize: '1.1rem' });
+        const icon = container.querySelector("svg");
+
+        expect(icon).toHaveStyle({ fontSize: "1.1rem" });
       });
     });
 
     it("applies consistent vertical alignment to all medal icons", () => {
       const ranks = [1, 2, 3];
-      
-      ranks.forEach(rank => {
+
+      ranks.forEach((rank) => {
         const result = getMedalIcon(rank);
         const { container } = render(result!);
-        const icon = container.querySelector('svg');
-        
-        expect(icon).toHaveStyle({ verticalAlign: 'middle' });
+        const icon = container.querySelector("svg");
+
+        expect(icon).toHaveStyle({ verticalAlign: "middle" });
       });
     });
   });

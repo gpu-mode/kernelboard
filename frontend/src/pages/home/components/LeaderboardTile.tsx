@@ -63,7 +63,9 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
       to={`/leaderboard/${leaderboard.id}`}
       sx={styles.leaderboardCard}
     >
-      <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+      <CardContent
+        sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}
+      >
         {/* Leaderboard Name */}
         <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
           <Typography variant="h6" component="h3" sx={{ fontWeight: "bold" }}>
@@ -77,7 +79,10 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
         </Typography>
 
         {/* GPU Types */}
-        <Typography variant="body2" sx={{ mb: 2, color: "text.secondary", fontSize: "0.875rem" }}>
+        <Typography
+          variant="body2"
+          sx={{ mb: 2, color: "text.secondary", fontSize: "0.875rem" }}
+        >
           {leaderboard.gpu_types.join(", ")}
         </Typography>
 
@@ -100,23 +105,29 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
                   key={user.rank}
                   sx={{
                     ...styles.topUsersList,
-                    borderBottom: user.rank < leaderboard.top_users!.length ? "1px solid #eee" : "none",
+                    borderBottom:
+                      user.rank < leaderboard.top_users!.length
+                        ? "1px solid #eee"
+                        : "none",
                   }}
                 >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    <Typography variant="body2" sx={{ fontWeight: user.rank <= 3 ? "bold" : "normal" }}>
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: user.rank <= 3 ? "bold" : "normal" }}
+                    >
                       {user.user_name || " "}
                     </Typography>
                     {user.rank <= 3 && (
-                      <Typography component="span" sx={{ fontSize: "0.875rem" }}>
+                      <Typography
+                        component="span"
+                        sx={{ fontSize: "0.875rem" }}
+                      >
                         {getMedalIcon(user.rank)}
                       </Typography>
                     )}
                   </Box>
-                  <Typography
-                    variant="body2"
-                    sx={styles.userScore}
-                  >
+                  <Typography variant="body2" sx={styles.userScore}>
                     {formatMicroseconds(user.score)}
                   </Typography>
                 </Box>

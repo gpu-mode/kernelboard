@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, within, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  within,
+  waitFor,
+} from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import News from "./News"; // 假设你当前文件路径为 pages/News.tsx
 import * as apiHook from "../../lib/hooks/useApi";
@@ -55,7 +61,7 @@ describe("News", () => {
     render(<News />);
 
     // asserts
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    expect(screen.getByText(/Summoning/i)).toBeInTheDocument();
   });
 
   it("shows error message", () => {

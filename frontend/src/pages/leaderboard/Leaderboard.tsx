@@ -1,6 +1,5 @@
 import { Box, Card, CardContent, styled, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { fetchLeaderBoard } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
@@ -9,6 +8,8 @@ import RankingsList from "./components/RankingLists";
 import CodeBlock from "../../components/codeblock/CodeBlock";
 import { ErrorAlert } from "../../components/error-alert/ErrorAlert";
 import { PageMainContainer } from "../../components/common/styles/shared_style";
+import { useParams } from "react-router-dom";
+import Loading from "../../components/common/loading";
 
 export const CardTitle = styled(Typography)(({ theme }) => ({
   fontSize: "1.5rem",
@@ -28,9 +29,10 @@ export default function Leaderboard() {
   }, [id]);
 
   if (loading) {
-    return <div>Loading</div>;
+    return <Loading />;
   }
 
+  // handles specific error
   if (error) {
     return <ErrorAlert status={errorStatus} message={error} />;
   }

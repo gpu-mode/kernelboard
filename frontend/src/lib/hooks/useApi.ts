@@ -1,7 +1,15 @@
 import { useCallback, useState } from "react";
 import { APIError } from "../../api/api";
+import { useNavigate } from "react-router-dom";
 
 type Fetcher<T, Args extends any[]> = (...args: Args) => Promise<T>;
+
+export const defaultRedirectMap: Record<number, string> = {
+  401: "/401",
+  404: "/404",
+  500: "/500",
+  0: "/500", // uknown error
+};
 
 /**
  * A reusable UI hook for handling API data fetching with loading and error state management.
@@ -32,11 +40,14 @@ type Fetcher<T, Args extends any[]> = (...args: Args) => Promise<T>;
  * @template T - The return type of the fetcher function
  * @template Args - The parameter types of the fetcher function
  * @param fetcher - A function that returns a promise of type T
+ * @param redirectMap - A map that defines the navigation guidance if error happens
  * @returns An object with `data`, `loading`, `error`, `errorStatus`, and `call`
  */
 export function fetcherApiCallback<T, Args extends any[]>(
   fetcher: Fetcher<T, Args>,
+  redirectMap: Record<number, string> = defaultRedirectMap,
 ) {
+  const navigate = useNavigate();
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorStatus, setErrorStatus] = useState<number | null>(null);
@@ -46,22 +57,32 @@ export function fetcherApiCallback<T, Args extends any[]>(
     async (...params: Args) => {
       setLoading(true);
       setError(null);
+      setErrorStatus(null);
       try {
         const result = await fetcher(...params);
         setData(result);
         return result;
       } catch (e: any) {
-        if (e instanceof APIError) {
-          setError(e.message);
-          setErrorStatus(e.status);
-        } else {
-          setError(e.message);
+        let status = e.status ? e.status : 0;
+        let msg = e.message ? e.message : "";
+
+        setError(status);
+        setErrorStatus(msg);
+
+        console.log(
+          `error status: ${status > 0 ? status : "unkown"}, details: ${msg}`,
+        );
+        // navigate to error page if the status is found
+        // otherwise
+        const redirectPath = redirectMap[e.status];
+        if (redirectPath) {
+          navigate(redirectPath);
         }
       } finally {
         setLoading(false);
       }
     },
-    [fetcher],
+    [fetcher, navigate, redirectMap],
   );
 
   return { data, error, errorStatus, loading, call };

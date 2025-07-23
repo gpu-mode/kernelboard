@@ -17,7 +17,7 @@ export interface NavLink {
 
 export default function NavBar() {
   const links: NavLink[] = [
-    { label: "News", href: "/news" },
+    { label: "News", href: "/kb/news" },
     {
       label: "Lectures",
       href: "https://www.youtube.com/@GPUMODE",

@@ -19,7 +19,7 @@ describe("getTimeLeft", () => {
 
       const deadline = "2025-03-25T12:00:00.000Z";
       const result = getTimeLeft(deadline);
-      
+
       expect(result).toBe("1 day 12 hours remaining");
     });
 
@@ -30,7 +30,7 @@ describe("getTimeLeft", () => {
 
       const deadline = "2025-03-24T12:00:00.000Z";
       const result = getTimeLeft(deadline);
-      
+
       expect(result).toBe("0 days 12 hours remaining");
     });
 
@@ -41,7 +41,7 @@ describe("getTimeLeft", () => {
 
       const deadline = "2025-03-26T12:00:00.000Z";
       const result = getTimeLeft(deadline);
-      
+
       expect(result).toBe("2 days 1 hour remaining");
     });
 
@@ -53,7 +53,7 @@ describe("getTimeLeft", () => {
       // Test with ISO string format (equivalent to datetime object in Python)
       const deadline = "2025-03-25T12:00:00.000Z";
       const result = getTimeLeft(deadline);
-      
+
       expect(result).toBe("1 day 12 hours remaining");
     });
   });
@@ -66,7 +66,7 @@ describe("getTimeLeft", () => {
 
       const pastDeadline = "1970-01-01T00:00:00.000Z";
       const result = getTimeLeft(pastDeadline);
-      
+
       expect(result).toBe("ended");
     });
 
@@ -76,7 +76,7 @@ describe("getTimeLeft", () => {
 
       const deadline = "2025-03-24T12:00:00.000Z";
       const result = getTimeLeft(deadline);
-      
+
       expect(result).toBe("ended");
     });
   });
@@ -88,7 +88,7 @@ describe("getTimeLeft", () => {
 
       // dayjs will create an invalid date for gibberish, which should be handled
       const result = getTimeLeft("gibberish");
-      
+
       // dayjs returns "Invalid Date" for invalid strings, which will be before now
       expect(result).toBe("ended");
     });
@@ -104,7 +104,7 @@ describe("getTimeLeft", () => {
         "2025-03-25 12:00:00+00:00",
       ];
 
-      formats.forEach(format => {
+      formats.forEach((format) => {
         const result = getTimeLeft(format);
         expect(result).toBe("1 day 12 hours remaining");
       });
@@ -118,7 +118,7 @@ describe("getTimeLeft", () => {
 
       const deadline = "2025-03-25T01:00:00.000Z";
       const result = getTimeLeft(deadline);
-      
+
       expect(result).toBe("1 day 1 hour remaining");
     });
 
@@ -128,7 +128,7 @@ describe("getTimeLeft", () => {
 
       const deadline = "2025-03-26T02:00:00.000Z";
       const result = getTimeLeft(deadline);
-      
+
       expect(result).toBe("2 days 2 hours remaining");
     });
 
@@ -138,7 +138,7 @@ describe("getTimeLeft", () => {
 
       const deadline = "2025-03-24T01:00:00.000Z";
       const result = getTimeLeft(deadline);
-      
+
       expect(result).toBe("0 days 1 hour remaining");
     });
 
@@ -148,7 +148,7 @@ describe("getTimeLeft", () => {
 
       const deadline = "2025-03-25T00:00:00.000Z";
       const result = getTimeLeft(deadline);
-      
+
       expect(result).toBe("1 day 0 hours remaining");
     });
   });
@@ -172,7 +172,7 @@ describe("toDateUtc", () => {
       "2025-03-24T12:00:00.000Z",
     ];
 
-    inputs.forEach(input => {
+    inputs.forEach((input) => {
       const result = toDateUtc(input);
       expect(result).toBe("2025-03-24 12:00");
     });
