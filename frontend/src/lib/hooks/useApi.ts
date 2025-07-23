@@ -56,8 +56,11 @@ export function fetcherApiCallback<T, Args extends any[]>(
   const call = useCallback(
     async (...params: Args) => {
       setLoading(true);
+
+      // reset error and status for incoming data
       setError(null);
       setErrorStatus(null);
+
       try {
         const result = await fetcher(...params);
         setData(result);
@@ -66,19 +69,22 @@ export function fetcherApiCallback<T, Args extends any[]>(
         let status = e.status ? e.status : 0;
         let msg = e.message ? e.message : "";
 
+        // set and logging the error if any
         setError(status);
         setErrorStatus(msg);
-
         console.log(
           `error status: ${status > 0 ? status : "unkown"}, details: ${msg}`,
         );
-        // navigate to error page if the status is found
-        // otherwise
+
+        // navigate to config page if the status is found
+        // otherwise passes
         const redirectPath = redirectMap[e.status];
         if (redirectPath) {
           navigate(redirectPath);
         }
       } finally {
+        // notice navigate() is non-blocking, React will still complete the current
+        // render/update cycle unless the route changes synchronously.
         setLoading(false);
       }
     },
