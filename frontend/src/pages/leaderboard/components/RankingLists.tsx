@@ -1,10 +1,18 @@
-import {useState} from "react";
-import {Box, Button, Grid, Stack, type SxProps, type Theme, Typography,} from "@mui/material";
-import {grey} from "@mui/material/colors";
+import { useState } from "react";
+import {
+  Box,
+  Button,
+  Grid,
+  Stack,
+  type SxProps,
+  type Theme,
+  Typography,
+} from "@mui/material";
+import { grey } from "@mui/material/colors";
 import RankingTitleBadge from "./RankingTitleBadge";
 
-import {formatMicroseconds} from "../../../lib/utils/ranking.ts";
-import {getMedalIcon} from "../../../components/common/medal.tsx";
+import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
+import { getMedalIcon } from "../../../components/common/medal.tsx";
 
 interface RankingItem {
   file_name: string;
@@ -123,7 +131,8 @@ export default function RankingsList({ rankings }: RankingsListProps) {
                   </Grid>
                   <Grid size={3}>
                     <Typography sx={styles.delta}>
-                      {item.prev_score > 0 && `+${formatMicroseconds(item.prev_score)}`}
+                      {item.prev_score > 0 &&
+                        `+${formatMicroseconds(item.prev_score)}`}
                     </Typography>
                   </Grid>
                   <Grid size={3}>
