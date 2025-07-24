@@ -1,5 +1,25 @@
 import { Box, Typography } from "@mui/material";
+import { error } from "console";
 
+const styles = {
+  errorLayout: {
+    marginTop: "5vh",
+    minHeight: "20vh",
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    px: 4,
+  },
+  errorTitle: {
+    fontSize: { xs: "1rem", sm: "2rem" },
+    fontWeight: "bold",
+    color: "text.primary",
+  },
+  kernelBotImg: {
+    width: { xs: 160, sm: 180 },
+    height: "auto",
+  },
+};
 export default function ErrorPage({
   code,
   title,
@@ -11,24 +31,9 @@ export default function ErrorPage({
 }) {
   return (
     <Box maxWidth="md">
-      <Box
-        sx={{
-          marginTop: "5vh",
-          minHeight: "20vh",
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "flex-start",
-          px: 4,
-        }}
-      >
+      <Box sx={styles.errorLayout}>
         <Box sx={{ flex: 1 }}>
-          <Typography
-            sx={{
-              fontSize: { xs: "1rem", sm: "2rem" },
-              fontWeight: "bold",
-              color: "text.primary",
-            }}
-          >
+          <Typography sx={styles.errorTitle}>
             {code}. {title}
           </Typography>
           <Typography
@@ -42,10 +47,7 @@ export default function ErrorPage({
           component="img"
           src="/static/images/kernelbot-sad.png"
           alt="Sad Bunny"
-          sx={{
-            width: { xs: 160, sm: 180 },
-            height: "auto",
-          }}
+          sx={styles.kernelBotImg}
         />
       </Box>
     </Box>
