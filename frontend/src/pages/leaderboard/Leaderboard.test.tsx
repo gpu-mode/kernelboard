@@ -2,6 +2,7 @@ import { render, screen, fireEvent, within } from "@testing-library/react";
 import { vi, expect, it, describe } from "vitest";
 import Leaderboard from "./Leaderboard";
 import * as apiHook from "../../lib/hooks/useApi";
+import { renderWithRouter } from "../../tests/test-utils";
 
 vi.mock("../../lib/hooks/useApi", () => ({
   fetcherApiCallback: vi.fn(),
@@ -57,7 +58,7 @@ describe("Leaderboard", () => {
     );
 
     // render
-    render(<Leaderboard />);
+    renderWithRouter(<Leaderboard />);
 
     // asserts
     expect(screen.getByText(mockName)).toBeInTheDocument();
@@ -85,8 +86,8 @@ describe("Leaderboard", () => {
       mockHookReturn,
     );
 
-    render(<Leaderboard />);
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    renderWithRouter(<Leaderboard />);
+    expect(screen.getByText(/Summoning/i)).toBeInTheDocument();
   });
 
   it("shows error message", () => {
@@ -102,7 +103,7 @@ describe("Leaderboard", () => {
       mockHookReturn,
     );
 
-    render(<Leaderboard />);
+    renderWithRouter(<Leaderboard />);
     expect(screen.getByText("Something went wrong")).toBeInTheDocument();
   });
 
@@ -131,7 +132,7 @@ describe("Leaderboard", () => {
     );
 
     // render
-    render(<Leaderboard />);
+    renderWithRouter(<Leaderboard />);
 
     // asserts
     expect(screen.getByText("test-empty")).toBeInTheDocument();
@@ -186,7 +187,7 @@ describe("Leaderboard", () => {
     );
 
     // render
-    render(<Leaderboard />);
+    renderWithRouter(<Leaderboard />);
 
     // asserts
     expect(
@@ -249,7 +250,7 @@ describe("Leaderboard", () => {
     );
 
     // render
-    render(<Leaderboard />);
+    renderWithRouter(<Leaderboard />);
 
     // asserts
     const button = screen.queryByTestId("ranking-show-all-button-0");
@@ -289,7 +290,7 @@ describe("Leaderboard", () => {
     );
 
     // render
-    render(<Leaderboard />);
+    renderWithRouter(<Leaderboard />);
 
     // asserts
     const toggle = screen.getByTestId("codeblock-show-all-toggle");

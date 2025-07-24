@@ -3,5 +3,5 @@
  * Matches the Python format_score function.
  */
 export const formatMicroseconds = (score: number): string => {
-    return `${(score * 1_000_000).toFixed(3)}μs`;
+  return `${(score * 1_000_000).toFixed(3)}μs`;
 };

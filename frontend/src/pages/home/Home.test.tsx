@@ -27,10 +27,8 @@ const mockCall = vi.fn();
 const renderWithProviders = (component: React.ReactElement) => {
   return render(
     <ThemeProvider theme={appTheme}>
-      <BrowserRouter>
-        {component}
-      </BrowserRouter>
-    </ThemeProvider>
+      <BrowserRouter>{component}</BrowserRouter>
+    </ThemeProvider>,
   );
 };
 
@@ -54,7 +52,7 @@ describe("Home", () => {
 
     renderWithProviders(<Home />);
 
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(screen.getByText(/Summoning/i)).toBeInTheDocument();
   });
 
   it("shows error message", () => {
@@ -156,7 +154,9 @@ describe("Home", () => {
 
     renderWithProviders(<Home />);
 
-    expect(screen.getByText("No active leaderboards found.")).toBeInTheDocument();
+    expect(
+      screen.getByText("No active leaderboards found."),
+    ).toBeInTheDocument();
   });
 
   it("renders multiple leaderboards correctly", () => {
