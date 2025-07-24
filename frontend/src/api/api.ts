@@ -43,7 +43,10 @@ export async function fetchLeaderboardSummaries(): Promise<any> {
   if (!res.ok) {
     const json = await res.json();
     const message = json?.message || "Unknown error";
-    throw new APIError(`Failed to fetch leaderboard summaries: ${message}`, res.status);
+    throw new APIError(
+      `Failed to fetch leaderboard summaries: ${message}`,
+      res.status,
+    );
   }
   const r = await res.json();
   return r.data;

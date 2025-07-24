@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { Box } from "@mui/material";
 import { NewsContentSection } from "./components/NewsContentSection";
 import { Sidebar } from "./components/NewsSideBar";
+import Loading from "../../components/common/loading";
 
 const styles = {
   container: {
@@ -26,7 +27,7 @@ export default function News() {
     call();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Loading />;
   if (error) return <ErrorAlert status={errorStatus} message={error} />;
 
   return (
