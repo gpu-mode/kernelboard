@@ -7,7 +7,6 @@ import { toDateUtc } from "../../lib/date/utils";
 import RankingsList from "./components/RankingLists";
 import CodeBlock from "../../components/codeblock/CodeBlock";
 import { ErrorAlert } from "../../components/error-alert/ErrorAlert";
-import { PageMainContainer } from "../../components/common/styles/shared_style";
 import { useParams } from "react-router-dom";
 import Loading from "../../components/common/loading";
 
