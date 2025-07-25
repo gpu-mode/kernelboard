@@ -14,7 +14,11 @@ export const getTimeLeft = (deadline: string): string => {
   const deadlineDate = dayjs(deadline);
 
   // Check if the deadline is invalid or in the past
-  if (!deadlineDate.isValid() || deadlineDate.isBefore(now) || deadlineDate.isSame(now)) {
+  if (
+    !deadlineDate.isValid() ||
+    deadlineDate.isBefore(now) ||
+    deadlineDate.isSame(now)
+  ) {
     return "ended";
   }
 
