@@ -5,6 +5,7 @@ import { fetchLeaderboardSummaries } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { ErrorAlert } from "../../components/error-alert/ErrorAlert";
 import LeaderboardTile from "./components/LeaderboardTile";
+import Loading from "../../components/common/loading";
 
 interface TopUser {
   rank: number;
@@ -27,19 +28,17 @@ interface LeaderboardSummaries {
 }
 
 export default function Home() {
-  const { data, loading, error, errorStatus, call } =
-    fetcherApiCallback<LeaderboardSummaries, any[]>(fetchLeaderboardSummaries);
+  const { data, loading, error, errorStatus, call } = fetcherApiCallback<
+    LeaderboardSummaries,
+    any[]
+  >(fetchLeaderboardSummaries);
 
   useEffect(() => {
     call();
   }, [call]);
 
   if (loading) {
-    return (
-      <Box>
-        <Typography>Loading...</Typography>
-      </Box>
-    );
+    return <Loading />;
   }
 
   if (error) {
