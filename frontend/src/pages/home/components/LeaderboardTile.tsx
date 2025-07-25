@@ -12,7 +12,8 @@ const styles = {
     height: "100%",
     display: "flex",
     flexDirection: "column",
-    transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out",
+    transition:
+      "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out",
     "&:hover": {
       transform: "translateY(-2px)",
       boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -78,7 +79,11 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
       >
         {/* Leaderboard Name */}
         <Box sx={{ mb: 1 }}>
-          <Typography variant="h6" component="h3" sx={{ fontFamily: "monospace" }}>
+          <Typography
+            variant="h6"
+            component="h3"
+            sx={{ fontFamily: "monospace" }}
+          >
             <ColoredSquare name={leaderboard.name} />
             {leaderboard.name}
           </Typography>
@@ -101,7 +106,9 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
         {leaderboard.top_users && leaderboard.top_users.length > 0 && (
           <Box sx={{ mt: "auto" }}>
             {/* Priority GPU Type Chip */}
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 1, mb: 1 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "center", mt: 1, mb: 1 }}
+            >
               <Chip
                 label={leaderboard.priority_gpu_type}
                 size="small"
@@ -112,10 +119,7 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
             {/* Top Users List */}
             <Box>
               {leaderboard.top_users.map((user) => (
-                <Box
-                  key={user.rank}
-                  sx={{ ...styles.topUsersList }}
-                >
+                <Box key={user.rank} sx={{ ...styles.topUsersList }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                     <Typography variant="body2" sx={styles.userName}>
                       {user.user_name || " "}

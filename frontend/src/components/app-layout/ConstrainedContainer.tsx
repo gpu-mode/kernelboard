@@ -20,9 +20,9 @@ export function ConstrainedContainer({ children }: Props) {
         width: "100%",
         maxWidth: "80rem",
         paddingLeft: {
-          xs: "1rem",    // mobile
-          sm: "1.5rem",  // small screens
-          lg: "2rem",    // large screens
+          xs: "1rem", // mobile
+          sm: "1.5rem", // small screens
+          lg: "2rem", // large screens
         },
         paddingRight: {
           xs: "1rem",
