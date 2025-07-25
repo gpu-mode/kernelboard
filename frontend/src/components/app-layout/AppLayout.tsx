@@ -22,12 +22,10 @@ export default function AppLayout({ children }: Props) {
           // Account for fixed navbar height. Fixed navbar height removes it
           // from the document flow. We push the main content down so it isn't
           // covered by the navbar.
-          mt: { xs: 4, sm: 5, md: 6 }
+          mt: { xs: 4, sm: 5, md: 6 },
         }}
       >
-        <ConstrainedContainer>
-          {children}
-        </ConstrainedContainer>
+        <ConstrainedContainer>{children}</ConstrainedContainer>
       </Box>
       <Footer />
     </Box>

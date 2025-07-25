@@ -1,19 +1,19 @@
 import { createTheme, type Components } from "@mui/material/styles";
 
 const colorPalette = {
-  primary: '#5865F2',           // Blurple, Discord's brand color
-  secondary: '#38bdf8',         // sky[400]
-  accent: '#a855f7',            // purple[500]
-  neutral: '#cbd5e1',           // slate[300]
-  dark: '#1e293b',              // slate[800]
-  discord: '#5865F2',           // Same color as primary
-  discordDarker: '#4F5AD9',     // Like blurple but darker
-  toastDefault: '#1e40af',      // blue[800]
-  toastError: '#991b1b',        // red[800]
+  primary: "#5865F2", // Blurple, Discord's brand color
+  secondary: "#38bdf8", // sky[400]
+  accent: "#a855f7", // purple[500]
+  neutral: "#cbd5e1", // slate[300]
+  dark: "#1e293b", // slate[800]
+  discord: "#5865F2", // Same color as primary
+  discordDarker: "#4F5AD9", // Like blurple but darker
+  toastDefault: "#1e40af", // blue[800]
+  toastError: "#991b1b", // red[800]
 };
 
 // Extend the Material-UI theme interface to include custom colors
-declare module '@mui/material/styles' {
+declare module "@mui/material/styles" {
   interface Palette {
     custom: typeof colorPalette;
   }
@@ -73,7 +73,8 @@ export const appTheme = createTheme({
     custom: colorPalette,
   },
   typography: {
-    fontFamily: 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
+    fontFamily:
+      'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
     fontSize: 14,
     h1: {
       fontSize: "1.875rem",

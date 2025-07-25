@@ -20,10 +20,10 @@ interface ColoredSquareProps {
 /**
  * ColoredSquare component that generates a colored square based on a name.
  */
-export const ColoredSquare: React.FC<ColoredSquareProps> = ({ 
-  name, 
-  size = 16, 
-  sx = {} 
+export const ColoredSquare: React.FC<ColoredSquareProps> = ({
+  name,
+  size = 16,
+  sx = {},
 }) => {
   const backgroundColor = toColor(name);
 
