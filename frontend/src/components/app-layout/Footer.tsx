@@ -1,4 +1,5 @@
 import { Box, Container, Link, styled, Typography } from "@mui/material";
+import { ConstrainedContainer } from "./ConstrainedContainer";
 
 export const FooterLinkContainer = styled(Container)(({ theme }) => ({
   maxWidth: "100%",
@@ -26,21 +27,31 @@ export default function Footer() {
 
   return (
     <FooterBox>
-      <FooterLinkContainer>
-        {links.map(({ label, href }) => (
-          <Link
-            key={label}
-            href={href}
-            underline="hover"
-            color="text.secondary"
-          >
-            {label}
-          </Link>
-        ))}
-        <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
-          © 2025 GPU MODE
-        </Typography>
-      </FooterLinkContainer>
+      <ConstrainedContainer>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            gap: 2,
+            alignItems: "center",
+          }}
+        >
+          {links.map(({ label, href }) => (
+            <Link
+              key={label}
+              href={href}
+              underline="hover"
+              color="text.secondary"
+            >
+              {label}
+            </Link>
+          ))}
+          <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+            © 2025 GPU MODE
+          </Typography>
+        </Box>
+      </ConstrainedContainer>
     </FooterBox>
   );
 }

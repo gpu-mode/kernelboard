@@ -1,12 +1,3 @@
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import { type SxProps, type Theme } from "@mui/material";
-
-const medalStyle = (color: string): SxProps<Theme> => ({
-  color,
-  fontSize: "1.1rem",
-  verticalAlign: "middle",
-});
-
 /**
  * Returns a medal icon component based on the ranking position.
  *
@@ -29,8 +20,8 @@ const medalStyle = (color: string): SxProps<Theme> => ({
  * ```
  */
 export const getMedalIcon = (rank: number) => {
-  if (rank === 1) return <EmojiEventsIcon sx={medalStyle("#FFD700")} />;
-  if (rank === 2) return <EmojiEventsIcon sx={medalStyle("#C0C0C0")} />;
-  if (rank === 3) return <EmojiEventsIcon sx={medalStyle("#CD7F32")} />;
+  if (rank === 1) return "🥇";
+  if (rank === 2) return "🥈";
+  if (rank === 3) return "🥉";
   return null;
 };

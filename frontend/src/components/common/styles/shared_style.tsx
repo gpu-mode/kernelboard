@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { Box, Container } from "@mui/material";
+import { Container } from "@mui/material";
 
 export const flexRowCenter = {
   display: "flex",
