@@ -2,7 +2,6 @@ import { Box } from "@mui/material";
 import type { ReactNode } from "react";
 import NavBar from "./NavBar";
 import Footer from "./Footer";
-import { ConstrainedContainer } from "./ConstrainedContainer.js";
 
 interface Props {
   children: ReactNode;
@@ -25,7 +24,7 @@ export default function AppLayout({ children }: Props) {
           mt: { xs: 4, sm: 5, md: 6 },
         }}
       >
-        <ConstrainedContainer>{children}</ConstrainedContainer>
+        {children}
       </Box>
       <Footer />
     </Box>
