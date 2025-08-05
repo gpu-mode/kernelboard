@@ -69,8 +69,8 @@ describe("Leaderboard", () => {
     expect(screen.getByText(/description/i)).toBeInTheDocument();
     expect(screen.getByText(mockDescription)).toBeInTheDocument();
 
-    expect(screen.getByText("user1")).toBeInTheDocument();
-    expect(screen.getByText("user2")).toBeInTheDocument();
+    expect(screen.getByText(/user1/)).toBeInTheDocument();
+    expect(screen.getByText(/user2/)).toBeInTheDocument();
   });
 
   it("shows loading state", () => {
