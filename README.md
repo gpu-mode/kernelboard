@@ -1,8 +1,8 @@
 # Kernelboard
 
 This is the repo for Kernelboard, the webapp front end for GPU MODE. Kernelboard
-will be a friendly source for information about GPU kernels submitted to the
-Discord cluster manager, and will contain helpful links related to GPU MODE.
+is a friendly source for information about GPU kernels submitted to the Discord
+cluster manager, and contains helpful links related to GPU MODE.
 
 ## Development environment
 

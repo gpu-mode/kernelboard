@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { getMedalIcon } from "../../../components/common/medal.tsx";
 import { getTimeLeft } from "../../../lib/date/utils.ts";
 import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
+import { ColoredSquare } from "../../../components/common/ColoredSquare.tsx";
 
 const styles = {
   leaderboardCard: {
@@ -11,26 +12,36 @@ const styles = {
     height: "100%",
     display: "flex",
     flexDirection: "column",
-    transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+    transition:
+      "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out",
     "&:hover": {
       transform: "translateY(-2px)",
       boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+      borderColor: (theme: any) => theme.palette.custom.secondary,
+    },
+    padding: 1,
+    "& .MuiCardContent-root:last-child": {
+      paddingBottom: 1,
     },
   },
   priorityGpuType: {
     backgroundColor: "#f5f5f5",
     color: "#666",
-    fontSize: "0.75rem",
+    fontSize: "0.9rem",
   },
   topUsersList: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    py: 0.5,
+    py: 0.25,
   },
   userScore: {
     fontFamily: "monospace",
-    fontSize: "0.75rem",
+    fontSize: "0.9rem",
+    color: "text.secondary",
+  },
+  userName: {
+    fontSize: "0.9rem",
     color: "text.secondary",
   },
 };
@@ -67,14 +78,19 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
         sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}
       >
         {/* Leaderboard Name */}
-        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-          <Typography variant="h6" component="h3" sx={{ fontWeight: "bold" }}>
+        <Box sx={{ mb: 1 }}>
+          <Typography
+            variant="h6"
+            component="h3"
+            sx={{ fontFamily: "monospace" }}
+          >
+            <ColoredSquare name={leaderboard.name} />
             {leaderboard.name}
           </Typography>
         </Box>
 
         {/* Time Left */}
-        <Typography variant="body1" sx={{ mb: 1, color: "text.secondary" }}>
+        <Typography variant="body1" sx={{ color: "text.secondary" }}>
           {timeLeft}
         </Typography>
 
@@ -90,7 +106,9 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
         {leaderboard.top_users && leaderboard.top_users.length > 0 && (
           <Box sx={{ mt: "auto" }}>
             {/* Priority GPU Type Chip */}
-            <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "center", mt: 1, mb: 1 }}
+            >
               <Chip
                 label={leaderboard.priority_gpu_type}
                 size="small"
@@ -101,21 +119,9 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
             {/* Top Users List */}
             <Box>
               {leaderboard.top_users.map((user) => (
-                <Box
-                  key={user.rank}
-                  sx={{
-                    ...styles.topUsersList,
-                    borderBottom:
-                      user.rank < leaderboard.top_users!.length
-                        ? "1px solid #eee"
-                        : "none",
-                  }}
-                >
+                <Box key={user.rank} sx={{ ...styles.topUsersList }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontWeight: user.rank <= 3 ? "bold" : "normal" }}
-                    >
+                    <Typography variant="body2" sx={styles.userName}>
                       {user.user_name || " "}
                     </Typography>
                     {user.rank <= 3 && (

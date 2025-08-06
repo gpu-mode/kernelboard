@@ -7,9 +7,9 @@ import { toDateUtc } from "../../lib/date/utils";
 import RankingsList from "./components/RankingLists";
 import CodeBlock from "../../components/codeblock/CodeBlock";
 import { ErrorAlert } from "../../components/error-alert/ErrorAlert";
-import { PageMainContainer } from "../../components/common/styles/shared_style";
 import { useParams } from "react-router-dom";
 import Loading from "../../components/common/loading";
+import { ConstrainedContainer } from "../../components/app-layout/ConstrainedContainer";
 
 export const CardTitle = styled(Typography)(({ theme }) => ({
   fontSize: "1.5rem",
@@ -59,39 +59,41 @@ export default function Leaderboard() {
   ];
 
   return (
-    <PageMainContainer>
-      <h1>{data.name}</h1>
-      <Grid container spacing={2} marginBottom={2}>
-        {info_items.map((info, idx) => (
-          <Grid size={{ xs: 12, md: 4 }} key={idx}>
-            <Card>
-              <CardContent>
-                <CardTitle>{info.title}</CardTitle>
-                {info.content}
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-      <Grid marginBottom={2}>
+    <ConstrainedContainer>
+      <Box>
+        <h1>{data.name}</h1>
+        <Grid container spacing={2} marginBottom={2}>
+          {info_items.map((info, idx) => (
+            <Grid size={{ xs: 12, md: 4 }} key={idx}>
+              <Card>
+                <CardContent>
+                  <CardTitle>{info.title}</CardTitle>
+                  {info.content}
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+        <Grid marginBottom={2}>
+          <Card>
+            <CardContent>
+              <CardTitle fontWeight="bold">Description</CardTitle>
+              {descriptionText(data.description)}
+            </CardContent>
+          </Card>
+        </Grid>
         <Card>
           <CardContent>
-            <CardTitle fontWeight="bold">Description</CardTitle>
-            {descriptionText(data.description)}
+            <CardTitle fontWeight="bold">Reference Implementation </CardTitle>
+            <Box>
+              <CodeBlock code={data.reference} />
+            </Box>
           </CardContent>
         </Card>
-      </Grid>
-      <Card>
-        <CardContent>
-          <CardTitle fontWeight="bold">Reference Implementation </CardTitle>
-          <Box>
-            <CodeBlock code={data.reference} />
-          </Box>
-        </CardContent>
-      </Card>
-      <Box>
-        <RankingsList rankings={data.rankings} />
+        <Box>
+          <RankingsList rankings={data.rankings} />
+        </Box>
       </Box>
-    </PageMainContainer>
+    </ConstrainedContainer>
   );
 }
