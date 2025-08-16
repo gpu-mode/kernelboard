@@ -1,5 +1,4 @@
 import { Box, Typography } from "@mui/material";
-import { error } from "console";
 
 const styles = {
   errorLayout: {
