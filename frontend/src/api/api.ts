@@ -51,3 +51,38 @@ export async function fetchLeaderboardSummaries(): Promise<any> {
   const r = await res.json();
   return r.data;
 }
+
+export async function getMe(): Promise<any> {
+  const res = await fetch("/api/me");
+  if (!res.ok) {
+    const json = await res.json();
+    const message = json?.message || "Unknown error";
+    throw new APIError(`Failed to fetch news contents: ${message}`, res.status);
+  }
+  const r = await res.json();
+  return r.data;
+}
+
+
+export async function logout(): Promise<any> {
+  const res = await fetch("/api/logout");
+  if (!res.ok) {
+    const json = await res.json();
+    const message = json?.message || "Unknown error";
+    throw new APIError(`Failed to fetch news contents: ${message}`, res.status);
+  }
+  const r = await res.json();
+  return r.data;
+}
+
+
+export async function login(): Promise<any> {
+  const res = await fetch("/api/auth/discord");
+  if (!res.ok) {
+    const json = await res.json();
+    const message = json?.message || "Unknown error";
+    throw new APIError(`Failed to fetch news contents: ${message}`, res.status);
+  }
+  const r = await res.json();
+  return r.data;
+}
