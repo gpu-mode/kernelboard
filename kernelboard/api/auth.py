@@ -20,6 +20,35 @@ from kernelboard.lib.status_code import http_success
 
 auth_bp = Blueprint("auth", __name__)
 
+_ALLOWED_ERROR_KEYS = {
+    "error",
+    "error_description",
+}  # never forward code/state/secrets
+
+
+def _sanitize(s: str, *, max_len: int = 300) -> str:
+    """Keep it short, printable, and safe to render."""
+    if not s:
+        return ""
+    s = "".join(ch for ch in s if ch.isprintable())
+    return s[:max_len]
+
+
+def redirect_with_error(error: str, message: str = ""):
+    q = {"error": _sanitize(error)}
+    if message:
+        q["message"] = _sanitize(message)
+    return redirect(f"/kb/login?{urlencode(q)}")
+
+
+def _error_params_from_provider(args) -> dict[str, str]:
+    """Pick only safe keys from provider error response and normalize names."""
+    err = args.get("error") or "provider_error"
+    desc = args.get("error_description") or ""
+    return {
+        "error": _sanitize(err),
+        "message": _sanitize(desc),  # frontends usually prefer 'message'
+    }
 
 
 def providers():
@@ -59,6 +88,7 @@ def _discord_avatar_url(uid: str, avatar_hash: str | None) -> str | None:
 
 # ----- Routes -----
 
+
 @auth_bp.get("/auth/<provider>")
 def auth(provider: str):
     """
@@ -71,7 +101,7 @@ def auth(provider: str):
 
     provider_data = app.config["OAUTH2_PROVIDERS"].get(provider)
     if not provider_data:
-        abort(404)
+        return redirect("/kb/404")
 
     # Save CSRF state (and optional next) in session
     state = secrets.token_urlsafe(16)
@@ -80,7 +110,9 @@ def auth(provider: str):
     if next_url:
         session["oauth2_next"] = next_url
 
-    redirect_uri = url_for("api.auth.callback", provider=provider, _external=True)
+    redirect_uri = url_for(
+        "api.auth.callback", provider=provider, _external=True
+    )
     query = urlencode(
         {
             "client_id": provider_data["client_id"],
@@ -105,22 +137,43 @@ def callback(provider: str):
 
     provider_data = app.config["OAUTH2_PROVIDERS"].get(provider)
     if not provider_data:
-        abort(404)
+        return redirect("/kb/login?error=invalid_provider")
 
     # Handle provider error short-circuit
-    if any(k.startswith("error") for k in request.args):
-        print(request)
-        return redirect("/kb/?login=error")
+    if any(k in _ALLOWED_ERROR_KEYS for k in request.args):
+        # Validate state even on error to avoid CSRF reflection
+        if request.args.get("state") != session.get("oauth2_state"):
+            app.logger.error(
+                "OAuth error but invalid state; args=%s", dict(request.args)
+            )
+            return redirect_with_error("invalid_state", "State did not match")
+        # Forward only whitelisted error info
+        safe = _error_params_from_provider(request.args)
+        app.logger.info(
+            "OAuth provider error: %s", safe
+        )  # log sanitized version
+        return redirect(f"/kb/login?{urlencode(safe)}")
 
     # Validate state and presence of code
     if request.args.get("state") != session.get("oauth2_state"):
-        abort(401)
+        app.logger.error(
+            "Invalid state (no error from provider); args=%s",
+            dict(request.args),
+        )
+        return redirect_with_error("invalid_state", "State did not match")
+
     code = request.args.get("code")
     if not code:
-        abort(401)
+        app.logger.error("Missing authorization code")
+        return redirect_with_error(
+            "missing_code", "Authorization code not found"
+        )
+
     # Exchange code for access token
     try:
-        redirect_uri = url_for("api.auth.callback", provider=provider, _external=True)
+        redirect_uri = url_for(
+            "api.auth.callback", provider=provider, _external=True
+        )
         token_res = requests.post(
             provider_data["token_url"],
             data={
@@ -132,19 +185,32 @@ def callback(provider: str):
             },
             headers={
                 "Accept": "application/json",
-                "Content-Type": "application/x-www-form-urlencoded"
+                "Content-Type": "application/x-www-form-urlencoded",
             },
             timeout=10,
         )
     except requests.RequestException as e:
-        return redirect("/kb/?login=error")
-    if token_res.status_code != 200:
-        return redirect("/kb/?login=error")
-    access_token = token_res.json().get("access_token")
-    if not access_token:
-        return redirect("/kb/?login=error")
+        app.logger.exception("Token exchange request failed")
+        return redirect_with_error(
+            "request_error", "Network error during token exchange"
+        )
 
-    # Fetch user info
+    if token_res.status_code != 200:
+        # Don't echo token_res.text; it can contain sensitive diagnostics
+        app.logger.error(
+            "Token exchange failed: status=%s", token_res.status_code
+        )
+        return redirect_with_error(
+            "token_error", "Failed to exchange authorization code"
+        )
+
+    access_token = (token_res.json() or {}).get("access_token")
+    if not access_token:
+        app.logger.error(
+            "Token exchange missing access_token: payload=%s", token_res.json()
+        )
+        return redirect_with_error("token_error", "Access token missing")
+
     try:
         me_res = requests.get(
             provider_data["userinfo"]["url"],
@@ -155,25 +221,31 @@ def callback(provider: str):
             timeout=10,
         )
     except requests.RequestException:
-        return redirect("/kb/?login=error")
+        app.logger.exception("Userinfo request failed")
+        return redirect_with_error(
+            "request_error", "Network error fetching user info"
+        )
 
     if me_res.status_code != 200:
-        return redirect("/kb/?login=error")
+        app.logger.error("Userinfo failed: status=%s", me_res.status_code)
+        return redirect_with_error(
+            "response_error", "Failed to fetch user info"
+        )
 
-    data = me_res.json()
+    data = me_res.json() or {}
     identity = provider_data["userinfo"]["identity"](data)
 
-    # Stash display info for SPA header
+    # 4) Stash display-only info (safe for SPA header)
     session["display_name"] = data.get("global_name") or data.get("username")
     session["avatar_url"] = _discord_avatar_url(identity, data.get("avatar"))
 
-    # Log the user in with a stable key (no DB required)
+    # 5) Log in
     login_user(User(f"{provider}:{identity}"))
 
-    # Clean up + redirect to SPA
+    # 6) Clean up and redirect
     next_url = session.pop("oauth2_next", None)
     session.pop("oauth2_state", None)
-    return redirect(next_url or "/kb/?login=ok")
+    return redirect(next_url or "/kb/")
 
 
 @auth_bp.get("/logout")
@@ -183,17 +255,8 @@ def logout():
     """
     logout_user()
     session.clear()
-    return redirect("/kb/?logout=ok")
+    return http_success()
 
-
-@auth_bp.post("/api/logout")
-def api_logout():
-    """
-    JSON logout for XHR calls from the SPA.
-    """
-    logout_user()
-    session.clear()
-    return jsonify({"ok": True})
 
 @auth_bp.get("/me")
 def me():
@@ -215,6 +278,6 @@ def me():
         },
         # Handy URLs for the frontend:
         "login_url": url_for("api.auth.auth", provider="discord"),
-        "logout_url": url_for("api.auth.api_logout"),
+        "logout_url": url_for("api.auth.logout"),
     }
     return http_success(res)

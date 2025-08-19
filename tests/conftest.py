@@ -117,7 +117,7 @@ def db_server():
         # Load data.sql into the template database:
         result = subprocess.run(
             [
-                "psql",
+                "/opt/homebrew/opt/libpq/bin/psql",
                 "-h",
                 "localhost",
                 "-U",
@@ -142,7 +142,9 @@ def db_server():
         print("Stopping database container...")
         try:
             subprocess.run(
-                ["docker", "stop", container_name], check=True, capture_output=True
+                ["docker", "stop", container_name],
+                check=True,
+                capture_output=True,
             )
             print("Database container stopped.")
         except subprocess.CalledProcessError as e:
@@ -151,7 +153,9 @@ def db_server():
         print("Removing database container...")
         try:
             subprocess.run(
-                ["docker", "rm", container_name], check=True, capture_output=True
+                ["docker", "rm", container_name],
+                check=True,
+                capture_output=True,
             )
             print("Container removed.")
         except subprocess.CalledProcessError as e:
@@ -218,8 +222,12 @@ def redis_server():
 
         if not ready:
             logs_cmd = ["docker", "logs", container_name]
-            logs_result = subprocess.run(logs_cmd, capture_output=True, text=True)
-            print(f"Container logs:\n{logs_result.stdout}\n{logs_result.stderr}")
+            logs_result = subprocess.run(
+                logs_cmd, capture_output=True, text=True
+            )
+            print(
+                f"Container logs:\n{logs_result.stdout}\n{logs_result.stderr}"
+            )
             raise TimeoutError(
                 f"Redis container did not become ready within {max_attempts} attempts."
             )
@@ -230,16 +238,22 @@ def redis_server():
         print(f"Stopping Redis container {container_name}...")
         try:
             subprocess.run(
-                ["docker", "stop", container_name], check=True, capture_output=True
+                ["docker", "stop", container_name],
+                check=True,
+                capture_output=True,
             )
             print("Redis container stopped.")
         except subprocess.CalledProcessError as e:
-            print(f"Could not stop Redis container {container_name}. Error: {e.stderr}")
+            print(
+                f"Could not stop Redis container {container_name}. Error: {e.stderr}"
+            )
 
         print(f"Removing Redis container {container_name}...")
         try:
             subprocess.run(
-                ["docker", "rm", container_name], check=True, capture_output=True
+                ["docker", "rm", container_name],
+                check=True,
+                capture_output=True,
             )
             print("Redis container removed.")
         except subprocess.CalledProcessError as e:
@@ -284,3 +298,12 @@ def client(app):
 @pytest.fixture
 def runner(app):
     return app.test_cli_runner()
+
+
+@pytest.fixture(autouse=True)
+def set_env(monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", get_test_db_info()["db_url"])
+    monkeypatch.setenv("DISCORD_CLIENT_ID", "test")
+    monkeypatch.setenv("DISCORD_CLIENT_SECRET", "test")
+    monkeypatch.setenv("REDIS_URL", get_test_redis_url(get_test_redis_port()))
+    monkeypatch.setenv("SECRET_KEY", "test-secret")

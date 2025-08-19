@@ -15,7 +15,6 @@ news_bp = Blueprint("news_api", __name__, url_prefix="/news")
 
 @news_bp.route("", methods=["GET"])
 def list_news_items():
-
     try:
         news_dir = os.path.join(current_app.root_path, "static/news")
         news_contents = []
@@ -69,7 +68,8 @@ def _to_api_news(raw: str):
         content = parts[2].strip()
     else:
         raise HttpError(
-            "Missing metadata for news", status_code=HTTPStatus.INTERNAL_SERVER_ERROR
+            "Missing metadata for news",
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
         )
 
     date_val = frontmatter.get("date", "")
