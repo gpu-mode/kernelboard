@@ -18,7 +18,6 @@ def test_skip_invalid_yaml_with_mock(client):
     with patch("os.listdir", return_value=["bad.md"]), patch(
         "os.path.exists", return_value=True
     ), patch("builtins.open", mock_open(read_data=fake_file_content)):
-
         res = client.get("/api/news")
         assert res.status_code == HTTPStatus.NOT_FOUND
         data = res.get_json()
@@ -49,7 +48,6 @@ def test_only_return_valid_content_with_mock(client):
     with patch("os.listdir", return_value=fake_files), patch(
         "os.path.exists", return_value=True
     ), patch("builtins.open", m):
-
         res = client.get("/api/news")
         assert res.status_code == HTTPStatus.OK
         data = res.get_json()

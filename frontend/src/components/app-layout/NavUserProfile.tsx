@@ -1,119 +1,146 @@
-import { useEffect, useState } from "react";
-import { fetcherApiCallback } from "../../lib/hooks/useApi";
-import { getMe, login, logout } from "../../api/api";
-import { ErrorAlert } from "../error-alert/ErrorAlert";
-import { Avatar, Button, Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from "@mui/material";
+import { useState } from "react";
+import {
+  Alert,
+  Avatar,
+  Button,
+  Divider,
+  IconButton,
+  ListItemIcon,
+  Menu,
+  MenuItem,
+  Tooltip,
+  type AlertColor,
+} from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
+import { DiscordIcon } from "../common/DiscordDefaultIcon";
+import AlertBar from "../alert/AlertBar";
+import { useAuthStore } from "../../lib/store/authStore";
+// Optional: reduce re-renders
 
-export type MeResponse = {
-  authenticated: boolean;
-  user: {
-    id: string | null;
-    provider: string | null;
-    identity: string | null;
-    display_name: string | null;
-    avatar_url: string | null;
-  };
-  login_url: string;   // e.g. /api/auth/discord
-  logout_url: string;  // e.g. /api/logout (POST)
+const styles = {
+  loginButoon: {
+    borderRadius: 300,
+    padding: "5px 10px", // top/bottom, left/right
+  },
 };
-
 
 export default function NavUserProfile() {
+  const me = useAuthStore((s) => s.me);
+  const loading = useAuthStore((s) => s.loading);
+  const logoutAndRefresh = useAuthStore((s) => s.logoutAndRefresh);
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
+  const [notification, setNotification] = useState<{
+    open: boolean;
+    message: string;
+    title?: string;
+    severity?: AlertColor;
+  }>({ open: false, message: "", title: "", severity: "info" });
 
-  const { data, loading, error, errorStatus, call } = fetcherApiCallback(getMe);
-  const handleOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
-  const handleClose = () => setAnchorEl(null);
-  useEffect(() => {
-    call();
-  }, []);
-
-  if (loading) return <div></div>;
-  if (error) return <ErrorAlert status={errorStatus} message={error} />;
-  const me = data as MeResponse;
-
-  const nextParam = encodeURIComponent(window.location.pathname + window.location.search);
-
+  const menuOpen = Boolean(anchorEl);
+  const handleOpen = (e: React.MouseEvent<HTMLElement>) =>
+    setAnchorEl(e.currentTarget);
+  const closeMenu = () => setAnchorEl(null);
 
   const onLogout = async () => {
+    closeMenu();
     try {
-        await logout();
-    } catch (e) {
-        // optional: surface error toast
-        console.error(e);
-    } finally {
-        handleClose();
-        // Refresh auth state so the UI switches to "Login"
-        await call?.();      // if you're using fetcherApiCallback(getMe)
-        // or: await refresh?.();
-        // or: window.location.assign("/kb/?logout=ok");
+      await logoutAndRefresh();
+      setNotification({
+        open: true,
+        title: "Success",
+        message: "Successfully logged out",
+        severity: "success",
+      });
+    } catch (e: any) {
+      setNotification({
+        open: true,
+        title: "Logout failed",
+        message: e?.message ?? "Unknown error",
+        severity: "error",
+      });
     }
-};
+  };
 
+  const defaultUser = () => (
+    <Tooltip title="Login with Discord">
+      <Button
+        variant="outlined"
+        href={"/kb/login"}
+        size="small"
+        sx={styles.loginButoon}
+        startIcon={<DiscordIcon />}
+        data-testid="login-btn"
+      >
+        Login
+      </Button>
+    </Tooltip>
+  );
 
-  if (!me.authenticated) {
-    const next = encodeURIComponent(window.location.pathname + window.location.search);
-    const loginHref = `/api/auth/discord?next=${next}`;
-    return (
-      <Tooltip title="Login with Discord">
-        <Button
-          variant="outlined"
-          
-          size="small"
-          sx={{ borderRadius: 999 }}
-          startIcon={
-            <img
-              src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/discord.svg"
-              alt="Discord"
-              width={18}
-              height={18}
-              style={{ display: "block" }}
-            />
-          }
-        >
-          Login
-        </Button>
-      </Tooltip>
-    );
-  }
+  if (loading) return <div />;
 
-  const name = me.user.display_name ?? "Profile";
-  const avatarUrl = me.user.avatar_url ?? undefined;
+  const isAuthed = !!(me && me.authenticated);
+  const name = me?.user?.display_name ?? "unknown";
+  const avatarUrl = me?.user?.avatar_url ?? undefined;
   return (
     <>
-      <Tooltip title={name}>
-        <IconButton onClick={handleOpen} size="small" sx={{ ml: 1 }} aria-controls={open ? "user-menu" : undefined} aria-haspopup="true" aria-expanded={open ? "true" : undefined}>
-          <Avatar src={avatarUrl} alt={name} sx={{ width: 32, height: 32 }}>
-            {name?.[0]}
-          </Avatar>
-        </IconButton>
-      </Tooltip>
-      <Menu
-        anchorEl={anchorEl}
-        id="user-menu"
-        open={open}
-        onClose={handleClose}
-        onClick={handleClose}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-      >
-        <MenuItem component="a" href="/kb/profile">
-          <ListItemIcon>
-            <AccountCircleIcon fontSize="small" />
-          </ListItemIcon>
-          Profile
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={onLogout}>
-          <ListItemIcon>
-            <LogoutIcon fontSize="small" />
-          </ListItemIcon>
-          Logout
-        </MenuItem>
-      </Menu>
+      {isAuthed ? (
+        <>
+          <Tooltip title={name}>
+            <IconButton
+              onClick={handleOpen}
+              size="small"
+              sx={{ ml: 1 }}
+              aria-controls={menuOpen ? "user-menu" : undefined}
+              aria-haspopup="true"
+              aria-expanded={menuOpen ? "true" : undefined}
+              data-testid="profile-avatar"
+            >
+              {avatarUrl ? (
+                <Avatar
+                  src={avatarUrl}
+                  alt={name}
+                  sx={{ width: 32, height: 32 }}
+                >
+                  {name?.[0]}
+                </Avatar>
+              ) : (
+                <AccountCircleIcon />
+              )}
+            </IconButton>
+          </Tooltip>
+          <Menu
+            anchorEl={anchorEl}
+            id="user-menu"
+            open={menuOpen}
+            onClose={closeMenu}
+            transformOrigin={{ horizontal: "right", vertical: "top" }}
+            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+          >
+            <MenuItem disabled data-testid="profile-btn">
+              <ListItemIcon>
+                <AccountCircleIcon fontSize="small" />
+              </ListItemIcon>
+              {name} (Coming soon)
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={onLogout} data-testid="logout-btn">
+              <ListItemIcon>
+                <LogoutIcon fontSize="small" />
+              </ListItemIcon>
+              Logout
+            </MenuItem>
+          </Menu>
+        </>
+      ) : (
+        defaultUser()
+      )}
+      {/* Always render snackbar so it shows even after auth state changes */}
+      <AlertBar
+        notice={notification}
+        onClose={() => setNotification({ ...notification, open: false })}
+      />
     </>
   );
 }

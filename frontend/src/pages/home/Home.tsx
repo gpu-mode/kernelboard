@@ -3,7 +3,7 @@ import Grid from "@mui/material/Grid";
 import { useEffect } from "react";
 import { fetchLeaderboardSummaries } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
-import { ErrorAlert } from "../../components/error-alert/ErrorAlert";
+import { ErrorAlert } from "../../components/alert/ErrorAlert";
 import LeaderboardTile from "./components/LeaderboardTile";
 import Loading from "../../components/common/loading";
 import { ConstrainedContainer } from "../../components/app-layout/ConstrainedContainer";

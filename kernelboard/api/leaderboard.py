@@ -8,7 +8,9 @@ from kernelboard.lib.status_code import http_error, http_success
 from http import HTTPStatus
 
 
-leaderboard_bp = Blueprint("leaderboard_bp", __name__, url_prefix="/leaderboard")
+leaderboard_bp = Blueprint(
+    "leaderboard_bp", __name__, url_prefix="/leaderboard"
+)
 
 
 @leaderboard_bp.route("/<int:leaderboard_id>", methods=["GET"])

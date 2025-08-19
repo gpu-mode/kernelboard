@@ -39,7 +39,7 @@ export default function NavBar() {
 
   const Brand = () => (
     <Box sx={brandStyle}>
-      <Link href="/" underline="none" color="inherit">
+      <Link href="/kb/" underline="none" color="inherit">
         <Box sx={{ ...flexRowCenter }}>
           <FlashOnOutlinedIcon sx={flashIconStyle} />
           <Box>GPU MODE</Box>
@@ -75,8 +75,6 @@ export default function NavBar() {
               </Link>
             ))}
           </Box>
-
-          {/* Right: push user menu to the end */}
           <Box sx={{ ml: "auto" }}>
             <NavUserProfile />
           </Box>

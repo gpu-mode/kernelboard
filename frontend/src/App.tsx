@@ -9,6 +9,9 @@ import Leaderboard from "./pages/leaderboard/Leaderboard";
 import Home from "./pages/home/Home";
 import News from "./pages/news/News";
 import ErrorPage from "./pages/Error";
+import Login from "./pages/login/login";
+import { useAuthStore } from "./lib/store/authStore";
+import { useEffect } from "react";
 
 const errorRoutes = [
   {
@@ -32,6 +35,12 @@ const errorRoutes = [
 ];
 
 function App() {
+  // fetch user info on app
+  const fetchMe = useAuthStore((s) => s.fetchMe);
+  useEffect(() => {
+    fetchMe();
+  }, [fetchMe]);
+
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
@@ -42,6 +51,7 @@ function App() {
             <Route path="/home" element={<Home />} />
             <Route path="/leaderboard/:id" element={<Leaderboard />} />
             <Route path="/news" element={<News />} />
+            <Route path="/login" element={<Login />} />
             // error handling page
             {errorRoutes.map(({ path, code, title, description }) => (
               <Route
