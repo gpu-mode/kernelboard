@@ -117,7 +117,7 @@ def db_server():
         # Load data.sql into the template database:
         result = subprocess.run(
             [
-                "/opt/homebrew/opt/libpq/bin/psql",
+                "psql",
                 "-h",
                 "localhost",
                 "-U",
