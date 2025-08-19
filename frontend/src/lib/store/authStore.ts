@@ -35,7 +35,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }));
     } catch (e: any) {
       set((s) => ({
-        error: e?.message ?? "Failed to fetch /me",
+        error: e?.message ?? "Failed to fetch user",
         loading: false,
         inFlight: false,
         me: null,
@@ -47,7 +47,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       await logout();
     } catch {
-      // ignore
+      set((s) => ({
+        error: e?.message ?? "Failed to logout user",
+        loading: false,
+        inFlight: false,
+        me: null,
+      }));
     } finally {
       await get().fetchMe();
     }
