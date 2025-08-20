@@ -45,19 +45,20 @@ export default function NavUserProfile() {
 
   const onLogout = async () => {
     closeMenu();
-    try {
-      await logoutAndRefresh();
+
+    const result = await logoutAndRefresh();
+    if (result.ok) {
       setNotification({
         open: true,
         title: "Success",
         message: "Successfully logged out",
         severity: "success",
       });
-    } catch (e: any) {
+    } else {
       setNotification({
         open: true,
         title: "Logout failed",
-        message: e?.message ?? "Unknown error",
+        message: result.error?.message ?? "Unknown error",
         severity: "error",
       });
     }
