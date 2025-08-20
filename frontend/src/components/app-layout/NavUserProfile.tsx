@@ -58,7 +58,7 @@ export default function NavUserProfile() {
       setNotification({
         open: true,
         title: "Logout failed",
-        message: result.error?.message ?? "Unknown error",
+        message: result.error?.message ?? "Unknown error, please try again",
         severity: "error",
       });
     }
