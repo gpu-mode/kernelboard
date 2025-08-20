@@ -1,9 +1,11 @@
+from requests import auth
 from flask import Blueprint
 from werkzeug.exceptions import HTTPException
 from kernelboard.lib.status_code import http_error, http_success
 from kernelboard.api.leaderboard import leaderboard_bp
 from kernelboard.api.leaderboard_summaries import leaderboard_summaries_bp
 from kernelboard.api.news import news_bp
+from kernelboard.api.auth import auth_bp
 
 
 def create_api_blueprint():
@@ -46,16 +48,19 @@ def create_api_blueprint():
     def handle_api_http_exception(e):
         return http_error(
             message=e.description, code=10000 + e.code, status_code=e.code
-    )
+        )
 
     # TODO(yangw-dev): remove this after the testing is complete
     @api.route("/about")
     def get_about():
-        return http_success(data={"message": "Kernelboard, your friendly leaderboard."})
+        return http_success(
+            data={"message": "Kernelboard, your friendly leaderboard."}
+        )
 
     # register blueprints
     api.register_blueprint(leaderboard_bp)
     api.register_blueprint(news_bp)
     api.register_blueprint(leaderboard_summaries_bp)
+    api.register_blueprint(auth_bp)
 
     return api

@@ -1,4 +1,4 @@
-import { ErrorAlert } from "../../components/error-alert/ErrorAlert";
+import { ErrorAlert } from "../../components/alert/ErrorAlert";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { fetchAllNews } from "../../api/api";
 import { useEffect, useRef } from "react";

@@ -34,7 +34,9 @@ def test_health_database_error(client):
 
 
 def test_health_no_redis_config(client):
-    with patch("kernelboard.health.create_redis_connection", return_value=None):
+    with patch(
+        "kernelboard.health.create_redis_connection", return_value=None
+    ):
         assert_unhealthy(client.get("/health"))
 
 
@@ -44,6 +46,8 @@ def test_health_redis_error(client):
         "Redis connection failed"
     )
 
-    with patch("kernelboard.health.create_redis_connection", return_value=mock_conn):
+    with patch(
+        "kernelboard.health.create_redis_connection", return_value=mock_conn
+    ):
         assert_unhealthy(client.get("/health"))
         mock_conn.ping.assert_called_once()

@@ -1,11 +1,12 @@
 import os
 from dotenv import load_dotenv
-from flask import Flask
-from flask_login import LoginManager
+from flask import Flask, jsonify, session
+from flask_login import LoginManager, current_user
 from flask_session import Session
 from flask_talisman import Talisman
+from kernelboard.api.auth import User, providers
 from kernelboard.lib import db, env, time, score
-from kernelboard import auth, color, error, health, index, leaderboard, news
+from kernelboard import color, error, health, index, leaderboard, news
 from kernelboard.api import create_api_blueprint
 from kernelboard.lib.redis_connection import create_redis_connection
 from flask import send_from_directory
@@ -29,8 +30,8 @@ def create_app(test_config=None):
         SECRET_KEY=os.getenv("SECRET_KEY"),
         DATABASE_URL=os.getenv("DATABASE_URL"),
         REDIS_URL=os.getenv("REDIS_URL"),
-        TALISMAN_FORCE_HTTPS=True,
-        SESSION_COOKIE_SECURE=True,
+        TALISMAN_FORCE_HTTPS=not is_dev,
+        SESSION_COOKIE_SECURE=not is_dev,
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
         SESSION_PERMANENT=True,
@@ -43,7 +44,7 @@ def create_app(test_config=None):
         SESSION_REDIS=create_redis_connection(
             cert_reqs=os.getenv("REDIS_SSL_CERT_REQS")
         ),
-        OAUTH2_PROVIDERS=auth.providers(),
+        OAUTH2_PROVIDERS=providers(),
     )
 
     if test_config is not None:
@@ -55,7 +56,8 @@ def create_app(test_config=None):
 
     @login_manager.user_loader
     def load_user(user_id):
-        return auth.User(user_id) if user_id else None
+        return User(user_id) if user_id else None
+
 
     login_manager.init_app(app)
 
@@ -63,6 +65,7 @@ def create_app(test_config=None):
         "default-src": ["'self'"],
         "script-src": "'self' https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js",
         "style-src": ["'self'", "'unsafe-inline'"],  # new ui needs inline styles ,
+        "img-src": "'self' data: blob: https://cdn.jsdelivr.net https://*.jsdelivr.net https://cdn.discordapp.com https://media.discordapp.net",
         "font-src": ["'self'"],
     }
 
@@ -100,9 +103,6 @@ def create_app(test_config=None):
         app.register_blueprint(api)
 
     app.add_url_rule("/news", endpoint="news")
-
-    app.register_blueprint(auth.blueprint)
-
     app.errorhandler(401)(error.unauthorized)
     app.errorhandler(404)(error.page_not_found)
     app.errorhandler(500)(error.server_error)

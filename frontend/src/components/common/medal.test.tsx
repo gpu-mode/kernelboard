@@ -50,8 +50,6 @@ describe("getMedalIcon", () => {
     });
   });
 
-
-
   describe("edge cases", () => {
     it("returns null for decimal ranks (strict equality check)", () => {
       expect(getMedalIcon(1.5)).toBeNull(); // Decimal ranks don't match strict equality
