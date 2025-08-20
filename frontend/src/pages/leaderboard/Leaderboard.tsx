@@ -6,7 +6,7 @@ import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { toDateUtc } from "../../lib/date/utils";
 import RankingsList from "./components/RankingLists";
 import CodeBlock from "../../components/codeblock/CodeBlock";
-import { ErrorAlert } from "../../components/error-alert/ErrorAlert";
+import { ErrorAlert } from "../../components/alert/ErrorAlert";
 import { useParams } from "react-router-dom";
 import Loading from "../../components/common/loading";
 import { ConstrainedContainer } from "../../components/app-layout/ConstrainedContainer";
