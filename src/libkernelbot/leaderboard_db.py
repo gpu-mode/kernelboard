@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 
 import psycopg2
 
-from libkernelbot.db_types import IdentityType, LeaderboardItem, LeaderboardRankedEntry, RunItem, RunStatus, SubmissionItem
+from libkernelbot.db_types import IdentityType, LeaderboardItem, LeaderboardRankedEntry, RunItem, SubmissionItem
 from libkernelbot.run_eval import CompileResult, RunResult, SystemInfo
 from libkernelbot.task import LeaderboardDefinition, LeaderboardTask
 from libkernelbot.utils import (
@@ -267,7 +267,6 @@ class LeaderboardDB:
             )
             row = self.cursor.fetchone()
             return {"user_id": row[0], "user_name": row[1], "id_type":id_type.value} if row else None
-
         except psycopg2.Error as e:
             self.connection.rollback()
             logger.exception("Error validating %s %s", human_label, identifier, exc_info=e)
