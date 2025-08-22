@@ -1,5 +1,0 @@
-discord-cluster-manager
-kernelbot
-libkernelbot
-migrations
-runners
