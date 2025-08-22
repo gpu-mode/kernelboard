@@ -19,7 +19,6 @@ from libkernelbot.run_eval import FullResult
 from libkernelbot.submission import ProcessedSubmissionRequest, compute_score
 from libkernelbot.task import LeaderboardTask, build_task_config
 from libkernelbot.utils import setup_logging
-from src.libkernelbot.db_types import RunStatus
 
 logger = setup_logging(__name__)
 
