@@ -244,7 +244,7 @@ def callback(provider: str):
     session["display_name"] = username
     session["avatar_url"] = _discord_avatar_url(identity, data.get("avatar"))
 
-    # ensure user exists and has web_token_id
+    # ensure user exists and has web_auth_id
     # if not, update the user with the new token
     ensure_user_info_with_token(identity, username)
 
@@ -270,6 +270,6 @@ def logout():
 @auth_bp.get("/me")
 def me():
     res = get_user_info_from_session()
-    res.update("login_url",  url_for("api.auth.auth", provider="discord"))
-    res.update("logout_url", url_for("api.auth.logout"))
+    res.update({"login_url": url_for("api.auth.auth", provider="discord")})
+    res.update({"logout_url": url_for("api.auth.logout")})
     return http_success(res)

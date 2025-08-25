@@ -29,6 +29,13 @@ def _to_time_left(deadline: str | datetime, now: datetime) -> str | None:
     hour_label = "hour" if hours == 1 else "hours"
     return f"{days} {day_label} {hours} {hour_label} remaining"
 
+def is_ended(deadline: str | datetime, now: datetime) -> bool:
+    """
+    Check if deadline has passed.
+
+    Returns: True if deadline has passed, otherwise False.
+    """
+    return _to_time_left(deadline, now) == "ended"
 
 def format_datetime(dt: datetime | str) -> str:
     """

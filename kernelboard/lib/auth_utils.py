@@ -56,23 +56,23 @@ def ensure_user_info_with_token(user_id: int, user_name: str) -> Optional[Any]:
     """
     Idempotent behavior:
     - If user does not exist -> INSERT with new token and return the row.
-    - If user exists and web_token_id IS NULL -> UPDATE to set token and return the row.
-    - If user exists and web_token_id IS NOT NULL -> do not overwrite; just SELECT and return existing row.
+    - If user exists and web_auth_id IS NULL -> UPDATE to set token and return the row.
+    - If user exists and web_auth_id IS NOT NULL -> do not overwrite; just SELECT and return existing row.
     """
     new_token = secrets.token_hex(16)
     conn = get_db_connection()
     try:
         with conn:  # automatically commit on success / rollback on error
             with conn.cursor() as cur:
-                # Attempt "insert or update only if web_token_id is NULL"
+                # Attempt "insert or update only if web_auth_id is NULL"
                 cur.execute(
                     """
-                    INSERT INTO leaderboard.user_info (id, user_name, web_token_id)
+                    INSERT INTO leaderboard.user_info (id, user_name, web_auth_id)
                     VALUES (%s, %s, %s)
                     ON CONFLICT (id) DO UPDATE
-                    SET web_token_id = EXCLUDED.web_token_id
-                    WHERE leaderboard.user_info.web_token_id IS NULL
-                    RETURNING id, user_name, web_token_id
+                    SET web_auth_id = EXCLUDED.web_auth_id
+                    WHERE leaderboard.user_info.web_auth_id IS NULL
+                    RETURNING id, user_name, web_auth_id
                     """,
                     (user_id, user_name, new_token),
                 )
@@ -85,7 +85,7 @@ def ensure_user_info_with_token(user_id: int, user_name: str) -> Optional[Any]:
                 # if no upsert was done, fetch the existing row and return it
                 cur.execute(
                     """
-                    SELECT id, user_name, web_token_id
+                    SELECT id, user_name, web_auth_id
                     FROM leaderboard.user_info
                     WHERE id = %s
                     """,
@@ -102,7 +102,7 @@ def get_user_token(user_id: int) -> Optional[str]:
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    SELECT web_token_id
+                    SELECT web_auth_id
                     FROM leaderboard.user_info
                     WHERE id = %s
                     """,
@@ -113,3 +113,5 @@ def get_user_token(user_id: int) -> Optional[str]:
                 return row[0] if row else None
     finally:
         conn.close()
+
+
