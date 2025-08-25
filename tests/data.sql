@@ -9190,6 +9190,19 @@ ALTER TABLE ONLY leaderboard.submission
 
 ALTER TABLE ONLY leaderboard.user_info
     ADD COLUMN IF NOT EXISTS web_auth_id VARCHAR(255) DEFAULT NULL;
+
+CREATE TABLE IF NOT EXISTS leaderboard.submission_job_status (
+        id              SERIAL PRIMARY KEY,
+        submission_id   INTEGER NOT NULL
+                        REFERENCES leaderboard.submission(id)
+                        ON DELETE CASCADE,
+        status          VARCHAR(255) DEFAULT NULL,            -- pending | running | succeeded | failed | timed_out
+        error           TEXT DEFAULT NULL,                    -- error details if failed
+        created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),   -- creation timestamp
+        last_heartbeat  TIMESTAMPTZ DEFAULT NULL,             -- updated periodically by worker
+        CONSTRAINT uq_submission_job_status_submission_id
+            UNIQUE (submission_id)                            -- one-to-one with submission
+    );
 --
 -- PostgreSQL database dump complete
 --
