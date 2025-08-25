@@ -306,3 +306,4 @@ def set_env(monkeypatch):
     monkeypatch.setenv("DISCORD_CLIENT_SECRET", "test")
     monkeypatch.setenv("REDIS_URL", get_test_redis_url(get_test_redis_port()))
     monkeypatch.setenv("SECRET_KEY", "test-secret")
+    monkeypatch.setenv("DISCORD_CLUSTER_MANAGER_API_BASE_URL", "http://discord_cluster_manager:8000")

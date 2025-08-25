@@ -1,7 +1,7 @@
 from http import HTTPStatus
 import os
 import yaml
-from flask import Blueprint, jsonify, current_app
+from flask import Blueprint, current_app
 from kernelboard.lib.status_code import HttpError, http_error, http_success
 from datetime import datetime
 import logging

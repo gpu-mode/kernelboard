@@ -175,7 +175,7 @@ export default function ListSubmissionSidePanel({
                 size="small"
                 variant="outlined"
                 color={statusColor(s.status) as any}
-                label={s.status || "unknown"}
+                label={s.status || "submitted via cli or discor-bot"}
               />
             </ListItemButton>
           ))}
