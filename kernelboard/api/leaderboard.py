@@ -33,7 +33,6 @@ def leaderboard(leaderboard_id: int):
     res = to_api_leaderboard_item(data)
     return http_success(res)
 
-
 # converts db record to api
 def to_api_leaderboard_item(data: dict[str, Any]):
     leaderboard_data = data["leaderboard"]
