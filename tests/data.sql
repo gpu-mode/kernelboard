@@ -9188,7 +9188,8 @@ ALTER TABLE ONLY leaderboard.submission
     ADD CONSTRAINT submission_leaderboard_id_fkey FOREIGN KEY (leaderboard_id) REFERENCES leaderboard.leaderboard(id);
 
 
+ALTER TABLE ONLY leaderboard.user_info
+    ADD COLUMN IF NOT EXISTS web_auth_id VARCHAR(255) DEFAULT NULL;
 --
 -- PostgreSQL database dump complete
 --
-
