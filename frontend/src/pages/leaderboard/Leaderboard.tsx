@@ -68,8 +68,6 @@ export default function Leaderboard() {
   const isAuthed = !!(me && me.authenticated);
   const userId = me?.user?.identity ?? null;
 
-  const [openSubs, setOpenSubs] = useState(false);
-
   // Sync tab state with query parameter
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTabFromUrl = ((): TabKey => {

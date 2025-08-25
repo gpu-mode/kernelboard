@@ -1,17 +1,13 @@
 from __future__ import annotations
 
-from ast import Tuple
 import os
 import secrets
-from typing import Any, Optional
 from urllib.parse import urlencode
 
 import requests
 from flask import (
     Blueprint,
-    abort,
     current_app as app,
-    jsonify,
     redirect,
     request,
     session,
@@ -193,7 +189,7 @@ def callback(provider: str):
             },
             timeout=10,
         )
-    except requests.RequestException as e:
+    except requests.RequestException:
         app.logger.exception("Token exchange request failed")
         return redirect_with_error(
             "request_error", "Network error during token exchange"

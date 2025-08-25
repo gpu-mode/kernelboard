@@ -1,8 +1,6 @@
-from ast import Dict
 import http
-from typing import Any, List, Optional, Tuple
-from blinker import ANY
-from flask import Blueprint, request, jsonify, current_app
+from typing import Any, List, Tuple
+from flask import Blueprint, request, jsonify
 import requests
 from kernelboard.lib.auth_utils import get_id_and_username_from_session, get_user_token, is_auth
 from kernelboard.lib.db import get_db_connection
@@ -10,13 +8,14 @@ from kernelboard.lib.error import ValidationError, validate_required_fields
 from kernelboard.lib.file_handler import get_submission_file_info
 from kernelboard.lib.status_code import http_error, http_success
 import logging
-
+import os
 
 logger = logging.getLogger(__name__)
 submission_bp = Blueprint("submisison_api", __name__)
 
 REQUIRED_SUBMISSION_REQUEST_FIELDS = ["leaderboard_id","leaderboard","gpu_type", "submission_mode"]
-SUBMISSION_API_BASE = "http://0.0.0.0:8000/submission"
+
+# official one: https://discord-cluster-manager-1f6c4782e60a.herokuapp.com/submission
 WEB_AUTH_HEADER = "X-Web-Auth-Id"
 MAX_CONTENT_LENGTH = 20 * 1024 * 1024  # 20MB max file size
 
@@ -66,10 +65,9 @@ def submission():
     gpu_type = request.form.get("gpu_type")
     submission_mode = request.form.get("submission_mode")
     leaderboard_name = request.form.get("leaderboard")
-
     logger.info(f"submission request from user {username} for leaderboard {leaderboard_name} with gpu type {gpu_type} and submission mode {submission_mode}")
-
-    url = f"{SUBMISSION_API_BASE}/{leaderboard_name}/{gpu_type}/{submission_mode}"
+    base = get_cluster_manager_endpoint()
+    url = f"{base}/submission/{leaderboard_name}/{gpu_type}/{submission_mode}"
 
     files = {
         # requests expects (filename, fileobj, content_type)
@@ -120,6 +118,11 @@ def list_submissions():
     """
     GET /submissions?leaderboard_id=123&&limit=20&offset=0
     """
+    # TODO(elainewy): currently we only fetch the user's all submissions, but we do not have details of:
+    # submit method: discord-bot vs cli vs web
+    # submit request info: mode and gpu type
+    # this could be a followup to provide more information
+
     logger.info("list submissions received")
     if not is_auth():
         return http_error(
@@ -127,7 +130,7 @@ def list_submissions():
             code=10000 + http.HTTPStatus.UNAUTHORIZED.value,
             status_code=http.HTTPStatus.UNAUTHORIZED,
         )
-    user_id, username = get_id_and_username_from_session()
+    user_id, _ = get_id_and_username_from_session()
     leaderboard_id = request.args.get("leaderboard_id", type=int)
     limit = request.args.get("limit", default=20, type=int)
     offset = request.args.get("offset", default=0, type=int)
@@ -222,3 +225,13 @@ def list_user_submissions_with_status(
                 return items, total
     finally:
         conn.close()
+
+
+def get_cluster_manager_endpoint():
+    """
+    Return OAuth2 provider information.
+    """
+    env_var = os.getenv("DISCORD_CLUSTER_MANAGER_API_BASE_URL","")
+    if not env_var:
+        logger.warning("DISCORD_CLUSTER_MANAGER_API_BASE_URL is not set!!!")
+    return env_var
