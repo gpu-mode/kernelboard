@@ -1,6 +1,8 @@
+import http
 import os
+from re import L
 from dotenv import load_dotenv
-from flask import Flask, jsonify, session
+from flask import Flask, jsonify, session, g
 from flask_login import LoginManager, current_user
 from flask_session import Session
 from flask_talisman import Talisman
@@ -11,7 +13,9 @@ from kernelboard.api import create_api_blueprint
 from kernelboard.lib.redis_connection import create_redis_connection
 from flask import send_from_directory
 from kernelboard.lib.logging import configure_logging
-
+from flask_limiter import Limiter
+from kernelboard.lib.rate_limiter import limiter
+from kernelboard.lib.status_code import http_error
 
 def create_app(test_config=None):
     # Check if we're in development mode:
@@ -54,9 +58,18 @@ def create_app(test_config=None):
 
     login_manager = LoginManager()
 
+
     @login_manager.user_loader
     def load_user(user_id):
         return User(user_id) if user_id else None
+
+
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        return http_error(
+            message="Unauthorized",
+            status_code=http.HTTPStatus.UNAUTHORIZED,
+        )
 
 
     login_manager.init_app(app)
@@ -82,6 +95,10 @@ def create_app(test_config=None):
             raise
 
     db.init_app(app)
+
+
+    # Initialize rate limiter
+    limiter.init_app(app)
 
     app.add_template_filter(color.to_color, "to_color")
     app.add_template_filter(score.format_score, "format_score")

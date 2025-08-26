@@ -1,20 +1,19 @@
 import http
 from typing import Any, List, Optional, Tuple
 from flask import Blueprint, request, jsonify
-import psycopg2
+from flask_login import login_required, current_user
 import requests
-from werkzeug.exceptions import TooManyRequests
 from kernelboard.lib.auth_utils import (
     get_id_and_username_from_session,
-    is_auth,
 )
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.error import ValidationError, validate_required_fields
 from kernelboard.lib.file_handler import get_submission_file_info
 from kernelboard.lib.status_code import http_error, http_success
 import logging
-import datetime as dt
 import os
+from kernelboard.lib.rate_limiter import limiter
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -27,25 +26,23 @@ REQUIRED_SUBMISSION_REQUEST_FIELDS = [
     "submission_mode",
 ]
 
-RATE_LIMIT = 10
-WINDOW = dt.timedelta(minutes=60)
 
 # official one: https://discord-cluster-manager-1f6c4782e60a.herokuapp.com/submission
 WEB_AUTH_HEADER = "X-Web-Auth-Id"
-MAX_CONTENT_LENGTH = 20 * 1024 * 1024  # 20MB max file size
-
+MAX_CONTENT_LENGTH = 1 * 1024 * 1024  # 1MB max file size
 
 @submission_bp.route("/submission", methods=["POST"])
+@login_required
+@limiter.limit(
+    "60 per minute",
+    exempt_when=lambda: not current_user.is_authenticated #ignore unauthenticated, since they won't hit the api
+)
+
 def submission():
     # make sure user is logged in
     logger.info("submission received")
-    if not is_auth():
-        logger.error("user did not login")
-        return http_error(
-            message="cannnot get user id, please log in first, if this is unexpected, please contact the gpumode administrator",
-            status_code=http.HTTPStatus.UNAUTHORIZED,
-        )
     user_id, username = get_id_and_username_from_session()
+    log_rate_limit()
 
     web_token = get_user_token(user_id)
     if not web_token:
@@ -55,13 +52,6 @@ def submission():
             status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
         )
     req = request.form.to_dict()
-
-    rate_limited = is_rate_limited(user_id=user_id, window=WINDOW)
-    if rate_limited:
-        return http_error(
-            message=f"Execeeding rate limit: {RATE_LIMIT} submission per {WINDOW.seconds // 60} minutes, please try again later",
-            status_code=http.HTTPStatus.TOO_MANY_REQUESTS,
-        )
 
     try:
         validate_required_fields(req, REQUIRED_SUBMISSION_REQUEST_FIELDS)
@@ -127,6 +117,7 @@ def submission():
 
 
 @submission_bp.route("/submissions", methods=["GET"])
+@login_required
 def list_submissions():
     """
     GET /submissions?leaderboard_id=123&&limit=20&offset=0
@@ -136,14 +127,8 @@ def list_submissions():
     # submit method: discord-bot vs cli vs web
     # submit request info: mode and gpu type
     # this could be a followup to provide more information
-
     logger.info("list submission request is received")
-    if not is_auth():
-        return http_error(
-            message="cannnot get user id, please log in first, if this is unexpected, please contact the gpumode administrator",
-            code=10000 + http.HTTPStatus.UNAUTHORIZED.value,
-            status_code=http.HTTPStatus.UNAUTHORIZED,
-        )
+
     user_id, _ = get_id_and_username_from_session()
     leaderboard_id = request.args.get("leaderboard_id", type=int)
     limit = request.args.get("limit", default=20, type=int)
@@ -255,35 +240,6 @@ def list_user_submissions_with_status(
         return items, total
 
 
-def is_rate_limited(user_id: int, window: dt.timedelta = WINDOW) -> bool:
-    now = dt.datetime.now(dt.timezone.utc)
-    cutoff = now - window
-
-    conn = get_db_connection()
-    with conn.cursor() as cur:
-        cur.execute(
-            """
-            SELECT COUNT(*)
-            FROM leaderboard.submission
-            WHERE user_id = %s
-                AND submission_time >= %s
-            """,
-            (user_id, cutoff),
-        )
-        (cnt,) = cur.fetchone() or (0,)
-
-        logger.info("fetched", cnt)
-        limited = cnt >= RATE_LIMIT
-        if limited:
-            logger.warning(
-                "User %s hit rate limit: %s submissions in last %s minutes",
-                user_id,
-                cnt,
-                int(window.total_seconds() // 60),
-            )
-        return limited
-
-
 def get_user_token(user_id: int) -> Optional[str]:
     conn = get_db_connection()
     with conn.cursor() as cur:
@@ -298,3 +254,14 @@ def get_user_token(user_id: int) -> Optional[str]:
         row = cur.fetchone()
         # row will be a tuple like (token,) or None
         return row[0] if row else None
+
+
+def log_rate_limit():
+    rl = limiter.current_limit
+    used = remaining = limit_ = reset_in = None
+    if rl:
+        limit_ = int(rl.limit.amount)
+        remaining = max(0, int(rl.remaining))
+        used = limit_ - remaining
+        reset_in = max(0, int(rl.reset_at - time.time()))
+    logger.info(f"rate limit: {limit_},used {used}, reset{reset_in}")
