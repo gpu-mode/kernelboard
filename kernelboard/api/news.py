@@ -18,7 +18,6 @@ def list_news_items():
     try:
         news_dir = os.path.join(current_app.root_path, "static/news")
         news_contents = []
-        logger.info("")
         for filename in os.listdir(news_dir):
             if filename.endswith(".md"):
                 target_file = os.path.join(news_dir, filename)

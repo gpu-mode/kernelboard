@@ -31,3 +31,20 @@ export const getTimeLeft = (deadline: string): string => {
 
   return `${days} ${dayLabel} ${hours} ${hourLabel} remaining`;
 };
+
+export const isExpired = (
+  deadline: string | Date,
+  time: Date = new Date(),
+): boolean => {
+  let d: Date;
+  if (typeof deadline === "string") {
+    const parsed = new Date(deadline);
+    if (isNaN(parsed.getTime())) {
+      return true; // 无效字符串，当作已过期
+    }
+    d = parsed;
+  } else {
+    d = deadline;
+  }
+  return d.getTime() <= time.getTime();
+};

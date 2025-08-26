@@ -15,6 +15,8 @@ def configure_logging(app):
     # add handler to app.logger
     app.logger.setLevel(logging.INFO)
     app.logger.addHandler(handler)
+    app.logger.propagate = False
+
 
     # set root logger
     logging.basicConfig(level=logging.INFO, handlers=[handler])

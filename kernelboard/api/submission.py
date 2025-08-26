@@ -44,7 +44,7 @@ def submission():
     user_id, username = get_id_and_username_from_session()
     web_token = get_user_token(user_id)
     if not web_token:
-        logger.error(f"user %s missing web token", user_id)
+        logger.error("user %s missing web token", user_id)
         return http_error(
             message="cannot find user info from db for user %s, if this is a bug, please contact the gpumode administrator"
             % username,
@@ -97,7 +97,7 @@ def submission():
         WEB_AUTH_HEADER: web_token,
     }
 
-    logger.info(f"send submission request to leaderboard")
+    logger.info("send submission request to leaderboard")
     try:
         resp = requests.post(url, headers=headers, files=files, timeout=180)
     except requests.RequestException as e:

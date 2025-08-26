@@ -62,7 +62,7 @@ const styles = {
   },
 };
 
-export default function ListSubmissionSidePanel({
+export default function SubmissionHistorySection({
   leaderboardId,
   userId,
   pageSize = 10,
@@ -101,7 +101,7 @@ export default function ListSubmissionSidePanel({
   }, [page, pageSize, total]);
 
   return (
-    <Box sx={styles.root}>
+    <Box sx={styles.root} data-testid="submission-history-section">
       {/* Header */}
       <Box sx={styles.header}>
         <Typography variant="h6">Your submission history</Typography>
