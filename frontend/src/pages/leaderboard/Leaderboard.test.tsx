@@ -275,9 +275,9 @@ describe("Leaderboard", () => {
     expect(screen.queryAllByTestId("ranking-0-row")).toHaveLength(3);
   });
 
-  // -------------------- Reference codeblock toggle --------------------
+  // -------------------- Reference codeblock --------------------
 
-  it("toggles expanded state for reference codeblock (after switching to Reference tab)", () => {
+  it("show reference codeblock (after switching to Reference tab)", () => {
     const mockData = {
       name: "test-code",
       description: "",
@@ -300,14 +300,9 @@ describe("Leaderboard", () => {
     // Must switch to Reference tab first
     fireEvent.click(screen.getByRole("tab", { name: /Reference/i }));
 
-    const toggle = screen.getByTestId("codeblock-show-all-toggle");
-    expect(within(toggle).getByText(/show more/i)).toBeInTheDocument();
-
-    fireEvent.click(toggle);
-    expect(within(toggle).getByText(/hide/i)).toBeInTheDocument();
-
-    fireEvent.click(toggle);
-    expect(within(toggle).getByText(/show more/i)).toBeInTheDocument();
+    // Reference codeblock should be visible
+    expect(screen.getByText(/Reference Implementation/i)).toBeInTheDocument();
+    expect(screen.getByText(mockReference)).toBeInTheDocument();
   });
 
   // -------------------- Tabs behavior (switching) --------------------

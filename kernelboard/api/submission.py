@@ -37,7 +37,6 @@ MAX_CONTENT_LENGTH = 1 * 1024 * 1024  # 1MB max file size
     "60 per minute",
     exempt_when=lambda: not current_user.is_authenticated #ignore unauthenticated, since they won't hit the api
 )
-
 def submission():
     # make sure user is logged in
     logger.info("submission received")

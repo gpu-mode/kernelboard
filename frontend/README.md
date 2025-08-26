@@ -20,7 +20,7 @@ Assume you have a toggle component that can be expanded by user click.
 ```
 // ToggleShowMore.tsx
 export function ToggleShowMore() {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   return (
     <Box sx={{ textAlign: "center", py: 1 }}>
