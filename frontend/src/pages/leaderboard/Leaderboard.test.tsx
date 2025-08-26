@@ -27,6 +27,7 @@ vi.mock("../../lib/store/authStore", () => {
 
 // --- Shared fixtures ---
 const mockDeadline = "2025-06-29T17:00:00-07:00";
+const mockExpiredDeadline = "2024-01-29T12:00:00-02:00";
 const mockDescription = "Implement a 2D the given specifications";
 const mockReference = "import torch";
 const mockName = "test-game";
@@ -36,6 +37,8 @@ describe("Leaderboard", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2025-01-01T00:00:00Z")); // freeze "now"
     currentAuth = { me: null }; // default: not authed
   });
 
@@ -382,7 +385,7 @@ describe("Leaderboard", () => {
     const mockData = {
       name: "lb-noauth",
       description: "",
-      deadline: "",
+      deadline: mockDeadline,
       gpu_types: ["T1"],
       reference: mockReference,
       rankings: { T1: [] },
@@ -412,7 +415,7 @@ describe("Leaderboard", () => {
     const mockData = {
       name: "lb-auth",
       description: "",
-      deadline: "",
+      deadline: mockDeadline,
       gpu_types: ["T1"],
       reference: mockReference,
       rankings: { T1: [] },
@@ -430,10 +433,89 @@ describe("Leaderboard", () => {
 
     // Switch to the Submission tab explicitly
     fireEvent.click(screen.getByRole("tab", { name: /Submission/i }));
+
     // Login tip should NOT be visible; submission card should be visible
     expect(
       screen.queryByText(/please login to submit/i),
     ).not.toBeInTheDocument();
     expect(screen.getByTestId("leaderboard-submit-btn")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("submission-history-section"),
+    ).toBeInTheDocument();
+  });
+
+  it("shows Submit button when deadline is in the future", () => {
+    currentAuth = { me: { authenticated: true, user: { identity: "u-1" } } };
+
+    const mockData = {
+      name: "lb-auth",
+      description: "",
+      deadline: mockDeadline,
+      gpu_types: ["T1"],
+      reference: mockReference,
+      rankings: { T1: [] },
+    };
+
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: mockData,
+      loading: false,
+      error: null,
+      errorStatus: null,
+      call: mockCall,
+    });
+
+    renderWithRouter(<Leaderboard />);
+
+    // Switch to the Submission tab explicitly
+    fireEvent.click(screen.getByRole("tab", { name: /Submission/i }));
+
+    const submit_btn = screen.getByTestId("leaderboard-submit-btn");
+    expect(submit_btn).toBeInTheDocument();
+    expect(submit_btn).not.toBeDisabled();
+
+    expect(
+      screen.queryByTestId("deadline-passed-text"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByTestId("submission-history-section"),
+    ).toBeInTheDocument();
+  });
+
+  it("shows expired message when deadline is in the past", () => {
+    currentAuth = { me: { authenticated: true, user: { identity: "u-1" } } };
+
+    const mockData = {
+      name: "lb-auth",
+      description: "",
+      deadline: mockExpiredDeadline,
+      gpu_types: ["T1"],
+      reference: mockReference,
+      rankings: { T1: [] },
+    };
+
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: mockData,
+      loading: false,
+      error: null,
+      errorStatus: null,
+      call: mockCall,
+    });
+
+    renderWithRouter(<Leaderboard />);
+
+    // Switch to the Submission tab explicitly
+    fireEvent.click(screen.getByRole("tab", { name: /Submission/i }));
+
+    const submit_btn = screen.getByTestId("leaderboard-submit-btn");
+    expect(submit_btn).toBeInTheDocument();
+    expect(submit_btn).toBeDisabled();
+
+    const deadline_txt = screen.getByTestId("deadline-passed-text");
+    expect(
+      within(deadline_txt).getByText(/deadline has passed/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("submission-history-section"),
+    ).toBeInTheDocument();
   });
 });

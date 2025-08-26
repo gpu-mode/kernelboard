@@ -13,7 +13,7 @@ import Grid from "@mui/material/Grid";
 import { useEffect, useState } from "react";
 import { fetchLeaderBoard } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
-import { toDateUtc } from "../../lib/date/utils";
+import { isExpired, toDateUtc } from "../../lib/date/utils";
 import RankingsList from "./components/RankingLists";
 import CodeBlock from "../../components/codeblock/CodeBlock";
 import { ErrorAlert } from "../../components/alert/ErrorAlert";
@@ -22,7 +22,7 @@ import Loading from "../../components/common/loading";
 import { ConstrainedContainer } from "../../components/app-layout/ConstrainedContainer";
 import { SubmissionMode } from "../../lib/types/mode";
 import { useAuthStore } from "../../lib/store/authStore";
-import ListSubmissionSidePanel from "./components/submission-history/ListSubmissionsSidePanel";
+import SubmissionHistorySection from "./components/submission-history/SubmissionHistorySection";
 import LeaderboardSubmit from "./components/LeaderboardSubmit";
 export const CardTitle = styled(Typography)(() => ({
   fontSize: "1.5rem",
@@ -186,15 +186,37 @@ export default function Leaderboard() {
             <div> please login to submit</div>
           ) : (
             <Card sx={{ mb: 2 }}>
-              <CardTitle fontWeight="bold">Submission</CardTitle>
               <CardContent>
-                <LeaderboardSubmit
-                  leaderboardId={id!!}
-                  leaderboardName={data.name}
-                  gpuTypes={data.gpu_types}
-                  modes={[SubmissionMode.LEADERBOARD, SubmissionMode.TEST]}
-                />
-                <ListSubmissionSidePanel
+                {/* Header Row */}
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  mb={2}
+                >
+                  <CardTitle fontWeight="bold">Submission</CardTitle>
+                  <LeaderboardSubmit
+                    leaderboardId={id!!}
+                    leaderboardName={data.name}
+                    gpuTypes={data.gpu_types}
+                    disabled={isExpired(data.deadline)}
+                    modes={[SubmissionMode.LEADERBOARD, SubmissionMode.TEST]}
+                  />
+                </Stack>
+                {/* Deadline Passed Message */}
+                {isExpired(data.deadline) && (
+                  <Box mb={2} data-testid="deadline-passed-text">
+                    <Typography variant="body1" color="text.secondary">
+                      The submission deadline has passed. You can no longer
+                      submit.
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      But don't worry — we have more leaderboards!
+                    </Typography>
+                  </Box>
+                )}
+                {/* History List */}
+                <SubmissionHistorySection
                   leaderboardId={id!!}
                   leaderboardName={data.name}
                   userId={userId!!}

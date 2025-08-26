@@ -46,11 +46,13 @@ export default function LeaderboardSubmit({
   leaderboardName,
   gpuTypes,
   modes,
+  disabled = false,
 }: {
   leaderboardId: string;
   leaderboardName: string;
   gpuTypes: string[];
   modes: string[];
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [gpuType, setGpuType] = useState<string>(gpuTypes?.[0] ?? "");
@@ -143,6 +145,7 @@ export default function LeaderboardSubmit({
       }}
       data-testid="leaderboard-submit-btn"
       sx={styles.submitBtn}
+      disabled={disabled}
     >
       Submit
     </Button>

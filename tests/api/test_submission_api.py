@@ -2,30 +2,17 @@
 import http
 from io import BytesIO
 from types import SimpleNamespace
-from typing import Optional, TypedDict
 from unittest.mock import patch, MagicMock
 import flask_login
-import os
 import datetime as dt
-import http
-import datetime as dt
-from io import BytesIO
-from unittest.mock import MagicMock, patch
 import requests
 import pytest
 from kernelboard.lib.db import get_db_connection
 from psycopg2.extras import execute_values
-import requests
 
 _TEST_USER_ID = "333"
 _TEST_WEB_AUTH_ID = "111"
 
-import datetime as dt
-import pytest
-from psycopg2.extras import execute_values  # 确保已导入
-import datetime as dt
-import pytest
-from psycopg2.extras import execute_values  # 确保已导入
 
 def _delete_user_graph(conn, user_id: str) -> None:
     """Idempotent cleanup: remove all rows under a user in FK-safe order."""
