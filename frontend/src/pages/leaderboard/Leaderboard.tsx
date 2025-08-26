@@ -200,7 +200,11 @@ export default function Leaderboard() {
                     leaderboardName={data.name}
                     gpuTypes={data.gpu_types}
                     disabled={isExpired(data.deadline)}
-                    modes={[SubmissionMode.LEADERBOARD,SubmissionMode.BENCHMARK, SubmissionMode.TEST]}
+                    modes={[
+                      SubmissionMode.LEADERBOARD,
+                      SubmissionMode.BENCHMARK,
+                      SubmissionMode.TEST,
+                    ]}
                   />
                 </Stack>
                 {/* Deadline Passed Message */}

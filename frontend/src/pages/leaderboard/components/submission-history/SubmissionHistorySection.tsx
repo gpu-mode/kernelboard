@@ -124,7 +124,7 @@ export default function SubmissionHistorySection({
       </Box>
 
       {/* Loading / Error */}
-      {loading && <Loading/>}
+      {loading && <Loading />}
       {!loading && error && (
         <Alert severity="error" sx={{ my: 2 }}>
           Failed to load submissions{errorStatus ? ` (${errorStatus})` : ""}:{" "}
