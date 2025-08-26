@@ -1,7 +1,7 @@
 import psycopg2
 from flask import g, Flask, current_app
-
-
+import logging
+logger = logging.getLogger(__name__)
 def get_db_connection() -> psycopg2.extensions.connection:
     """
     Get a database connection from the `g` object. If the connection is not
@@ -24,8 +24,18 @@ def close_db_connection(e=None):
     """
     db = g.pop("db_connection", None)
     if db is not None:
-        db.close()
+        try:
+            if e is not None:
+                logger.info("Rolling back database connection")
+                db.rollback()
+            else:
+                logger.info("Committing database connection")
+                db.commit()
+        finally:
+            db.close()
+            logger.info("Database connection closed")
 
 
 def init_app(app: Flask):
+    # close the database connection when the application context is destroyed (e.g. at the end of a api request)
     app.teardown_appcontext(close_db_connection)

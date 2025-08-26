@@ -6,7 +6,8 @@ from flask import session
 from flask_login import current_user
 
 from kernelboard.lib.db import get_db_connection
-
+import logging
+logger = logging.getLogger(__name__)
 
 def get_provider_and_identity(user_id: Optional[str])-> Any:
     provider = identity = None
@@ -60,57 +61,32 @@ def ensure_user_info_with_token(user_id: int, user_name: str) -> Optional[Any]:
     """
     new_token = secrets.token_hex(16)
     conn = get_db_connection()
-    try:
-        with conn:  # automatically commit on success / rollback on error
-            with conn.cursor() as cur:
-                # Attempt "insert or update only if web_auth_id is NULL"
-                cur.execute(
-                    """
-                    INSERT INTO leaderboard.user_info (id, user_name, web_auth_id)
-                    VALUES (%s, %s, %s)
-                    ON CONFLICT (id) DO UPDATE
-                    SET web_auth_id = EXCLUDED.web_auth_id
-                    WHERE leaderboard.user_info.web_auth_id IS NULL
-                    RETURNING id, user_name, web_auth_id
-                    """,
-                    (user_id, user_name, new_token),
-                )
-                row = cur.fetchone()
+    with conn.cursor() as cur:
+        # Attempt "insert or update only if web_auth_id is NULL"
+        cur.execute(
+            """
+            INSERT INTO leaderboard.user_info (id, user_name, web_auth_id)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (id) DO UPDATE
+            SET web_auth_id = EXCLUDED.web_auth_id
+            WHERE leaderboard.user_info.web_auth_id IS NULL
+            RETURNING id, user_name, web_auth_id
+            """,
+            (user_id, user_name, new_token),
+        )
+        row = cur.fetchone()
 
-                # row exists if inserted new row OR updated an existing row with NULL token
-                if row:
-                    return row
+        # row exists if inserted new row OR updated an existing row with NULL token
+        if row:
+            return row
 
-                # if no upsert was done, fetch the existing row and return it
-                cur.execute(
-                    """
-                    SELECT id, user_name, web_auth_id
-                    FROM leaderboard.user_info
-                    WHERE id = %s
-                    """,
-                    (user_id,),
-                )
-                return cur.fetchone()
-    finally:
-        conn.close()
-
-def get_user_token(user_id: int) -> Optional[str]:
-    conn = get_db_connection()
-    try:
-        with conn:  # auto commit / rollback
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    SELECT web_auth_id
-                    FROM leaderboard.user_info
-                    WHERE id = %s
-                    """,
-                    (user_id,),
-                )
-                row = cur.fetchone()
-                # row will be a tuple like (token,) or None
-                return row[0] if row else None
-    finally:
-        conn.close()
-
-
+        # if no upsert was done, fetch the existing row and return it
+        cur.execute(
+            """
+            SELECT id, user_name, web_auth_id
+            FROM leaderboard.user_info
+            WHERE id = %s
+            """,
+            (user_id,),
+        )
+        return cur.fetchone()
