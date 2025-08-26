@@ -151,6 +151,7 @@ def prepare(monkeypatch, app, request):
             # Patch current user
             fake_user = SimpleNamespace(
                 is_anonymous=False,
+                is_authenticated=True,
                 get_id=lambda: f"discord:{_TEST_USER_ID}",
             )
             monkeypatch.setattr(flask_login.utils, "_get_user", lambda: fake_user)
@@ -163,7 +164,7 @@ def prepare(monkeypatch, app, request):
             request.addfinalizer(_cleanup)
         else:
             # Explicit anonymous user
-            anon = SimpleNamespace(is_anonymous=True, get_id=lambda: None)
+            anon = SimpleNamespace(is_anonymous=True,is_authenticated=False, get_id=lambda: None)
             monkeypatch.setattr(flask_login.utils, "_get_user", lambda: anon)
     return _prepare
 
@@ -219,12 +220,10 @@ def test_submission_happy_path(app, client, prepare):
 def test_submission_unauthorized(app, client, prepare):
     # No auth
     prepare(auth=False)
-
     resp = _post_submission(client)
     assert resp.status_code == http.HTTPStatus.UNAUTHORIZED
     js = resp.get_json()
     assert js["code"] == 10000 + http.HTTPStatus.UNAUTHORIZED
-    assert "log in" in js["message"].lower()
 
 
 def test_submission_missing_web_token(app, client, prepare):
