@@ -123,7 +123,7 @@ describe("LeaderboardSubmit (Vitest)", () => {
     await userEvent.upload(input, createFile({ name: "big.py", sizeMB: 6 }));
     expect(
       await screen.findByTestId("submission-dialog-error-alert"),
-    ).toHaveTextContent(/File too large \(> 5 MB\)/i);
+    ).toHaveTextContent(/File too large \(> 1 MB\)/i);
 
     // valid .py -> error disappears, filename shown
     await userEvent.upload(input, createFile({ name: "algo.py", sizeMB: 1 }));

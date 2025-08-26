@@ -81,7 +81,7 @@ export default function LeaderboardSubmit({
 
   function validatePythonFile(f: File): string | null {
     // set a max file size too
-    const MAX_MB = 5;
+    const MAX_MB = 1;
     const name = f.name.toLowerCase();
     if (!name.endsWith(".py")) return "Please select a .py file.";
     if (f.size > MAX_MB * 1024 * 1024) return `File too large (> ${MAX_MB} MB)`;
