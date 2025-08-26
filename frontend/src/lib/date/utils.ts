@@ -40,7 +40,7 @@ export const isExpired = (
   if (typeof deadline === "string") {
     const parsed = new Date(deadline);
     if (isNaN(parsed.getTime())) {
-      return true; // 无效字符串，当作已过期
+      return true;
     }
     d = parsed;
   } else {
