@@ -16,6 +16,7 @@ from flask import (
 from flask_login import UserMixin, current_user, login_user, logout_user
 from kernelboard.lib.auth_utils import ensure_user_info_with_token, get_user_info_from_session
 
+from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.status_code import http_success
 
 auth_bp = Blueprint("auth", __name__)
@@ -134,6 +135,7 @@ def callback(provider: str):
     """
     if not current_user.is_anonymous:
         return redirect("/kb/")
+
 
     provider_data = app.config["OAUTH2_PROVIDERS"].get(provider)
     if not provider_data:
