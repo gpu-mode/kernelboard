@@ -13,7 +13,6 @@ from psycopg2.extras import execute_values
 _TEST_USER_ID = "333"
 _TEST_WEB_AUTH_ID = "111"
 
-
 def _delete_user_graph(conn, user_id: str) -> None:
     """Idempotent cleanup: remove all rows under a user in FK-safe order."""
     with conn:
