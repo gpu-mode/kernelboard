@@ -1,26 +1,31 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Typography,
   IconButton,
-  List,
-  ListItemButton,
-  ListItemText,
-  Chip,
-  CircularProgress,
   Alert,
-  Pagination,
   Tooltip,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  TablePagination,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { fetchUserSubmissions } from "../../../api/api";
-import { fetcherApiCallback } from "../../../lib/hooks/useApi";
+import { fetchUserSubmissions } from "../../../../api/api";
+import { fetcherApiCallback } from "../../../../lib/hooks/useApi";
+import SubmissionStatusChip from "./SubmissionStatusChip";
+import SubmissionDoneCell from "./SubmissionDoneCell";
+import Loading from "../../../../components/common/loading";
 
 type Submission = {
   submission_id: number;
   file_name?: string | null;
   submitted_at: string; // ISO
   status?: string | null;
+  submission_done: boolean;
 };
 
 type Props = {
@@ -43,11 +48,6 @@ const styles = {
     alignItems: "center",
     justifyContent: "space-between",
     mb: 1,
-  },
-  loading: {
-    display: "flex",
-    justifyContent: "center",
-    mt: 3,
   },
   listWrapper: {
     flex: 1,
@@ -88,19 +88,6 @@ export default function ListSubmissionSidePanel({
   let items: Submission[] = data?.items ?? [];
   let total: number = data?.total ?? 0;
 
-  console.log(
-    "total pages",
-    totalPages,
-    "total",
-    total,
-    "items",
-    items.length,
-    "page",
-    page,
-    "pageSize",
-    pageSize,
-  );
-
   // clamp page if server says there are fewer pages now
   useEffect(() => {
     if (page > totalPages) setPage(totalPages || 1);
@@ -112,14 +99,6 @@ export default function ListSubmissionSidePanel({
     if (total === 0) return "0";
     return `${start}-${end} / ${total}`;
   }, [page, pageSize, total]);
-
-  const statusColor = (s?: string | null) => {
-    const v = (s || "").toLowerCase();
-    if (v.includes("run")) return "warning";
-    if (v.includes("ok") || v.includes("succ")) return "success";
-    if (v.includes("fail") || v.includes("err")) return "error";
-    return "default";
-  };
 
   return (
     <Box sx={styles.root}>
@@ -145,11 +124,7 @@ export default function ListSubmissionSidePanel({
       </Box>
 
       {/* Loading / Error */}
-      {loading && (
-        <Box sx={styles.loading}>
-          <CircularProgress />
-        </Box>
-      )}
+      {loading && <Loading message="Submitting" />}
       {!loading && error && (
         <Alert severity="error" sx={{ my: 2 }}>
           Failed to load submissions{errorStatus ? ` (${errorStatus})` : ""}:{" "}
@@ -157,29 +132,48 @@ export default function ListSubmissionSidePanel({
         </Alert>
       )}
 
-      {/* List */}
+      {/* Table */}
       <Box sx={styles.listWrapper}>
         {!loading && !error && items.length === 0 && (
           <Typography variant="body2" color="text.secondary">
             No submissions.
           </Typography>
         )}
-        <List dense>
-          {items.map((s) => (
-            <ListItemButton key={s.submission_id}>
-              <ListItemText
-                primary={s.file_name || `Submission #${s.submission_id}`}
-                secondary={new Date(s.submitted_at).toLocaleString()}
-              />
-              <Chip
-                size="small"
-                variant="outlined"
-                color={statusColor(s.status) as any}
-                label={s.status || "submitted via cli or discor-bot"}
-              />
-            </ListItemButton>
-          ))}
-        </List>
+
+        {!loading && !error && items.length > 0 && (
+          <TableContainer sx={{ maxHeight: 420 }}>
+            <Table stickyHeader size="small" aria-label="submission table">
+              <TableHead>
+                <TableRow>
+                  <TableCell width="40%">File</TableCell>
+                  <TableCell width="25%">Submitted At</TableCell>
+                  <TableCell width="20%">Status</TableCell>
+                  <TableCell width="15%" align="center">
+                    Finished
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {items.map((s) => (
+                  <TableRow hover key={s.submission_id}>
+                    <TableCell>
+                      {s.file_name || `Submission #${s.submission_id}`}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(s.submitted_at).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <SubmissionStatusChip status={s.status} />
+                    </TableCell>
+                    <TableCell align="center">
+                      <SubmissionDoneCell done={s.submission_done} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </Box>
 
       {/* Footer: pagination + range */}
@@ -187,14 +181,17 @@ export default function ListSubmissionSidePanel({
         <Typography variant="caption" color="text.secondary">
           {showingRange}
         </Typography>
-        <Pagination
-          page={page}
-          count={totalPages}
-          size="small"
-          onChange={(_, p) => !loading && setPage(p)}
-          disabled={loading || totalPages <= 1 || !leaderboardId || !userId}
+        <TablePagination
+          component="div"
+          count={total}
+          page={page - 1} // TablePagination 是 0-based
+          onPageChange={(_, p0) => !loading && setPage(p0 + 1)}
+          rowsPerPage={pageSize}
+          onRowsPerPageChange={() => {}}
+          rowsPerPageOptions={[pageSize]}
           showFirstButton
           showLastButton
+          disabled={loading || total <= pageSize}
         />
       </Box>
     </Box>

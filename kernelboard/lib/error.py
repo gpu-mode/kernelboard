@@ -1,5 +1,8 @@
 import http
 from typing import List
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ValidationError(Exception):
     def __init__(self, message: str,

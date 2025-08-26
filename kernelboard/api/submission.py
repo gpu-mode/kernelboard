@@ -2,7 +2,11 @@ import http
 from typing import Any, List, Tuple
 from flask import Blueprint, request, jsonify
 import requests
-from kernelboard.lib.auth_utils import get_id_and_username_from_session, get_user_token, is_auth
+from kernelboard.lib.auth_utils import (
+    get_id_and_username_from_session,
+    get_user_token,
+    is_auth,
+)
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.error import ValidationError, validate_required_fields
 from kernelboard.lib.file_handler import get_submission_file_info
@@ -11,42 +15,59 @@ import logging
 import os
 
 logger = logging.getLogger(__name__)
-submission_bp = Blueprint("submisison_api", __name__)
 
-REQUIRED_SUBMISSION_REQUEST_FIELDS = ["leaderboard_id","leaderboard","gpu_type", "submission_mode"]
+submission_bp = Blueprint("submission_bp", __name__)
+
+REQUIRED_SUBMISSION_REQUEST_FIELDS = [
+    "leaderboard_id",
+    "leaderboard",
+    "gpu_type",
+    "submission_mode",
+]
 
 # official one: https://discord-cluster-manager-1f6c4782e60a.herokuapp.com/submission
 WEB_AUTH_HEADER = "X-Web-Auth-Id"
 MAX_CONTENT_LENGTH = 20 * 1024 * 1024  # 20MB max file size
+
 
 @submission_bp.route("/submission", methods=["POST"])
 def submission():
     # make sure user is logged in
     logger.info("submission received")
     if not is_auth():
+        logger.error("user did not login")
         return http_error(
             message="cannnot get user id, please log in first, if this is unexpected, please contact the gpumode administrator",
             code=10000 + http.HTTPStatus.UNAUTHORIZED.value,
             status_code=http.HTTPStatus.UNAUTHORIZED,
         )
     user_id, username = get_id_and_username_from_session()
-
     web_token = get_user_token(user_id)
     if not web_token:
+        logger.error(f"user %s missing web token", user_id)
         return http_error(
-            message="cannot find user info from db for user %s, if this is a bug, please contact the gpumode administrator" % username,
+            message="cannot find user info from db for user %s, if this is a bug, please contact the gpumode administrator"
+            % username,
             code=10000 + http.HTTPStatus.INTERNAL_SERVER_ERROR.value,
             status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
         )
-    logger.info("submission request from user %s" % username)
-
     req = request.form.to_dict()
-    logger.info(f"submission request from user {username} with request {req}")
+
     try:
         validate_required_fields(req, REQUIRED_SUBMISSION_REQUEST_FIELDS)
-        filename, mime, f = get_submission_file_info(request)
     except ValidationError as e:
         logger.error(f"Invalid submission request: {e}")
+        return http_error(
+            message=e.message,
+            code=e.code,
+            status_code=e.status,
+            **e.extras,
+        )
+
+    try:
+        filename, mime, f = get_submission_file_info(request)
+    except ValidationError as e:
+        logger.error(f"Invalid file from submission request: {e}")
         return http_error(
             message=e.message,
             code=e.code,
@@ -61,14 +82,13 @@ def submission():
             status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
         )
 
+    logger.info("prepare sending submission request")
     # form post request to external api
     gpu_type = request.form.get("gpu_type")
     submission_mode = request.form.get("submission_mode")
     leaderboard_name = request.form.get("leaderboard")
-    logger.info(f"submission request from user {username} for leaderboard {leaderboard_name} with gpu type {gpu_type} and submission mode {submission_mode}")
     base = get_cluster_manager_endpoint()
     url = f"{base}/submission/{leaderboard_name}/{gpu_type}/{submission_mode}"
-
     files = {
         # requests expects (filename, fileobj, content_type)
         "file": (filename, f.stream, mime),
@@ -77,6 +97,7 @@ def submission():
         WEB_AUTH_HEADER: web_token,
     }
 
+    logger.info(f"send submission request to leaderboard")
     try:
         resp = requests.post(url, headers=headers, files=files, timeout=180)
     except requests.RequestException as e:
@@ -85,11 +106,14 @@ def submission():
 
     try:
         payload = resp.json()
-        message = payload.get("message") or payload.get("detail") or resp.reason
-        logger.info(f"submission response: {payload}")
+        message = (
+            payload.get("message") or payload.get("detail") or resp.reason
+        )
         if resp.status_code == 200:
-            logger.info("submission success, {payload}")
-            return http_success(message="submission success, please wait for the result", data=payload)
+            return http_success(
+                message="submission success, please refresh submission history",
+                data=payload,
+            )
         else:
             return http_error(
                 message=message,
@@ -97,8 +121,7 @@ def submission():
                 status_code=http.HTTPStatus(resp.status_code),
                 data=payload,
             )
-    except ValueError:
-        message = resp.text or resp.reason
+    except ValueError as e:
         return http_error(
             message=f"submission failed due to: {e}",
             code=10000 + http.HTTPStatus.BAD_REQUEST.value,
@@ -123,7 +146,7 @@ def list_submissions():
     # submit request info: mode and gpu type
     # this could be a followup to provide more information
 
-    logger.info("list submissions received")
+    logger.info("list submission request is received")
     if not is_auth():
         return http_error(
             message="cannnot get user id, please log in first, if this is unexpected, please contact the gpumode administrator",
@@ -151,7 +174,9 @@ def list_submissions():
             offset=offset,
         )
     except Exception as e:
-        logger.error(f"failed to fetch submissions for leaderboard {leaderboard_id}: {e}")
+        logger.error(
+            f"failed to fetch submissions for leaderboard {leaderboard_id}: {e}"
+        )
         return http_error(
             message=f"failed to fetch submissions for leaderboard {leaderboard_id}",
             code=10000 + http.HTTPStatus.INTERNAL_SERVER_ERROR.value,
@@ -159,13 +184,14 @@ def list_submissions():
         )
 
     return http_success(
-        data = {
+        data={
             "items": items,
             "total": total,
             "limit": limit,
             "offset": offset,
         },
     )
+
 
 def list_user_submissions_with_status(
     leaderboard_id: int,
@@ -184,6 +210,7 @@ def list_user_submissions_with_status(
                       s.leaderboard_id,
                       s.file_name,
                       s.submission_time            AS submitted_at,
+                      s.done                       AS submissoin_done,
                       j.status,
                       j.error,
                       j.last_heartbeat,
@@ -200,15 +227,16 @@ def list_user_submissions_with_status(
                 )
                 rows = cur.fetchall()
                 items = [
-                     {
-                        "submission_id":   r[0],
-                        "leaderboard_id":  r[1],
-                        "file_name":       r[2],
-                        "submitted_at":    r[3],
-                        "status":          r[4],
-                        "error":           r[5],
-                        "last_heartbeat":  r[6],
-                        "job_created_at":  r[7],
+                    {
+                        "submission_id": r[0],
+                        "leaderboard_id": r[1],
+                        "file_name": r[2],
+                        "submitted_at": r[3],
+                        "submission_done": r[4],
+                        "status": r[5],
+                        "error": r[6],
+                        "last_heartbeat": r[7],
+                        "job_created_at": r[8],
                     }
                     for r in rows
                 ]
@@ -231,7 +259,7 @@ def get_cluster_manager_endpoint():
     """
     Return OAuth2 provider information.
     """
-    env_var = os.getenv("DISCORD_CLUSTER_MANAGER_API_BASE_URL","")
+    env_var = os.getenv("DISCORD_CLUSTER_MANAGER_API_BASE_URL", "")
     if not env_var:
         logger.warning("DISCORD_CLUSTER_MANAGER_API_BASE_URL is not set!!!")
     return env_var

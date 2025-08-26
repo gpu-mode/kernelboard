@@ -75,13 +75,6 @@ export async function logout(): Promise<any> {
 }
 
 export async function submitFile(form: FormData) {
-  for (const [k, v] of form.entries()) {
-    if (v instanceof File) {
-      console.log(`${k}: File(name=${v.name}, size=${v.size}, type=${v.type})`);
-    } else {
-      console.log(`${k}:`, v);
-    }
-  }
   const resp = await fetch("/api/submission", {
     method: "POST",
     body: form,
