@@ -117,5 +117,5 @@ export async function fetchUserSubmissions(
     throw new APIError(`Failed to fetch submissions: ${message}`, res.status);
   }
   const r = await res.json();
-  return r.data; // 直接返回 data 对象 { items, total, page, ... }
+  return r.data;
 }
