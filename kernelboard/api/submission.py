@@ -3,6 +3,7 @@ from typing import Any, List, Optional, Tuple
 from flask import Blueprint, request, jsonify
 import psycopg2
 import requests
+from werkzeug.exceptions import TooManyRequests
 from kernelboard.lib.auth_utils import (
     get_id_and_username_from_session,
     is_auth,
@@ -26,8 +27,8 @@ REQUIRED_SUBMISSION_REQUEST_FIELDS = [
     "submission_mode",
 ]
 
-RATE_LIMIT = 5
-WINDOW = dt.timedelta(minutes=30)
+RATE_LIMIT = 10
+WINDOW = dt.timedelta(minutes=60)
 
 # official one: https://discord-cluster-manager-1f6c4782e60a.herokuapp.com/submission
 WEB_AUTH_HEADER = "X-Web-Auth-Id"
@@ -50,9 +51,17 @@ def submission():
     if not web_token:
         logger.error("user %s missing web token", user_id)
         return http_error(
-            message="cannot find user info from db for user. if this is a bug, please contact the gpumode administrator",            status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
+            message="cannot find user info from db for user. if this is a bug, please contact the gpumode administrator",
+            status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
         )
     req = request.form.to_dict()
+
+    rate_limited = is_rate_limited(user_id=user_id, window=WINDOW)
+    if rate_limited:
+        return http_error(
+            message=f"Execeeding rate limit: {RATE_LIMIT} submission per {WINDOW.seconds // 60} minutes, please try again later",
+            status_code=http.HTTPStatus.TOO_MANY_REQUESTS,
+        )
 
     try:
         validate_required_fields(req, REQUIRED_SUBMISSION_REQUEST_FIELDS)
@@ -70,7 +79,6 @@ def submission():
             message=str(e),
             status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
         )
-
 
     logger.info("prepare sending submission request")
     # form request to cluster-management api
@@ -263,6 +271,8 @@ def is_rate_limited(user_id: int, window: dt.timedelta = WINDOW) -> bool:
             (user_id, cutoff),
         )
         (cnt,) = cur.fetchone() or (0,)
+
+        logger.info("fetched", cnt)
         limited = cnt >= RATE_LIMIT
         if limited:
             logger.warning(

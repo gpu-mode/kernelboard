@@ -26,14 +26,11 @@ def close_db_connection(e=None):
     if db is not None:
         try:
             if e is not None:
-                logger.info("Rolling back database connection")
                 db.rollback()
             else:
-                logger.info("Committing database connection")
                 db.commit()
         finally:
             db.close()
-            logger.info("Database connection closed")
 
 
 def init_app(app: Flask):
