@@ -49,7 +49,7 @@ def seed_submissions(app, request):
     now = dt.datetime(2025, 1, 1, 0, 0, 0, tzinfo=dt.timezone.utc)
     with app.app_context():
         conn = get_db_connection()
-        with conn:  # 成功则提交，异常则回滚
+        with conn:
             with conn.cursor() as cur:
                 # 1) user_info upsert
                 cur.execute(
