@@ -31,6 +31,7 @@ export default function NavUserProfile() {
   const logoutAndRefresh = useAuthStore((s) => s.logoutAndRefresh);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
   const [notification, setNotification] = useState<{
     open: boolean;
     message: string;

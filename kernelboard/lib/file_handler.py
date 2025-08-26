@@ -11,7 +11,7 @@ _TEXT_CTRL_RE = re.compile(rb"[\x00-\x08\x0B\x0C\x0E-\x1F]")
 
 def get_submission_file_info(request):
     if "file" not in request.files:
-        raise MissingRequiredFieldError()
+        raise MissingRequiredFieldError("missing required submission python file in requests.files, if this is unexpected, please contact the gpumode administrator")
 
     f = request.files["file"]
     filename = secure_filename(f.filename or "")

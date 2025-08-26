@@ -22,8 +22,8 @@ import Loading from "../../components/common/loading";
 import { ConstrainedContainer } from "../../components/app-layout/ConstrainedContainer";
 import { SubmissionMode } from "../../lib/types/mode";
 import { useAuthStore } from "../../lib/store/authStore";
-import ListSubmissionSidePanel from "./components/ListSubmissionsSidePanel";
-import LeaderboardSubmitDialog from "./components/LeaderboardSubmitDialog";
+import ListSubmissionSidePanel from "./components/submission-history/ListSubmissionsSidePanel";
+import LeaderboardSubmit from "./components/LeaderboardSubmit";
 export const CardTitle = styled(Typography)(() => ({
   fontSize: "1.5rem",
   fontWeight: "bold",
@@ -153,7 +153,7 @@ export default function Leaderboard() {
         {/* Ranking Tab */}
         <TabPanel value={tab} index={0}>
           <Box>
-            {data.rankings.length > 0 ? (
+            {Object.entries(data.rankings).length > 0 ? (
               <RankingsList rankings={data.rankings} />
             ) : (
               <Box display="flex" flexDirection="column" alignItems="center">
@@ -185,35 +185,22 @@ export default function Leaderboard() {
           {!isAuthed ? (
             <div> please login to submit</div>
           ) : (
-            <>
-              <Card sx={{ mb: 2 }}>
-                <CardContent>
-                  <CardTitle fontWeight="bold">Submission</CardTitle>
-                  <LeaderboardSubmitDialog
-                    leaderboardId={id!!}
-                    leaderboardName={data.name}
-                    gpuTypes={data.gpu_types}
-                    modes={[SubmissionMode.LEADERBOARD, SubmissionMode.TEST]}
-                  />
-                </CardContent>
-              </Card>
-
-              <Card sx={{ mb: 2 }}>
-                <CardContent>
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    mb={1}
-                  ></Stack>
-                  <ListSubmissionSidePanel
-                    leaderboardId={id!!}
-                    leaderboardName={data.name}
-                    userId={userId!!}
-                  />
-                </CardContent>
-              </Card>
-            </>
+            <Card sx={{ mb: 2 }}>
+              <CardTitle fontWeight="bold">Submission</CardTitle>
+              <CardContent>
+                <LeaderboardSubmit
+                  leaderboardId={id!!}
+                  leaderboardName={data.name}
+                  gpuTypes={data.gpu_types}
+                  modes={[SubmissionMode.LEADERBOARD, SubmissionMode.TEST]}
+                />
+                <ListSubmissionSidePanel
+                  leaderboardId={id!!}
+                  leaderboardName={data.name}
+                  userId={userId!!}
+                />
+              </CardContent>
+            </Card>
           )}
         </TabPanel>
       </Box>

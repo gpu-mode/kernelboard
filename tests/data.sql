@@ -9189,8 +9189,10 @@ ALTER TABLE ONLY leaderboard.submission
 
 
 ALTER TABLE ONLY leaderboard.user_info
-    ADD COLUMN IF NOT EXISTS web_auth_id VARCHAR(255) DEFAULT NULL;
-
+    ADD COLUMN IF NOT EXISTS web_auth_id VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS cli_id VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS cli_valid BOOLEAN DEFAULT FALSE;
+    
 CREATE TABLE IF NOT EXISTS leaderboard.submission_job_status (
         id              SERIAL PRIMARY KEY,
         submission_id   INTEGER NOT NULL

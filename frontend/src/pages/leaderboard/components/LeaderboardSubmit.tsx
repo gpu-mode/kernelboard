@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -7,21 +7,41 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContentText from "@mui/material/DialogContentText";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import Alert from "@mui/material/Alert";
-import CircularProgress from "@mui/material/CircularProgress";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { submitFile } from "../../../api/api";
+import LoadingCircleProgress from "../../../components/common/LoadingCircleProgress";
+import AlertBar from "../../../components/alert/AlertBar";
+
+const styles = {
+  triggerBtn: { borderRadius: 2, textTransform: "none" },
+  title: { fontWeight: 700 },
+  hint: { mt: 0.5, mb: 2 },
+  stack: { mt: 1 },
+  fileBtn: { textTransform: "none", mb: 1 },
+  fileText: { "& .MuiInputBase-input": { cursor: "default" } },
+  actions: { px: 3, pb: 2 },
+  submitBtn: {
+    borderRadius: 3,
+    px: 3,
+    py: 1,
+    fontWeight: "bold",
+    textTransform: "none",
+    background: "linear-gradient(90deg, #a5b4fc 0%, #93c5fd 100%)",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+    transition: "all 0.2s ease-in-out",
+  },
+} as const;
 
 /**
- * Subcomponent: LeaderboardSubmitDialog (MUI concise version)
+ * Subcomponent: LeaderboardSubmit
  * Parent provides only: leaderboardId, leaderboardName, gpuTypes, modes
  */
-export default function LeaderboardSubmitDialog({
+export default function LeaderboardSubmit({
   leaderboardId,
   leaderboardName,
   gpuTypes,
@@ -43,6 +63,7 @@ export default function LeaderboardSubmitDialog({
     | { kind: "ok"; msg: string }
   >({ kind: "idle" });
 
+  const [sucessAlert, setSuccessAlert] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const canSubmit = useMemo(
@@ -57,6 +78,7 @@ export default function LeaderboardSubmitDialog({
   }
 
   function validatePythonFile(f: File): string | null {
+    // set a max file size too
     const MAX_MB = 5;
     const name = f.name.toLowerCase();
     if (!name.endsWith(".py")) return "Please select a .py file.";
@@ -80,7 +102,6 @@ export default function LeaderboardSubmitDialog({
   async function handleSubmit() {
     if (!canSubmit || !file) return;
     setStatus({ kind: "uploading" });
-
     try {
       const form = new FormData();
       form.set("leaderboard_id", String(leaderboardId));
@@ -99,22 +120,49 @@ export default function LeaderboardSubmitDialog({
       setTimeout(() => {
         setOpen(false);
         resetForm();
-      }, 600);
+      }, 100);
     } catch (e: any) {
       setStatus({ kind: "error", msg: e?.message || "Submission failed" });
     }
   }
+
+  useEffect(() => {
+    if (status.kind === "ok") {
+      setSuccessAlert(true);
+    }
+  }, [status]);
+
+  const renderSubmitButton = () => (
+    <Button
+      variant="contained"
+      size="small"
+      startIcon={<UploadFileIcon />}
+      onClick={(e) => {
+        (e.currentTarget as HTMLButtonElement).blur();
+        setOpen(true);
+      }}
+      data-testid="leaderboard-submit-btn"
+      sx={styles.submitBtn}
+    >
+      Submit
+    </Button>
+  );
   return (
     <>
-      <Button
-        variant="contained"
-        size="small"
-        startIcon={<UploadFileIcon />}
-        onClick={() => setOpen(true)}
-        sx={styles.triggerBtn}
-      >
-        Submit
-      </Button>
+      <AlertBar
+        data-testid="leaderboard-success-notice"
+        notice={{
+          open: sucessAlert,
+          message:
+            "your submission is accepted, please refresh the submission history to see the latest result",
+          title: "Submission is accepted",
+          severity: "success",
+        }}
+        onClose={() => {
+          setSuccessAlert(false);
+        }}
+      />
+      {renderSubmitButton()}
       <Dialog
         open={open}
         onClose={() => {
@@ -129,7 +177,6 @@ export default function LeaderboardSubmitDialog({
           <DialogContentText sx={styles.hint}>
             Choose a .py file and set GPU type & mode.
           </DialogContentText>
-
           <Stack spacing={2} sx={styles.stack}>
             <FormControl fullWidth size="small">
               <InputLabel id="gpu-type-label">GPU Type</InputLabel>
@@ -146,7 +193,6 @@ export default function LeaderboardSubmitDialog({
                 ))}
               </Select>
             </FormControl>
-
             <FormControl fullWidth size="small">
               <InputLabel id="mode-label">Mode</InputLabel>
               <Select
@@ -162,16 +208,17 @@ export default function LeaderboardSubmitDialog({
                 ))}
               </Select>
             </FormControl>
-
             <Box>
               <Button
                 variant="outlined"
                 component="label"
                 fullWidth
                 sx={styles.fileBtn}
+                autoFocus
               >
                 {file ? file.name : "Choose .py file"}
                 <input
+                  data-testid="submission-dialog-file-input"
                   ref={fileInputRef}
                   type="file"
                   accept=".py"
@@ -179,41 +226,39 @@ export default function LeaderboardSubmitDialog({
                   onChange={handlePickFile}
                 />
               </Button>
-              <div>{file?.name ?? ""}</div>
+              <div data-testid="submission-dialog-file-name">
+                {file?.name ?? ""}
+              </div>
             </Box>
             {status.kind === "error" && (
-              <Alert severity="error" variant="outlined">
-                {status.msg}
-              </Alert>
-            )}
-            {status.kind === "ok" && (
-              <Alert severity="success" variant="outlined">
+              <Alert
+                severity="error"
+                variant="outlined"
+                data-testid="submission-dialog-error-alert"
+              >
                 {status.msg}
               </Alert>
             )}
           </Stack>
         </DialogContent>
-
         <DialogActions sx={styles.actions}>
           <Button
             onClick={() => {
               setOpen(false);
               resetForm();
             }}
-            color="inherit"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
-            variant="contained"
             disabled={!canSubmit || status.kind === "uploading"}
           >
             {status.kind === "uploading" ? (
-              <>
-                <CircularProgress size={18} sx={{ mr: 1 }} />
-                Submitting...
-              </>
+              <LoadingCircleProgress
+                message="submitting"
+                data-testid="loading-circle"
+              />
             ) : (
               "Submit"
             )}
@@ -223,14 +268,3 @@ export default function LeaderboardSubmitDialog({
     </>
   );
 }
-
-// Centralized sx styles
-const styles = {
-  triggerBtn: { borderRadius: 2, textTransform: "none" },
-  title: { fontWeight: 700 },
-  hint: { mt: 0.5, mb: 2 },
-  stack: { mt: 1 },
-  fileBtn: { textTransform: "none", mb: 1 },
-  fileText: { "& .MuiInputBase-input": { cursor: "default" } },
-  actions: { px: 3, pb: 2 },
-} as const;

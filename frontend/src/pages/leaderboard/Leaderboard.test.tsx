@@ -1,22 +1,47 @@
 import { render, screen, fireEvent, within } from "@testing-library/react";
-import { vi, expect, it, describe } from "vitest";
+import { vi, expect, it, describe, beforeEach } from "vitest";
 import Leaderboard from "./Leaderboard";
 import * as apiHook from "../../lib/hooks/useApi";
 import { renderWithRouter } from "../../tests/test-utils";
 
+// --- Mocks ---
 vi.mock("../../lib/hooks/useApi", () => ({
   fetcherApiCallback: vi.fn(),
 }));
 
+// Mutable auth state for mocking useAuthStore per test
+type AuthState = {
+  me: null | { authenticated: boolean; user?: { identity?: string } };
+};
+let currentAuth: AuthState = { me: null };
+
+vi.mock("../../lib/store/authStore", () => {
+  return {
+    // Simulate Zustand's selector pattern
+    useAuthStore: (selector: any) =>
+      selector({
+        me: currentAuth.me,
+      }),
+  };
+});
+
+// --- Shared fixtures ---
 const mockDeadline = "2025-06-29T17:00:00-07:00";
-const mockDescription = "Implement a 2Dthe given specifications";
+const mockDescription = "Implement a 2D the given specifications";
 const mockReference = "import torch";
 const mockName = "test-game";
 
 describe("Leaderboard", () => {
   const mockCall = vi.fn();
-  it("renders name, description, gpu types and rankings", async () => {
-    // setup
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    currentAuth = { me: null }; // default: not authed
+  });
+
+  // -------------------- Basic rendering --------------------
+
+  it("renders name, description, gpu types; rankings visible on Rankings tab; reference visible after switching to Reference tab", () => {
     const mockData = {
       deadline: mockDeadline,
       description: mockDescription,
@@ -27,281 +52,388 @@ describe("Leaderboard", () => {
         T1: [
           {
             file_name: "test.py",
-            prev_score: 0.14689123399999993,
+            prev_score: 0.1,
             rank: 1,
-            score: 3.250463735,
+            score: 3.25,
             user_name: "user1",
           },
         ],
         T2: [
           {
             file_name: "test2.py",
-            prev_score: 0.14689123399999993,
+            prev_score: 0.1,
             rank: 1,
-            score: 3.250463735,
+            score: 3.25,
             user_name: "user2",
           },
         ],
       },
     };
 
-    const mockHookReturn = {
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue({
       data: mockData,
       loading: false,
       error: null,
       errorStatus: null,
       call: mockCall,
-    };
+    });
 
-    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockHookReturn,
-    );
-
-    // render
     renderWithRouter(<Leaderboard />);
 
-    // asserts
+    // Header + description are outside tabs
     expect(screen.getByText(mockName)).toBeInTheDocument();
-
-    expect(screen.getByText(/reference implementation/i)).toBeInTheDocument();
-    expect(screen.getByText(mockReference)).toBeInTheDocument();
-
-    expect(screen.getByText(/description/i)).toBeInTheDocument();
+    expect(screen.getByText(/Description/i)).toBeInTheDocument();
     expect(screen.getByText(mockDescription)).toBeInTheDocument();
 
+    // Tabs exist
+    const rankingsTab = screen.getByRole("tab", { name: /Rankings/i });
+    const referenceTab = screen.getByRole("tab", { name: /Reference/i });
+    const submissionTab = screen.getByRole("tab", { name: /Submission/i });
+    expect(rankingsTab).toBeInTheDocument();
+    expect(referenceTab).toBeInTheDocument();
+    expect(submissionTab).toBeInTheDocument();
+
+    // Default is Rankings tab -> rankings content visible
     expect(screen.getByText(/user1/)).toBeInTheDocument();
     expect(screen.getByText(/user2/)).toBeInTheDocument();
+
+    // Switch to Reference tab before asserting its content
+    fireEvent.click(referenceTab);
+    expect(screen.getByText(/Reference Implementation/i)).toBeInTheDocument();
+    expect(screen.getByText(mockReference)).toBeInTheDocument();
   });
 
   it("shows loading state", () => {
-    const mockHookReturn = {
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue({
       data: null,
       loading: true,
       error: null,
       errorStatus: null,
       call: mockCall,
-    };
-
-    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockHookReturn,
-    );
+    });
 
     renderWithRouter(<Leaderboard />);
     expect(screen.getByText(/Summoning/i)).toBeInTheDocument();
   });
 
   it("shows error message", () => {
-    const mockHookReturn = {
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue({
       data: null,
       loading: false,
       error: "Something went wrong",
       errorStatus: 500,
       call: mockCall,
-    };
-
-    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockHookReturn,
-    );
+    });
 
     renderWithRouter(<Leaderboard />);
     expect(screen.getByText("Something went wrong")).toBeInTheDocument();
   });
 
+  // -------------------- Rankings empty state --------------------
+
   it("shows no submission message when no rankings are present", () => {
-    // setup
     const mockData = {
       name: "test-empty",
       description: "",
       deadline: "",
       gpu_types: ["T1"],
-      rankings: {
-        T1: [],
-      },
+      rankings: {},
     };
 
-    const mockHookReturn = {
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue({
       data: mockData,
       loading: false,
       error: null,
       errorStatus: null,
       call: mockCall,
-    };
+    });
 
-    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockHookReturn,
-    );
-
-    // render
     renderWithRouter(<Leaderboard />);
-
-    // asserts
     expect(screen.getByText("test-empty")).toBeInTheDocument();
-    expect(screen.getByText(/no submissions/i)).toBeInTheDocument();
+    // Matches component's current copy
+    expect(screen.getByText(/No Submission Yet/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Be the first to submit a solution/i),
+    ).toBeInTheDocument();
   });
 
-  it("does not show expand button if ranking is less than 4 items", () => {
-    // setup
+  // -------------------- Rankings expand/hide toggle --------------------
+
+  it("does not show expand button if ranking has less than 4 items", () => {
     const mockData = {
-      name: "test-empty",
-      description: " ",
+      name: "test-small",
+      description: "",
       deadline: "",
       gpu_types: ["T1"],
-      referece: "",
       rankings: {
         T1: [
           {
-            file_name: "test.py",
-            prev_score: 0.14689123399999993,
+            file_name: "f.py",
+            prev_score: 0,
             rank: 1,
-            score: 3.250463735,
-            user_name: "user1",
+            score: 1,
+            user_name: "u1",
           },
           {
-            file_name: "test.py",
-            prev_score: 0.14689123399999993,
+            file_name: "f.py",
+            prev_score: 0,
             rank: 2,
-            score: 3.250463735,
-            user_name: "user2",
+            score: 1,
+            user_name: "u2",
           },
           {
-            file_name: "test.py",
-            prev_score: 0.14689123399999993,
+            file_name: "f.py",
+            prev_score: 0,
             rank: 3,
-            score: 3.250463735,
-            user_name: "user3",
+            score: 1,
+            user_name: "u3",
           },
         ],
       },
     };
 
-    const mockHookReturn = {
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue({
       data: mockData,
       loading: false,
       error: null,
       errorStatus: null,
       call: mockCall,
-    };
+    });
 
-    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockHookReturn,
-    );
-
-    // render
     renderWithRouter(<Leaderboard />);
-
-    // asserts
     expect(
       screen.queryByTestId("ranking-show-all-button-0"),
     ).not.toBeInTheDocument();
   });
 
-  it("does show expand button if ranking is more than 3 items", () => {
-    // setup
+  it("shows expand button if ranking has ≥ 4 items and toggles rows", () => {
     const mockData = {
-      name: "test-empty",
-      description: " ",
+      name: "test-large",
+      description: "",
       deadline: "",
       gpu_types: ["T1"],
-      referece: "",
       rankings: {
         T1: [
           {
-            file_name: "test.py",
-            prev_score: 0.14689123399999993,
+            file_name: "f.py",
+            prev_score: 0,
             rank: 1,
-            score: 3.250463735,
-            user_name: "user1",
+            score: 1,
+            user_name: "u1",
           },
           {
-            file_name: "test.py",
-            prev_score: 0.14689123399999993,
+            file_name: "f.py",
+            prev_score: 0,
             rank: 2,
-            score: 3.250463735,
-            user_name: "user2",
+            score: 1,
+            user_name: "u2",
           },
           {
-            file_name: "test.py",
-            prev_score: 0.14689123399999993,
+            file_name: "f.py",
+            prev_score: 0,
             rank: 3,
-            score: 3.250463735,
-            user_name: "user3",
+            score: 1,
+            user_name: "u3",
           },
           {
-            file_name: "test.py",
-            prev_score: 0.14689123399999993,
+            file_name: "f.py",
+            prev_score: 0,
             rank: 4,
-            score: 3.250463735,
-            user_name: "user4",
+            score: 1,
+            user_name: "u4",
           },
         ],
       },
     };
 
-    const mockHookReturn = {
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue({
       data: mockData,
       loading: false,
       error: null,
       errorStatus: null,
       call: mockCall,
-    };
+    });
 
-    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockHookReturn,
-    );
-
-    // render
     renderWithRouter(<Leaderboard />);
 
-    // asserts
-    const button = screen.queryByTestId("ranking-show-all-button-0");
-    expect(button).toBeInTheDocument();
-    expect(screen.queryAllByTestId("ranking-0-row")).toHaveLength(3);
-    expect(within(button!).getByText(/Show all/i)).toBeInTheDocument();
+    const btn = screen.queryByTestId("ranking-show-all-button-0");
+    expect(btn).toBeInTheDocument();
 
-    // click button
-    fireEvent.click(button!);
-    expect(within(button!).getByText(/Hide/i)).toBeInTheDocument();
+    // By default only 3 rows shown
+    expect(screen.queryAllByTestId("ranking-0-row")).toHaveLength(3);
+
+    // Click to show all
+    fireEvent.click(btn!);
     expect(screen.queryAllByTestId("ranking-0-row")).toHaveLength(4);
+    expect(within(btn!).getByText(/Hide/i)).toBeInTheDocument();
+
+    // Click to hide again
+    fireEvent.click(btn!);
+    expect(screen.queryAllByTestId("ranking-0-row")).toHaveLength(3);
   });
 
-  it("toggles expanded state for codeblock on click", () => {
-    // setup
+  // -------------------- Reference codeblock toggle --------------------
+
+  it("toggles expanded state for reference codeblock (after switching to Reference tab)", () => {
     const mockData = {
-      name: "test-empty",
-      description: " ",
+      name: "test-code",
+      description: "",
       deadline: "",
       gpu_types: ["T1"],
-      referece: "",
-      rankings: {
-        T1: [],
-      },
+      reference: mockReference,
+      rankings: { T1: [] },
     };
 
-    const mockHookReturn = {
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue({
       data: mockData,
       loading: false,
       error: null,
       errorStatus: null,
       call: mockCall,
-    };
+    });
 
-    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue(
-      mockHookReturn,
-    );
-
-    // render
     renderWithRouter(<Leaderboard />);
 
-    // asserts
+    // Must switch to Reference tab first
+    fireEvent.click(screen.getByRole("tab", { name: /Reference/i }));
+
     const toggle = screen.getByTestId("codeblock-show-all-toggle");
     expect(within(toggle).getByText(/show more/i)).toBeInTheDocument();
 
-    // Click to expand
     fireEvent.click(toggle);
     expect(within(toggle).getByText(/hide/i)).toBeInTheDocument();
 
-    // Click to collapse again
     fireEvent.click(toggle);
     expect(within(toggle).getByText(/show more/i)).toBeInTheDocument();
+  });
+
+  // -------------------- Tabs behavior (switching) --------------------
+
+  it("starts on Rankings tab by default and can switch to Reference and back", () => {
+    const mockData = {
+      deadline: mockDeadline,
+      description: mockDescription,
+      name: mockName,
+      reference: mockReference,
+      gpu_types: ["T1"],
+      rankings: {
+        T1: [
+          {
+            file_name: "test.py",
+            prev_score: 0.1,
+            rank: 1,
+            score: 3.25,
+            user_name: "user1",
+          },
+        ],
+      },
+    };
+
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: mockData,
+      loading: false,
+      error: null,
+      errorStatus: null,
+      call: mockCall,
+    });
+
+    renderWithRouter(<Leaderboard />);
+
+    // Default selected tab should be Rankings (content visible)
+    expect(screen.getByText(/user1/)).toBeInTheDocument();
+
+    // Switch to Reference tab
+    fireEvent.click(screen.getByRole("tab", { name: /Reference/i }));
+    expect(screen.getByText(/Reference Implementation/i)).toBeInTheDocument();
+    expect(screen.getByText(mockReference)).toBeInTheDocument();
+
+    // Switch back to Rankings tab
+    fireEvent.click(screen.getByRole("tab", { name: /Rankings/i }));
+    expect(screen.getByText(/user1/)).toBeInTheDocument();
+  });
+
+  it("can switch from Rankings to Submission tab when not authed", () => {
+    const mockData = {
+      deadline: mockDeadline,
+      description: mockDescription,
+      name: mockName,
+      reference: mockReference,
+      gpu_types: ["T1"],
+      rankings: { T1: [] },
+    };
+
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: mockData,
+      loading: false,
+      error: null,
+      errorStatus: null,
+      call: mockCall,
+    });
+
+    renderWithRouter(<Leaderboard />);
+
+    fireEvent.click(screen.getByRole("tab", { name: /Submission/i }));
+    expect(screen.getByText(/please login to submit/i)).toBeInTheDocument();
+  });
+
+  // -------------------- Submission tab: authed vs not authed --------------------
+
+  it("Submission tab shows login tip when not authed", () => {
+    const mockData = {
+      name: "lb-noauth",
+      description: "",
+      deadline: "",
+      gpu_types: ["T1"],
+      reference: mockReference,
+      rankings: { T1: [] },
+    };
+
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: mockData,
+      loading: false,
+      error: null,
+      errorStatus: null,
+      call: mockCall,
+    });
+
+    // No need to rely on URL for this test; just render and click the tab
+    renderWithRouter(<Leaderboard />);
+
+    // Switch to the Submission tab explicitly
+    fireEvent.click(screen.getByRole("tab", { name: /Submission/i }));
+
+    // Now the Submission panel should be visible for non-authed users
+    expect(screen.getByText(/please login to submit/i)).toBeInTheDocument();
+  });
+
+  it("Submission tab renders submit UI when authed (URL drives tab)", () => {
+    currentAuth = { me: { authenticated: true, user: { identity: "u-1" } } };
+
+    const mockData = {
+      name: "lb-auth",
+      description: "",
+      deadline: "",
+      gpu_types: ["T1"],
+      reference: mockReference,
+      rankings: { T1: [] },
+    };
+
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: mockData,
+      loading: false,
+      error: null,
+      errorStatus: null,
+      call: mockCall,
+    });
+
+    renderWithRouter(<Leaderboard />);
+
+    // Switch to the Submission tab explicitly
+    fireEvent.click(screen.getByRole("tab", { name: /Submission/i }));
+    // Login tip should NOT be visible; submission card should be visible
+    expect(
+      screen.queryByText(/please login to submit/i),
+    ).not.toBeInTheDocument();
+    expect(screen.getByTestId("leaderboard-submit-btn")).toBeInTheDocument();
   });
 });
