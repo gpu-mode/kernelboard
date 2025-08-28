@@ -38,7 +38,7 @@ def redirect_with_error(error: str, message: str = ""):
     q = {"error": _sanitize(error)}
     if message:
         q["message"] = _sanitize(message)
-    return redirect(f"/kb/login?{urlencode(q)}")
+    return redirect(f"/v2/login?{urlencode(q)}")
 
 
 def _error_params_from_provider(args) -> dict[str, str]:
@@ -93,15 +93,15 @@ def _discord_avatar_url(uid: str, avatar_hash: str | None) -> str | None:
 def auth(provider: str):
     """
     Start OAuth2 login by redirecting to the provider's authorization URL.
-    Optional ?next=/kb/some/page to return the user after login.
+    Optional ?next=/v2/some/page to return the user after login.
     """
     if not current_user.is_anonymous:
         print("current_user found")
-        return redirect("/kb/")
+        return redirect("/v2/")
 
     provider_data = app.config["OAUTH2_PROVIDERS"].get(provider)
     if not provider_data:
-        return redirect("/kb/404")
+        return redirect("/v2/404")
 
     # Save CSRF state (and optional next) in session
     state = secrets.token_urlsafe(16)
@@ -133,12 +133,12 @@ def callback(provider: str):
     stores display fields in session, logs the user in, and redirects to the SPA.
     """
     if not current_user.is_anonymous:
-        return redirect("/kb/")
+        return redirect("/v2/")
 
 
     provider_data = app.config["OAUTH2_PROVIDERS"].get(provider)
     if not provider_data:
-        return redirect("/kb/login?error=invalid_provider")
+        return redirect("/v2/login?error=invalid_provider")
 
     # Handle provider error short-circuit
     if any(k in _ALLOWED_ERROR_KEYS for k in request.args):
@@ -153,7 +153,7 @@ def callback(provider: str):
         app.logger.info(
             "OAuth provider error: %s", safe
         )  # log sanitized version
-        return redirect(f"/kb/login?{urlencode(safe)}")
+        return redirect(f"/v2/login?{urlencode(safe)}")
 
     # Validate state and presence of code
     if request.args.get("state") != session.get("oauth2_state"):
@@ -251,7 +251,7 @@ def callback(provider: str):
     # 6) Clean up and redirec
     next_url = session.pop("oauth2_next", None)
     session.pop("oauth2_state", None)
-    return redirect(next_url or "/kb/")
+    return redirect(next_url or "/v2/")
 
 
 @auth_bp.get("/logout")

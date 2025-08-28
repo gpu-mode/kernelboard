@@ -69,7 +69,7 @@ export default function NavUserProfile() {
     <Tooltip title="Login with Discord">
       <Button
         variant="outlined"
-        href={"/kb/login"}
+        href={"/v2/login"}
         size="small"
         sx={styles.loginButoon}
         startIcon={<DiscordIcon />}

@@ -44,7 +44,7 @@ function App() {
   return (
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
-      <BrowserRouter basename="/kb">
+      <BrowserRouter basename="/v2">
         <AppLayout>
           <Routes>
             <Route path="/" element={<Navigate to="/home" replace />} />
