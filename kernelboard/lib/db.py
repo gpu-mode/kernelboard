@@ -27,6 +27,8 @@ def close_db_connection(e=None):
         try:
             if e is not None:
                 db.rollback()
+                logger.error("DB error, rolling back: %s", e)
+
             else:
                 db.commit()
         finally:
