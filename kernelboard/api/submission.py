@@ -27,7 +27,6 @@ REQUIRED_SUBMISSION_REQUEST_FIELDS = [
 ]
 
 
-# official one: https://discord-cluster-manager-1f6c4782e60a.herokuapp.com/submission
 WEB_AUTH_HEADER = "X-Web-Auth-Id"
 MAX_CONTENT_LENGTH = 1 * 1024 * 1024  # 1MB max file size
 
