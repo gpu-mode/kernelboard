@@ -13,6 +13,7 @@ def check_env_vars():
         "DISCORD_CLIENT_SECRET",
         "REDIS_URL",
         "SECRET_KEY",
+        "DISCORD_CLUSTER_MANAGER_API_BASE_URL",
     ]
     missing_env_vars = [var for var in required_env_vars if os.getenv(var) is None]
 

@@ -29,7 +29,6 @@ def _to_time_left(deadline: str | datetime, now: datetime) -> str | None:
     hour_label = "hour" if hours == 1 else "hours"
     return f"{days} {day_label} {hours} {hour_label} remaining"
 
-
 def format_datetime(dt: datetime | str) -> str:
     """
     Common formatting for datetime objects.

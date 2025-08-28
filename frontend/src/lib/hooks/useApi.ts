@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { APIError } from "../../api/api";
 import { useNavigate } from "react-router-dom";
 
 type Fetcher<T, Args extends any[]> = (...args: Args) => Promise<T>;

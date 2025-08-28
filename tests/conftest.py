@@ -298,3 +298,12 @@ def client(app):
 @pytest.fixture
 def runner(app):
     return app.test_cli_runner()
+
+@pytest.fixture(autouse=True)
+def set_env(monkeypatch):
+    monkeypatch.setenv("DATABASE_URL", get_test_db_info()["db_url"])
+    monkeypatch.setenv("DISCORD_CLIENT_ID", "test")
+    monkeypatch.setenv("DISCORD_CLIENT_SECRET", "test")
+    monkeypatch.setenv("REDIS_URL", get_test_redis_url(get_test_redis_port()))
+    monkeypatch.setenv("SECRET_KEY", "test-secret")
+    monkeypatch.setenv("DISCORD_CLUSTER_MANAGER_API_BASE_URL", "test-secret")
