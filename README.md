@@ -51,7 +51,7 @@ Here's how to get started:
 6. [Optional] if you want to test submission end to end, you need to run and setup [discord-cluster-manager](https://github.com/gpu-mode/discord-cluster-manager), otherwise, just set DISCORD_CLUSTER_MANAGER_API_BASE_URL to a dummy url in .env file.
 
 7. Finally, create a .env file in the root directory of your sandbox with
-   SECRET_KEY, DATABASE_URL, REDIS_and DISCORD_CLUSTER_MANAGER_API_BASE_URL URL entries. The secret key can be
+   SECRET_KEY, DATABASE_URL, REDIS_URL and DISCORD_CLUSTER_MANAGER_API_BASE_URL URL entries. The secret key can be
    anything you like; `dev` will work well.
 
    ```env
