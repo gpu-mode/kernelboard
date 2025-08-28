@@ -49,6 +49,8 @@ def create_app(test_config=None):
             cert_reqs=os.getenv("REDIS_SSL_CERT_REQS")
         ),
         OAUTH2_PROVIDERS=providers(),
+        # Rate limiting
+        RATELIMIT_SWALLOW_ERRORS=True,
     )
 
     if test_config is not None:
