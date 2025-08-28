@@ -7,15 +7,15 @@ from urllib.parse import urlencode
 import requests
 from flask import (
     Blueprint,
-    abort,
     current_app as app,
-    jsonify,
     redirect,
     request,
     session,
     url_for,
 )
 from flask_login import UserMixin, current_user, login_user, logout_user
+from kernelboard.lib.auth_utils import ensure_user_info_with_token, get_user_info_from_session
+
 from kernelboard.lib.status_code import http_success
 
 auth_bp = Blueprint("auth", __name__)
@@ -135,6 +135,7 @@ def callback(provider: str):
     if not current_user.is_anonymous:
         return redirect("/kb/")
 
+
     provider_data = app.config["OAUTH2_PROVIDERS"].get(provider)
     if not provider_data:
         return redirect("/kb/login?error=invalid_provider")
@@ -189,7 +190,7 @@ def callback(provider: str):
             },
             timeout=10,
         )
-    except requests.RequestException as e:
+    except requests.RequestException:
         app.logger.exception("Token exchange request failed")
         return redirect_with_error(
             "request_error", "Network error during token exchange"
@@ -234,15 +235,20 @@ def callback(provider: str):
 
     data = me_res.json() or {}
     identity = provider_data["userinfo"]["identity"](data)
+    username = data.get("global_name") or data.get("username") or "unknown"
 
     # 4) Stash display-only info (safe for SPA header)
-    session["display_name"] = data.get("global_name") or data.get("username")
+    session["display_name"] = username
     session["avatar_url"] = _discord_avatar_url(identity, data.get("avatar"))
+
+    # ensure user exists and has web_auth_id
+    # if not, update the user with the new token
+    ensure_user_info_with_token(identity, username)
 
     # 5) Log in
     login_user(User(f"{provider}:{identity}"))
 
-    # 6) Clean up and redirect
+    # 6) Clean up and redirec
     next_url = session.pop("oauth2_next", None)
     session.pop("oauth2_state", None)
     return redirect(next_url or "/kb/")
@@ -260,24 +266,7 @@ def logout():
 
 @auth_bp.get("/me")
 def me():
-    is_auth = not current_user.is_anonymous
-    user_id = current_user.get_id() if is_auth else None
-
-    # Optional: split provider:id -> provider, identity
-    provider = identity = None
-    if user_id and ":" in user_id:
-        provider, identity = user_id.split(":", 1)
-    res = {
-        "authenticated": is_auth,
-        "user": {
-            "id": user_id,
-            "provider": provider,
-            "identity": identity,
-            "display_name": session.get("display_name") if is_auth else None,
-            "avatar_url": session.get("avatar_url") if is_auth else None,
-        },
-        # Handy URLs for the frontend:
-        "login_url": url_for("api.auth.auth", provider="discord"),
-        "logout_url": url_for("api.auth.logout"),
-    }
+    res = get_user_info_from_session()
+    res.update({"login_url": url_for("api.auth.auth", provider="discord")})
+    res.update({"logout_url": url_for("api.auth.logout")})
     return http_success(res)

@@ -48,14 +48,17 @@ Here's how to get started:
 5. You'll also need a Redis instance to store sessions. Again, feel free to set
    this up in whatever way works best for you.
 
-6. Finally, create a .env file in the root directory of your sandbox with
-   SECRET_KEY, DATABASE_URL, and REDIS_URL entries. The secret key can be
+6. [Optional] if you want to test submission end to end, you need to run and setup [discord-cluster-manager](https://github.com/gpu-mode/discord-cluster-manager), otherwise, just set DISCORD_CLUSTER_MANAGER_API_BASE_URL to a dummy url in .env file.
+
+7. Finally, create a .env file in the root directory of your sandbox with
+   SECRET_KEY, DATABASE_URL, REDIS_URL and DISCORD_CLUSTER_MANAGER_API_BASE_URL URL entries. The secret key can be
    anything you like; `dev` will work well.
 
    ```env
    SECRET_KEY=dev
    DATABASE_URL=postgresql://user:password@host:port/kernelboard
    REDIS_URL=redis://localhost:6379
+   DISCORD_CLUSTER_MANAGER_API_BASE_URL=http://localhost:8080
    ```
 
 ## Running tests
@@ -154,3 +157,16 @@ cd frontend && npm run dev
 3. Open the React dev server (e.g. `http://localhost:5173/kb/about`) in your browser.
 
 > In this mode, the React app is served separately with hot-reloading. Use it for faster iteration during development.
+
+### Test submission
+we pass the submission job to [discord-cluster-manager](https://github.com/gpu-mode/discord-cluster-manager), which will run the job and return the result to the gpumode backend. To test locally end-to-end, you should follow the instructions in the [discord-cluster-manager](https://github.com/gpu-mode/discord-cluster-manager) repo to set up the server locally.
+
+ then run the server:
+```bash
+python src/kernelbot/main.py --debug
+```
+and pass the url to your .env file:
+```env
+DISCORD_CLUSTER_MANAGER_API_BASE_URL=http://localhost:8080
+```
+Please notice, you need to make sure both of them connects to same db instance.

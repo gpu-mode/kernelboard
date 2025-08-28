@@ -14,60 +14,27 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 
 interface CodeBlockProps {
   code: string;
-  maxHeight?: number;
+  maxHeight?: number | string;
 }
 
-export const styles = {
+const styles = {
   container: {
     position: "relative",
-    border: "1px solid #ddd",
-    borderRadius: 2,
-    bgcolor: "#f9f9f9",
-    fontFamily: "monospace",
-    overflow: "hidden",
   },
-
   copyButton: {
     position: "absolute",
-    top: 8,
-    right: 8,
+    top: 4,
+    right: 4,
     zIndex: 1,
   },
-
-  toggleText: {
-    cursor: "pointer",
-    color: "primary.main",
-    display: "inline-flex",
-    alignItems: "center",
-    userSelect: "none",
-  },
-
-  fadeOverlay: (theme: Theme): SxProps<Theme> => ({
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 48,
-    background: `linear-gradient(to bottom, rgba(249,249,249,0), ${theme.palette.background.paper})`,
-    pointerEvents: "none",
-  }),
-
-  prestyle(expanded: boolean, maxHeight: number): SxProps<Theme> {
-    return {
-      m: 0,
-      px: 2,
-      py: 2,
-      maxHeight: expanded ? "none" : `${maxHeight}px`,
-      overflowX: "auto",
-      overflowY: expanded ? "visible" : "hidden",
-      whiteSpace: "pre",
-      position: "relative",
-    };
+  pre: {
+    fontFamily: "monospace",
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
   },
 };
 
-export default function CodeBlock({ code, maxHeight = 160 }: CodeBlockProps) {
-  const [expanded, setExpanded] = useState(false);
+export default function CodeBlock({ code }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const theme = useTheme();
 
@@ -77,8 +44,6 @@ export default function CodeBlock({ code, maxHeight = 160 }: CodeBlockProps) {
       setTimeout(() => setCopied(false), 1500);
     });
   };
-
-  // dynamically render the pre based on the expanded state
 
   return (
     <Box sx={styles.container}>
@@ -91,27 +56,25 @@ export default function CodeBlock({ code, maxHeight = 160 }: CodeBlockProps) {
         </Tooltip>
       </Box>
 
-      {/* Code */}
-      <Box component="pre" sx={styles.prestyle(expanded, maxHeight)}>
+      {/* Scrollable Code */}
+      <Box
+        component="pre"
+        sx={{
+          ...styles.pre,
+          maxHeight: {
+            xs: "40vh", // mobile
+            sm: "50vh", // ipad
+            md: "60vh", // desktop
+          },
+          overflowY: "auto", // pass maxHeight to overflowY to enable scrolling
+          border: `1px solid ${theme.palette.divider}`,
+          borderRadius: 2,
+          p: 1.5,
+          fontSize: "0.85rem",
+          bgcolor: theme.palette.background.paper,
+        }}
+      >
         <code>{code}</code>
-        {!expanded && <Box sx={styles.fadeOverlay(theme)} />}
-      </Box>
-
-      {/* Toggle */}
-      <Box sx={{ textAlign: "center", py: 1 }}>
-        <Typography
-          data-testid="codeblock-show-all-toggle"
-          variant="body2"
-          sx={styles.toggleText}
-          onClick={() => setExpanded((e) => !e)}
-        >
-          {expanded ? "Hide" : "Show more"}
-          {expanded ? (
-            <ExpandLessIcon fontSize="small" />
-          ) : (
-            <ExpandMoreIcon fontSize="small" />
-          )}
-        </Typography>
       </Box>
     </Box>
   );

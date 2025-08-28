@@ -73,3 +73,49 @@ export async function logout(): Promise<any> {
   const r = await res.json();
   return r.data;
 }
+
+export async function submitFile(form: FormData) {
+  const resp = await fetch("/api/submission", {
+    method: "POST",
+    body: form,
+  });
+
+  const text = await resp.text();
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { raw: text };
+  }
+
+  if (!resp.ok) {
+    const msg = data?.detail || data?.message || "Submission failed";
+    throw new Error(msg);
+  }
+
+  return data; // e.g. { submission_id, message, ... }
+}
+
+export async function fetchUserSubmissions(
+  leaderboardId: number | string,
+  userId: number | string,
+  page: number = 1,
+  pageSize: number = 10,
+): Promise<any> {
+  const offset = (page - 1) * pageSize;
+  const res = await fetch(
+    `/api/submissions?leaderboard_id=${leaderboardId}&offset=${offset}&limit=${pageSize}`,
+  );
+  if (!res.ok) {
+    let message = "Unknown error";
+    try {
+      const json = await res.json();
+      message = json?.detail || json?.message || message;
+    } catch {
+      /* ignore */
+    }
+    throw new APIError(`Failed to fetch submissions: ${message}`, res.status);
+  }
+  const r = await res.json();
+  return r.data;
+}

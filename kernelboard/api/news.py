@@ -1,7 +1,7 @@
 from http import HTTPStatus
 import os
 import yaml
-from flask import Blueprint, jsonify, current_app
+from flask import Blueprint, current_app
 from kernelboard.lib.status_code import HttpError, http_error, http_success
 from datetime import datetime
 import logging
@@ -18,7 +18,6 @@ def list_news_items():
     try:
         news_dir = os.path.join(current_app.root_path, "static/news")
         news_contents = []
-        logger.info("")
         for filename in os.listdir(news_dir):
             if filename.endswith(".md"):
                 target_file = os.path.join(news_dir, filename)

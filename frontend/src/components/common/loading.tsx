@@ -21,14 +21,20 @@ const styles = {
   },
 };
 
-export default function Loading() {
+type LoadingProps = {
+  message?: string;
+};
+
+export default function Loading({
+  message = "Summoning data at lightning speed...",
+}: LoadingProps) {
   return (
     <Box sx={styles.root}>
       <CircularProgress color="secondary" />
       <Box sx={styles.iconRow}>
         <GiRabbit size={40} color="#f48fb1" />
         <Typography variant="subtitle1" sx={styles.text}>
-          Summoning data at lightning speed...
+          {message}
         </Typography>
         <HiLightningBolt size={36} color="#ffd54f" />
       </Box>
