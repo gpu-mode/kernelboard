@@ -14,7 +14,7 @@ function SubmissionStatusChip({ status }: { status?: string | null }) {
 
   const showFallback = !str;
   const label = showFallback
-    ? "submitted via CLI/Discord bot"
+    ? "via CLI/Discord bot"
     : v.includes("ok") || v.includes("succ")
       ? "finished"
       : v;

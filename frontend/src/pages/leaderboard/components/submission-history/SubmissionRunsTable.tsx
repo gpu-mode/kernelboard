@@ -11,6 +11,7 @@ import {
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { fmt } from "../../../../lib/utils/date";
+import { formatMicroseconds } from "../../../../lib/utils/ranking";
 
 // --- Types ---
 export type SubmissionRun = {
@@ -50,7 +51,9 @@ export function SubmissionRunsTable({ runs }: { runs: SubmissionRun[] }) {
                 <CancelIcon color="error" fontSize="small" />
               )}
             </TableCell>
-            <TableCell>{r.score ?? "N/A"}</TableCell>
+            <TableCell>
+              {r.score ? formatMicroseconds(r.score) : "N/A"}
+            </TableCell>
             <TableCell>
               {!r.passed && r.run_info ? (
                 <Tooltip
