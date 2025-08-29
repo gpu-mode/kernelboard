@@ -175,7 +175,8 @@ def get_cluster_manager_endpoint():
     if not env_var:
         logger.warning("DISCORD_CLUSTER_MANAGER_API_BASE_URL is not set!!!")
     return env_var
-
+from typing import Any, List, Tuple
+import json
 
 def list_user_submissions_with_status(
     leaderboard_id: int,
@@ -188,20 +189,38 @@ def list_user_submissions_with_status(
         cur.execute(
             """
             SELECT
-                s.id               AS submission_id,
+                s.id                AS submission_id,
                 s.leaderboard_id,
                 s.file_name,
-                s.submission_time            AS submitted_at,
-                s.done                       AS submissoin_done,
+                s.submission_time   AS submitted_at,
+                s.done              AS submission_done,
                 j.status,
                 j.error,
                 j.last_heartbeat,
-                j.created_at      AS job_created_at
+                j.created_at        AS job_created_at,
+                COALESCE(
+                  (
+                    SELECT json_agg(
+                      json_build_object(
+                        'start_time', r.start_time,
+                        'end_time',   r.end_time,
+                        'mode',       r.mode,
+                        'passed',     r.passed,
+                        'score',      r.score,
+                        'meta',       CASE WHEN r.passed = false THEN r.meta END
+                      )
+                      ORDER BY r.start_time
+                    )
+                    FROM leaderboard.runs AS r
+                    WHERE r.submission_id = s.id
+                  ),
+                  '[]'::json
+                ) AS runs_json
             FROM leaderboard.submission AS s
             LEFT JOIN leaderboard.submission_job_status AS j
-                ON j.submission_id = s.id
+              ON j.submission_id = s.id
             WHERE s.leaderboard_id = %s
-                AND s.user_id = %s
+              AND s.user_id = %s
             ORDER BY s.submission_time DESC
             LIMIT %s OFFSET %s
             """,
@@ -219,6 +238,7 @@ def list_user_submissions_with_status(
                 "error": r[6],
                 "last_heartbeat": r[7],
                 "job_created_at": r[8],
+                "runs": json.loads(r[9]) if isinstance(r[9], str) else (r[9] or []),
             }
             for r in rows
         ]
@@ -227,15 +247,13 @@ def list_user_submissions_with_status(
             SELECT COUNT(*) AS total
             FROM leaderboard.submission AS s
             WHERE s.leaderboard_id = %s
-                AND s.user_id = %s
+              AND s.user_id = %s
             """,
             (leaderboard_id, user_id),
         )
         row = cur.fetchone()
-        if row is None:
-            return [], 0
-        (total,) = row
-        return items, total
+        total = int(row[0]) if row else 0
+    return items, total
 
 
 def get_user_token(user_id: int) -> Optional[str]:
