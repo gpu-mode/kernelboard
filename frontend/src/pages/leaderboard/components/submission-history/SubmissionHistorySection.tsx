@@ -14,28 +14,18 @@ import {
   TablePagination,
   Collapse,
   Paper,
+  Skeleton,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { fetchUserSubmissions } from "../../../../api/api";
 import { fetcherApiCallback } from "../../../../lib/hooks/useApi";
 import SubmissionStatusChip from "./SubmissionStatusChip";
 import SubmissionDoneCell from "./SubmissionDoneCell";
-import Loading from "../../../../components/common/loading";
 import { Fragment } from "react";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
-
-// --- Types ---
-type Run = {
-  start_time: string;
-  end_time: string | null;
-  mode: string;
-  passed: boolean;
-  score: number | null;
-  meta: any | null; // present, but null when passed = true
-};
+import { fmt } from "../../../../lib/utils/date";
+import { SubmissionRunsTable, type SubmissionRun } from "./SubmissionRunsTable";
 
 type Submission = {
   submission_id: number;
@@ -43,7 +33,7 @@ type Submission = {
   submitted_at: string; // ISO
   status?: string | null;
   submission_done: boolean;
-  runs?: Run[]; // optional in case backend hasn't added it yet
+  runs?: SubmissionRun[]; // optional in case backend hasn't added it yet
 };
 
 type Props = {
@@ -51,6 +41,7 @@ type Props = {
   leaderboardName: string;
   userId: number | string;
   pageSize?: number; // default 10
+  refreshFlag?: boolean; // default false
 };
 
 const styles = {
@@ -80,83 +71,12 @@ const styles = {
   },
 } as const;
 
-// --- Helpers ---
-function fmt(ts?: string | null) {
-  if (!ts) return "—";
-  const d = new Date(ts);
-  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleString();
-}
-
-// --- Child table for runs (rendered inside Collapse) ---
-function RunsTable({ runs }: { runs: Run[] }) {
-  return (
-    <Table size="small" aria-label="runs table">
-      <TableHead>
-        <TableRow>
-          <TableCell>Start</TableCell>
-          <TableCell>End</TableCell>
-          <TableCell>Mode</TableCell>
-          <TableCell>Passed</TableCell>
-          <TableCell>Score</TableCell>
-          <TableCell>Meta</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {runs.map((r, idx) => (
-          <TableRow key={`${r.start_time}-${idx}`}>
-            <TableCell>{fmt(r.start_time)}</TableCell>
-            <TableCell>{fmt(r.end_time)}</TableCell>
-            <TableCell>{r.mode}</TableCell>
-            <TableCell>
-              {" "}
-              {r.passed ? (
-                <CheckCircleIcon color="success" fontSize="small" />
-              ) : (
-                <CancelIcon color="error" fontSize="small" />
-              )}
-            </TableCell>
-            <TableCell>{r.score ?? "N/A"}</TableCell>
-            <TableCell>
-              {/* Show meta only when not passed; meta is null for passed=true */}
-              {!r.passed && r.meta ? (
-                <Box
-                  component="pre"
-                  sx={{
-                    m: 0,
-                    p: 1,
-                    bgcolor: "action.hover",
-                    borderRadius: 1,
-                    fontSize: 12,
-                    maxHeight: 160,
-                    overflow: "auto",
-                    maxWidth: 640,
-                  }}
-                >
-                  {JSON.stringify(r.meta, null, 2)}
-                </Box>
-              ) : (
-                "—"
-              )}
-            </TableCell>
-          </TableRow>
-        ))}
-        {runs.length === 0 && (
-          <TableRow>
-            <TableCell colSpan={6} align="center" sx={{ opacity: 0.7 }}>
-              No runs
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
-  );
-}
-
 export default function SubmissionHistorySection({
   leaderboardId,
   leaderboardName,
   userId,
   pageSize = 10,
+  refreshFlag,
 }: Props) {
   const [page, setPage] = useState(1);
 
@@ -171,6 +91,10 @@ export default function SubmissionHistorySection({
     setPage(1);
   }, [leaderboardId, userId, pageSize]);
 
+  useEffect(() => {
+    refresh();
+  }, [refreshFlag]);
+
   // fetch when inputs or page change
   useEffect(() => {
     if (!leaderboardId || !userId) return;
@@ -181,8 +105,6 @@ export default function SubmissionHistorySection({
     data?.limit && data?.total ? Math.ceil(data?.total / data?.limit) : 1;
   let items: Submission[] = data?.items ?? [];
   let total: number = data?.total ?? 0;
-
-  console.log("data", items);
 
   // clamp page if server says there are fewer pages now
   useEffect(() => {
@@ -197,10 +119,29 @@ export default function SubmissionHistorySection({
   }, [page, pageSize, total]);
 
   // toggle handler
-  const toggleRow = (id: number, disabled: boolean) => {
-    if (disabled) return;
+  const toggleRow = (id: number) => {
     setOpenMap((m) => ({ ...m, [id]: !m[id] }));
   };
+
+  const refresh = () => {
+    if (!leaderboardId || !userId) return;
+    call(leaderboardId, userId, page, pageSize);
+  };
+
+  const stabelItems = useMemo(
+    () =>
+      [...items].sort(
+        (a, b) =>
+          new Date(b.submitted_at).getTime() -
+          new Date(a.submitted_at).getTime(),
+      ),
+    [items],
+  );
+
+  const SKELETON_ROWS = 8;
+  const hasData = items.length > 0;
+  const isRefreshing = loading && hasData; // 有旧数据时的刷新态
+  const isEmpty = !loading && !error && items.length === 0;
 
   return (
     <Box sx={styles.root} data-testid="submission-history-section">
@@ -210,11 +151,7 @@ export default function SubmissionHistorySection({
         <Box>
           <Tooltip title="Refresh">
             <IconButton
-              onClick={() =>
-                leaderboardId &&
-                userId &&
-                call(leaderboardId, userId, page, pageSize)
-              }
+              onClick={() => refresh()}
               size="small"
               sx={{ mr: 1 }}
               disabled={loading || !leaderboardId || !userId}
@@ -226,7 +163,6 @@ export default function SubmissionHistorySection({
       </Box>
 
       {/* Loading / Error */}
-      {loading && <Loading />}
       {!loading && error && (
         <Alert severity="error" sx={{ my: 2 }}>
           Failed to load submissions{errorStatus ? ` (${errorStatus})` : ""}:{" "}
@@ -236,45 +172,82 @@ export default function SubmissionHistorySection({
 
       {/* Table */}
       <Box sx={styles.listWrapper}>
-        {!loading && !error && items.length === 0 && (
-          <Typography variant="body2" color="text.secondary">
+        {!error && isEmpty && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
             No submissions.
           </Typography>
         )}
-
-        {!loading && !error && items.length > 0 && (
-          <TableContainer
-            sx={{ maxHeight: 420 }}
-            component={Paper}
-            variant="outlined"
+        <TableContainer
+          component={Paper}
+          variant="outlined"
+          sx={{
+            height: 500,
+            overflowY: "scroll",
+            transition: "opacity .2s",
+            opacity: isRefreshing ? 0.7 : 1,
+          }}
+        >
+          <Table
+            stickyHeader
+            size="small"
+            aria-label="submission table"
+            sx={{ tableLayout: "fixed", width: "100%" }}
           >
-            <Table stickyHeader size="small" aria-label="submission table">
-              <TableHead>
-                <TableRow>
-                  <TableCell width="44" />
-                  <TableCell width="35%">File</TableCell>
-                  <TableCell width="25%">Submitted At</TableCell>
-                  <TableCell width="20%">Status</TableCell>
-                  <TableCell width="15%" align="center">
-                    Finished
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {items.map((s) => {
-                  const runs = s.runs ?? []; // expect backend to include runs; otherwise empty
+            <TableHead>
+              <TableRow>
+                <TableCell width="44" />
+                <TableCell width="35%">File</TableCell>
+                <TableCell width="25%">Submitted At</TableCell>
+                <TableCell width="20%">Submission Signal</TableCell>
+                <TableCell width="15%" align="center">
+                  Finished
+                </TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {/* loading to keep the same skeleton to make sure ui does not jump*/}
+              {loading && (
+                <>
+                  {Array.from({
+                    length: Math.max(SKELETON_ROWS, hasData ? items.length : 0),
+                  }).map((_, i) => (
+                    <TableRow key={`sk-${i}`} sx={{ height: 44 }}>
+                      <TableCell colSpan={5}>
+                        <Box
+                          sx={{ display: "flex", gap: 1, alignItems: "center" }}
+                        >
+                          <Skeleton variant="circular" width={20} height={20} />
+                          <Skeleton variant="text" sx={{ flex: 1 }} />
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {!hasData &&
+                    Array.from({ length: SKELETON_ROWS }).map((_, i) => (
+                      <TableRow key={`sk2-${i}`} sx={{ height: 44 }}>
+                        <TableCell colSpan={5}>
+                          <Skeleton variant="rectangular" height={24} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </>
+              )}
+              {/* render item as normal */}
+              {!loading &&
+                !error &&
+                hasData &&
+                stabelItems.map((s) => {
+                  const runs = s.runs ?? [];
                   const hasRuns = runs.length > 0;
                   const open = !!openMap[s.submission_id];
-
                   return (
                     <Fragment key={s.submission_id}>
-                      <TableRow hover>
-                        {/* Collapse toggle cell */}
+                      <TableRow hover sx={{ height: 44 }}>
                         <TableCell>
                           <IconButton
                             size="small"
-                            onClick={() => toggleRow(s.submission_id, !hasRuns)}
-                            disabled={!hasRuns}
+                            onClick={() => toggleRow(s.submission_id)}
                             aria-label={hasRuns ? "toggle runs" : "no runs yet"}
                           >
                             {open ? (
@@ -285,7 +258,6 @@ export default function SubmissionHistorySection({
                           </IconButton>
                         </TableCell>
 
-                        {/* Main row cells */}
                         <TableCell>
                           {s.file_name || `Submission #${s.submission_id}`}
                         </TableCell>
@@ -297,8 +269,6 @@ export default function SubmissionHistorySection({
                           <SubmissionDoneCell done={s.submission_done} />
                         </TableCell>
                       </TableRow>
-
-                      {/* Collapsible runs row */}
                       <TableRow>
                         <TableCell colSpan={5} sx={{ p: 0 }}>
                           <Collapse in={open} timeout="auto" unmountOnExit>
@@ -306,7 +276,7 @@ export default function SubmissionHistorySection({
                               <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
                                 Runs ({runs.length})
                               </Typography>
-                              <RunsTable runs={runs} />
+                              <SubmissionRunsTable runs={runs} />
                             </Box>
                           </Collapse>
                         </TableCell>
@@ -314,9 +284,26 @@ export default function SubmissionHistorySection({
                     </Fragment>
                   );
                 })}
-              </TableBody>
-            </Table>
-          </TableContainer>
+
+              {/* non loading but still keep this for skeleton */}
+              {!loading && !error && !hasData && (
+                <TableRow sx={{ height: 44 }}>
+                  <TableCell colSpan={5}>
+                    <Typography variant="body2" color="text.secondary">
+                      No data.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {!loading && error && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            Failed to load submissions{errorStatus ? ` (${errorStatus})` : ""}:{" "}
+            {error}
+          </Alert>
         )}
       </Box>
 
