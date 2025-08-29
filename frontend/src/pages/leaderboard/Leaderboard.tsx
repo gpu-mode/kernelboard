@@ -77,6 +77,8 @@ export default function Leaderboard() {
       : "rankings";
   })();
   const [tab, setTab] = useState<TabKey>(initialTabFromUrl);
+  const [refreshFlag, setRefreshFlag] = useState(false);
+  const triggerRefresh = () => setRefreshFlag((f) => !f);
 
   useEffect(() => {
     const current = searchParams.get("tab");
@@ -205,6 +207,7 @@ export default function Leaderboard() {
                       SubmissionMode.BENCHMARK,
                       SubmissionMode.TEST,
                     ]}
+                    onSubmit={triggerRefresh}
                   />
                 </Stack>
                 {/* Deadline Passed Message */}
@@ -224,6 +227,7 @@ export default function Leaderboard() {
                   leaderboardId={id!!}
                   leaderboardName={data.name}
                   userId={userId!!}
+                  refreshFlag={refreshFlag}
                 />
               </CardContent>
             </Card>

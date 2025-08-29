@@ -6,7 +6,7 @@ import {
   cleanup,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { vi, describe, it, expect, afterEach } from "vitest";
+import { vi, describe, it, expect, afterEach, type Mock } from "vitest";
 import LeaderboardSubmit from "./LeaderboardSubmit";
 
 // --- Mocks ---
@@ -40,7 +40,8 @@ vi.mock("../../../components/common/LoadingCircleProgress", () => ({
 // Grab mocked submitFile as a vi.Mock
 import { submitFile } from "../../../api/api";
 import { act } from "react";
-const submitFileMock = submitFile as unknown as vi.Mock;
+
+const submitFileMock = submitFile as Mock;
 
 function deferred<T>() {
   let resolve!: (value: T) => void;

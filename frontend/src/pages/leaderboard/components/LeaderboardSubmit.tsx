@@ -47,12 +47,14 @@ export default function LeaderboardSubmit({
   gpuTypes,
   modes,
   disabled = false,
+  onSubmit,
 }: {
   leaderboardId: string;
   leaderboardName: string;
   gpuTypes: string[];
   modes: string[];
   disabled?: boolean;
+  onSubmit?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [gpuType, setGpuType] = useState<string>(gpuTypes?.[0] ?? "");
@@ -118,6 +120,7 @@ export default function LeaderboardSubmit({
         kind: "ok",
         msg: result?.message ?? "Submitted successfully.",
       });
+      onSubmit?.();
 
       setTimeout(() => {
         setOpen(false);
