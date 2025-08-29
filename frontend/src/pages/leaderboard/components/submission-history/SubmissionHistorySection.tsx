@@ -198,7 +198,7 @@ export default function SubmissionHistorySection({
                 <TableCell width="44" />
                 <TableCell width="35%">File</TableCell>
                 <TableCell width="25%">Submitted At</TableCell>
-                <TableCell width="25%">Runs</TableCell>
+                <TableCell width="25%">Run Reports</TableCell>
                 <TableCell width="20%">Submission Signal</TableCell>
                 <TableCell width="15%" align="center">
                   Finished
