@@ -198,6 +198,7 @@ export default function SubmissionHistorySection({
                 <TableCell width="44" />
                 <TableCell width="35%">File</TableCell>
                 <TableCell width="25%">Submitted At</TableCell>
+                <TableCell width="25%">Runs</TableCell>
                 <TableCell width="20%">Submission Signal</TableCell>
                 <TableCell width="15%" align="center">
                   Finished
@@ -262,6 +263,7 @@ export default function SubmissionHistorySection({
                           {s.file_name || `Submission #${s.submission_id}`}
                         </TableCell>
                         <TableCell>{fmt(s.submitted_at)}</TableCell>
+                        <TableCell>{hasRuns ? runs.length : "N/A"}</TableCell>
                         <TableCell>
                           <SubmissionStatusChip status={s.status} />
                         </TableCell>
