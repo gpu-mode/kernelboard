@@ -13,7 +13,11 @@ function SubmissionStatusChip({ status }: { status?: string | null }) {
         : "default";
 
   const showFallback = !str;
-  const label = showFallback ? "submitted via CLI/Discord bot" : str;
+  const label = showFallback
+    ? "via CLI/Discord bot"
+    : v.includes("ok") || v.includes("succ")
+      ? "finished"
+      : v;
 
   // When no tooltip needed, pass undefined (not empty string) to avoid disabling issues.
   const title = showFallback
