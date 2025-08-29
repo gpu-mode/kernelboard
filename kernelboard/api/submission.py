@@ -284,7 +284,7 @@ def _query_list_submission(
                       ORDER BY r.start_time
                     )
                     FROM leaderboard.runs AS r
-                    WHERE r.submission_id = s.id
+                    WHERE r.submission_id = s.id and r.secret = false
                   ),
                   '[]'::jsonb
                 )::json AS runs_json
