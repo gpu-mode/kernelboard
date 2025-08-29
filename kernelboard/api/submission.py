@@ -14,6 +14,11 @@ import logging
 import os
 from kernelboard.lib.rate_limiter import limiter
 import time
+from typing import Any, List, Tuple
+import json
+from typing import Any, Tuple, List
+import json
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +35,12 @@ REQUIRED_SUBMISSION_REQUEST_FIELDS = [
 WEB_AUTH_HEADER = "X-Web-Auth-Id"
 MAX_CONTENT_LENGTH = 1 * 1024 * 1024  # 1MB max file size
 
+
 @submission_bp.route("/submission", methods=["POST"])
 @login_required
 @limiter.limit(
     "60 per minute",
-    exempt_when=lambda: not current_user.is_authenticated #ignore unauthenticated, since they won't hit the api
+    exempt_when=lambda: not current_user.is_authenticated,  # ignore unauthenticated, since they won't hit the api
 )
 def submission():
     # make sure user is logged in
@@ -92,9 +98,7 @@ def submission():
 
     try:
         payload = resp.json()
-        message = (
-            payload.get("message") or payload.get("detail") or resp.reason
-        )
+        message = payload.get("message") or payload.get("detail") or resp.reason
         if resp.status_code == 200:
             return http_success(
                 message="submission success, please refresh submission history",
@@ -185,28 +189,8 @@ def list_user_submissions_with_status(
 ) -> Tuple[List[dict[str, Any]], int]:
     conn = get_db_connection()
     with conn.cursor() as cur:
-        cur.execute(
-            """
-            SELECT
-                s.id               AS submission_id,
-                s.leaderboard_id,
-                s.file_name,
-                s.submission_time            AS submitted_at,
-                s.done                       AS submissoin_done,
-                j.status,
-                j.error,
-                j.last_heartbeat,
-                j.created_at      AS job_created_at
-            FROM leaderboard.submission AS s
-            LEFT JOIN leaderboard.submission_job_status AS j
-                ON j.submission_id = s.id
-            WHERE s.leaderboard_id = %s
-                AND s.user_id = %s
-            ORDER BY s.submission_time DESC
-            LIMIT %s OFFSET %s
-            """,
-            (leaderboard_id, user_id, limit, offset),
-        )
+        sql, params = _query_list_submission(leaderboard_id, user_id, limit, offset)
+        cur.execute(sql, params)
         rows = cur.fetchall()
         items = [
             {
@@ -219,6 +203,7 @@ def list_user_submissions_with_status(
                 "error": r[6],
                 "last_heartbeat": r[7],
                 "job_created_at": r[8],
+                "runs": json.loads(r[9]) if isinstance(r[9], str) else (r[9] or []),
             }
             for r in rows
         ]
@@ -227,15 +212,13 @@ def list_user_submissions_with_status(
             SELECT COUNT(*) AS total
             FROM leaderboard.submission AS s
             WHERE s.leaderboard_id = %s
-                AND s.user_id = %s
+              AND s.user_id = %s
             """,
             (leaderboard_id, user_id),
         )
         row = cur.fetchone()
-        if row is None:
-            return [], 0
-        (total,) = row
-        return items, total
+        total = int(row[0]) if row else 0
+    return items, total
 
 
 def get_user_token(user_id: int) -> Optional[str]:
@@ -263,3 +246,55 @@ def log_rate_limit():
         used = limit_ - remaining
         reset_in = max(0, int(rl.reset_at - time.time()))
     logger.info(f"rate limit: {limit_},used {used}, reset{reset_in}")
+
+
+def _query_list_submission(
+    leaderboard_id: int,
+    user_id: int,
+    limit: int = 20,
+    offset: int = 0,
+) -> tuple[str, tuple]:
+    sql = """
+            SELECT
+                s.id                AS submission_id,
+                s.leaderboard_id,
+                s.file_name,
+                s.submission_time   AS submitted_at,
+                s.done              AS submission_done,
+                j.status,
+                j.error,
+                j.last_heartbeat,
+                j.created_at        AS job_created_at,
+                COALESCE(
+                  (
+                    SELECT jsonb_agg(
+                      jsonb_build_object(
+                        'start_time', r.start_time,
+                        'end_time',   r.end_time,
+                        'mode',       r.mode,
+                        'passed',     r.passed,
+                        'score',      r.score
+                      )
+                      || CASE
+                           WHEN r.passed = false
+                                AND COALESCE((r.meta::jsonb)->>'stderr', '') <> ''
+                             THEN jsonb_build_object('run_info', (r.meta::jsonb)->>'stderr')
+                           ELSE '{}'::jsonb
+                         END
+                      ORDER BY r.start_time
+                    )
+                    FROM leaderboard.runs AS r
+                    WHERE r.submission_id = s.id
+                  ),
+                  '[]'::jsonb
+                )::json AS runs_json
+            FROM leaderboard.submission AS s
+            LEFT JOIN leaderboard.submission_job_status AS j
+              ON j.submission_id = s.id
+            WHERE s.leaderboard_id = %s
+              AND s.user_id = %s
+            ORDER BY s.submission_time DESC
+            LIMIT %s OFFSET %s
+            """
+    params = (leaderboard_id, user_id, limit, offset)
+    return sql, params
