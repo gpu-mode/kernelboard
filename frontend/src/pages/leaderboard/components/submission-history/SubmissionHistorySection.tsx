@@ -15,6 +15,7 @@ import {
   Collapse,
   Paper,
   Skeleton,
+  Button,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { fetchUserSubmissions } from "../../../../api/api";
@@ -45,6 +46,10 @@ type Props = {
 };
 
 const styles = {
+  refreshSection: {
+    display: "flex",
+    alignItems: "center",
+  },
   root: {
     width: "100%",
     p: 2,
@@ -83,8 +88,17 @@ export default function SubmissionHistorySection({
   // track which rows are expanded (by submission_id)
   const [openMap, setOpenMap] = useState<Record<number, boolean>>({});
 
+  // track last refresh time
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [now, setNow] = useState(Date.now());
+
   const { data, loading, error, errorStatus, call } =
     fetcherApiCallback(fetchUserSubmissions);
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   // reset page when inputs affecting the result set change
   useEffect(() => {
@@ -99,12 +113,15 @@ export default function SubmissionHistorySection({
   useEffect(() => {
     if (!leaderboardId || !userId) return;
     call(leaderboardId, userId, page, pageSize);
+    setLastRefresh(new Date());
   }, [leaderboardId, userId, page, pageSize, call]);
 
   let totalPages =
     data?.limit && data?.total ? Math.ceil(data?.total / data?.limit) : 1;
   let items: Submission[] = data?.items ?? [];
   let total: number = data?.total ?? 0;
+
+  const tooOld = lastRefresh && now - lastRefresh.getTime() > 10 * 60 * 1000;
 
   // clamp page if server says there are fewer pages now
   useEffect(() => {
@@ -126,6 +143,7 @@ export default function SubmissionHistorySection({
   const refresh = () => {
     if (!leaderboardId || !userId) return;
     call(leaderboardId, userId, page, pageSize);
+    setLastRefresh(new Date());
   };
 
   const stabelItems = useMemo(
@@ -140,7 +158,7 @@ export default function SubmissionHistorySection({
 
   const SKELETON_ROWS = 8;
   const hasData = items.length > 0;
-  const isRefreshing = loading && hasData; // 有旧数据时的刷新态
+  const isRefreshing = loading && hasData;
   const isEmpty = !loading && !error && items.length === 0;
 
   return (
@@ -148,7 +166,13 @@ export default function SubmissionHistorySection({
       {/* Header */}
       <Box sx={styles.header}>
         <Typography variant="h6">Your submission history</Typography>
-        <Box>
+        <Box sx={styles.refreshSection}>
+          {lastRefresh && (
+            <Typography variant="body2">
+              Last refreshed at {lastRefresh.toLocaleTimeString()}{" "}
+              {tooOld && <span>(&gt; 10 mins ago)</span>}
+            </Typography>
+          )}
           <Tooltip title="Refresh">
             <IconButton
               onClick={() => refresh()}
@@ -191,16 +215,19 @@ export default function SubmissionHistorySection({
             stickyHeader
             size="small"
             aria-label="submission table"
-            sx={{ tableLayout: "fixed", width: "100%" }}
+            sx={{
+              tableLayout: "fixed",
+              width: "100%",
+              minWidth: 500,
+            }}
           >
             <TableHead>
               <TableRow>
-                <TableCell width="44" />
-                <TableCell width="35%">File</TableCell>
+                <TableCell width="25%">File</TableCell>
                 <TableCell width="25%">Submitted At</TableCell>
-                <TableCell width="25%">Run Reports</TableCell>
+                <TableCell width="10%">Run Reports</TableCell>
                 <TableCell width="20%">Submission Signal</TableCell>
-                <TableCell width="15%" align="center">
+                <TableCell width="10%" align="center">
                   Finished
                 </TableCell>
               </TableRow>
@@ -246,24 +273,24 @@ export default function SubmissionHistorySection({
                     <Fragment key={s.submission_id}>
                       <TableRow hover sx={{ height: 44 }}>
                         <TableCell>
-                          <IconButton
-                            size="small"
-                            onClick={() => toggleRow(s.submission_id)}
-                            aria-label={hasRuns ? "toggle runs" : "no runs yet"}
-                          >
-                            {open ? (
-                              <KeyboardArrowUpIcon />
-                            ) : (
-                              <KeyboardArrowDownIcon />
-                            )}
-                          </IconButton>
-                        </TableCell>
-
-                        <TableCell>
                           {s.file_name || `Submission #${s.submission_id}`}
                         </TableCell>
                         <TableCell>{fmt(s.submitted_at)}</TableCell>
-                        <TableCell>{hasRuns ? runs.length : "N/A"}</TableCell>
+                        <TableCell>
+                          {hasRuns ? (
+                            <Button
+                              size="small"
+                              onClick={() => toggleRow(s.submission_id)}
+                            >
+                              <Typography variant="body2">
+                                {open ? "Hide" : "Show"}
+                                {`(${runs.length})`}
+                              </Typography>
+                            </Button>
+                          ) : (
+                            "N/A"
+                          )}
+                        </TableCell>
                         <TableCell>
                           <SubmissionStatusChip status={s.status} />
                         </TableCell>
