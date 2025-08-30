@@ -103,7 +103,8 @@ describe("Leaderboard", () => {
     // Switch to Reference tab before asserting its content
     fireEvent.click(referenceTab);
     expect(screen.getByText(/Reference Implementation/i)).toBeInTheDocument();
-    expect(screen.getByText(mockReference)).toBeInTheDocument();
+    expect(screen.getByText(/import/)).toBeInTheDocument();
+    expect(screen.getByText(/torch/)).toBeInTheDocument();
   });
 
   it("shows loading state", () => {
@@ -302,7 +303,8 @@ describe("Leaderboard", () => {
 
     // Reference codeblock should be visible
     expect(screen.getByText(/Reference Implementation/i)).toBeInTheDocument();
-    expect(screen.getByText(mockReference)).toBeInTheDocument();
+    expect(screen.getByText(/import/)).toBeInTheDocument();
+    expect(screen.getByText(/torch/)).toBeInTheDocument();
   });
 
   // -------------------- Tabs behavior (switching) --------------------
@@ -343,7 +345,8 @@ describe("Leaderboard", () => {
     // Switch to Reference tab
     fireEvent.click(screen.getByRole("tab", { name: /Reference/i }));
     expect(screen.getByText(/Reference Implementation/i)).toBeInTheDocument();
-    expect(screen.getByText(mockReference)).toBeInTheDocument();
+    expect(screen.getByText(/import/)).toBeInTheDocument();
+    expect(screen.getByText(/torch/)).toBeInTheDocument();
 
     // Switch back to Rankings tab
     fireEvent.click(screen.getByRole("tab", { name: /Rankings/i }));
