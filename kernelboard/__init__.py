@@ -125,7 +125,14 @@ def create_app(test_config=None):
 
     @app.errorhandler(404)
     def not_found(_error):
-        return redirect("/v2/404")
+        # Only redirect to React frontend for v2 routes or unhandled routes
+        # Let backend routes (like /leaderboard/123) return proper 404s
+        from flask import request
+        if request.path.startswith('/v2/') or request.path == '/':
+            return redirect("/v2/404")
+        else:
+            # Let the backend route handle the 404 properly
+            return _error
 
     @app.errorhandler(500)
     def server_error(_error):

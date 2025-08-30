@@ -8,7 +8,7 @@
     
     <div class="leaderboard-grid">
         {% for leaderboard in leaderboards %}
-            <a href="{{ url_for('leaderboard', id=leaderboard['id']) }}" class="leaderboard-tile-link">
+            <a href="{{ url_for('leaderboard.leaderboard', leaderboard_id=leaderboard['id']) }}" class="leaderboard-tile-link">
                 <div class="leaderboard-tile">
                     <div class="leaderboard-tile-name">
                         {% set color = leaderboard['name']|to_color %}
