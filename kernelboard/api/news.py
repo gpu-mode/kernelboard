@@ -54,6 +54,39 @@ def list_news_items():
         )
 
 
+@news_bp.route("/<post_id>", methods=["GET"])
+def get_news_item(post_id):
+    try:
+        news_dir = os.path.join(current_app.root_path, "static/news")
+        
+        # Search for news item with matching id
+        for filename in os.listdir(news_dir):
+            if filename.endswith(".md"):
+                target_file = os.path.join(news_dir, filename)
+                with open(target_file, "r", encoding="utf-8") as f:
+                    raw = f.read()
+                    try:
+                        news_content = _to_api_news(raw)
+                        if news_content.get("id") == post_id:
+                            return http_success(data=news_content)
+                    except HttpError as e:
+                        logger.warning(
+                            f"[warning] failed to load news content:{target_file}, due to: {e.message}"
+                        )
+                        continue
+        
+        # If no matching news item found
+        return http_error(
+            status_code=HTTPStatus.NOT_FOUND,
+            message=f"News post with id '{post_id}' not found",
+        )
+    except Exception as e:
+        return http_error(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            message=f"Internal server error: {str(e)}",
+        )
+
+
 def _to_api_news(raw: str):
     if raw.startswith("---"):
         parts = raw.split("---", 2)

@@ -8,6 +8,7 @@ import { appTheme } from "./components/common/styles/theme";
 import Leaderboard from "./pages/leaderboard/Leaderboard";
 import Home from "./pages/home/Home";
 import News from "./pages/news/News";
+import SingleNewsPost from "./pages/news/SingleNewsPost";
 import ErrorPage from "./pages/Error";
 import Login from "./pages/login/login";
 import { useAuthStore } from "./lib/store/authStore";
@@ -51,6 +52,7 @@ function App() {
             <Route path="/home" element={<Home />} />
             <Route path="/leaderboard/:id" element={<Leaderboard />} />
             <Route path="/news" element={<News />} />
+            <Route path="/news/:postId" element={<SingleNewsPost />} />
             <Route path="/login" element={<Login />} />
             // error handling page
             {errorRoutes.map(({ path, code, title, description }) => (

@@ -1,4 +1,6 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, IconButton, Tooltip } from "@mui/material";
+import { Link as LinkIcon } from "@mui/icons-material";
+import { Link as RouterLink } from "react-router-dom";
 import { lazy, Suspense } from "react";
 
 // Lazy-load MarkdownRenderer to avoid large initial JS chunks.
@@ -22,14 +24,27 @@ const styles = {
     pb: 4,
     mb: 4,
   },
+  titleContainer: {
+    display: "flex",
+    alignItems: "center",
+    gap: 1,
+  },
+  permalinkIcon: {
+    opacity: 0.6,
+    "&:hover": {
+      opacity: 1,
+    },
+  },
 };
 
 export function NewsContentSection({
   data,
   sectionRefs,
+  showPermalinks = true,
 }: {
   data: any[];
   sectionRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+  showPermalinks?: boolean;
 }) {
   return (
     <Box sx={styles.content} data-testid="news-content">
@@ -43,9 +58,24 @@ export function NewsContentSection({
           ref={(el) => (sectionRefs.current[item.id] = el as any)}
           sx={styles.section}
         >
-          <Typography variant="h5" gutterBottom>
-            {item.title}
-          </Typography>
+          <Box sx={styles.titleContainer}>
+            <Typography variant="h5" gutterBottom sx={{ mb: 0 }}>
+              {item.title}
+            </Typography>
+            {showPermalinks && (
+              <Tooltip title="Permalink to this post">
+                <IconButton
+                  component={RouterLink}
+                  to={`/news/${item.id}`}
+                  size="small"
+                  sx={styles.permalinkIcon}
+                  data-testid={`permalink-${item.id}`}
+                >
+                  <LinkIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
           <Typography variant="body2" color="text.secondary" gutterBottom>
             {item.date} • {item.category}
           </Typography>
