@@ -90,6 +90,16 @@ these steps to run the test suite:
 
    We would like to keep code coverage high, ideally above 90%.
 
+## Continuous Integration
+
+Tests run automatically in CI via GitHub Actions on all pull requests and pushes to main. The CI workflow runs:
+
+- **Frontend tests**: React/TypeScript tests using Vitest (83 tests)
+- **Backend tests**: Python tests using pytest with Docker (42+ tests)
+- **Coverage reporting**: Code coverage analysis
+
+See `.github/workflows/test.yml` for the complete CI configuration.
+
 ## Run the development server
 
 Let's get the development server up and running! Use this command:
