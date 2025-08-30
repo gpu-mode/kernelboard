@@ -109,11 +109,11 @@ def create_app(test_config=None):
 
     app.register_blueprint(health.blueprint)
     app.add_url_rule("/health", endpoint="health")
-
-    @app.route("/")
-    def root():
-        # permanent redirect
-        return redirect("/v2", code=302)
+    
+    # Register the main blueprints for backward compatibility and testing
+    app.register_blueprint(index.blueprint)
+    app.register_blueprint(leaderboard.blueprint)
+    app.register_blueprint(news.blueprint)
 
     if not app.blueprints.get("api"):
         api = create_api_blueprint()
