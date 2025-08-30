@@ -21,6 +21,11 @@ export default function NavBar() {
   const links: NavLink[] = [
     { label: "News", href: "/v2/news" },
     {
+      label: "Working Groups",
+      href: "https://docs.google.com/document/d/1LprkfyOP5cRtv7rwkFiEHx2XEKhtwf9J4bQkD6btzgo/edit?usp=sharing",
+      external: true,
+    },
+    {
       label: "Lectures",
       href: "https://www.youtube.com/@GPUMODE",
       external: true,
