@@ -35,6 +35,30 @@ jobs:
     name: Backend Tests
     runs-on: ubuntu-latest
     
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: kernelboard_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
     steps:
     - uses: actions/checkout@v4
     
@@ -51,8 +75,9 @@ jobs:
     
     - name: Run backend tests
       env:
-        REDIS_URL: memory://
-        DATABASE_URL: sqlite:///tmp/test.db
+        CI: true
+        REDIS_URL: redis://localhost:6379/0
+        DATABASE_URL: postgresql://postgres:test@localhost:5432/kernelboard_test
         DISCORD_CLIENT_ID: test
         DISCORD_CLIENT_SECRET: test
         SECRET_KEY: test-secret-key
@@ -62,8 +87,9 @@ jobs:
     
     - name: Run coverage
       env:
-        REDIS_URL: memory://
-        DATABASE_URL: sqlite:///tmp/test.db
+        CI: true
+        REDIS_URL: redis://localhost:6379/0
+        DATABASE_URL: postgresql://postgres:test@localhost:5432/kernelboard_test
         DISCORD_CLIENT_ID: test
         DISCORD_CLIENT_SECRET: test
         SECRET_KEY: test-secret-key

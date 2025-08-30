@@ -6,6 +6,7 @@ import string
 import subprocess
 import time
 import secrets
+import os
 
 
 def get_test_redis_url(port: int):
@@ -26,6 +27,11 @@ def get_test_db_info():
         "password": password,
         "db_url": db_url,
     }
+
+
+def is_ci_environment():
+    """Check if we're running in a CI environment where Docker may not be available."""
+    return os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
 
 
 def _short_random_string() -> str:
@@ -50,7 +56,44 @@ def _execute_sql(url: str, sql: str):
 @pytest.fixture(scope="session")
 def db_server():
     """Starts a DB server and creates a template DB once per session."""
+    
+    # In CI environments, use the service containers provided by GitHub Actions
+    if is_ci_environment():
+        # GitHub Actions provides PostgreSQL service container
+        db_url = "postgresql://postgres:test@localhost:5432"
+        
+        # Create a template database and load data
+        template_db = f"kernelboard_template_{_short_random_string()}"
+        _execute_sql(db_url, f"CREATE DATABASE {template_db}")
+        
+        # Load data.sql into the template database using psql
+        result = subprocess.run(
+            [
+                "psql",
+                "-h",
+                "localhost",
+                "-U",
+                "postgres",
+                "-p",
+                "5432",
+                "-d",
+                template_db,
+                "-f",
+                "tests/data.sql",
+            ],
+            env={"PGPASSWORD": "test"},
+        )
+        
+        if result.returncode != 0:
+            pytest.exit("Error loading data.sql in CI", returncode=1)
+        
+        yield {"db_url": db_url, "db_name": template_db}
+        
+        # Cleanup: drop the template database
+        _execute_sql(db_url, f"DROP DATABASE {template_db}")
+        return
 
+    # Original Docker-based logic for local development
     container_name = f"kernelboard_db_{_short_random_string()}"
 
     test_db = get_test_db_info()
@@ -166,7 +209,14 @@ def db_server():
 def redis_server():
     """
     Starts a Redis Docker container for the test session.
+    In CI environments, uses the service container provided by GitHub Actions.
     """
+    
+    # In CI environments, use the service containers provided by GitHub Actions
+    if is_ci_environment():
+        yield "redis://localhost:6379/0"
+        return
+    
     container_name = f"kernelboard_redis_{_short_random_string()}"
     port = get_test_redis_port()
     redis_url = get_test_redis_url(port)
@@ -301,6 +351,12 @@ def runner(app):
 
 @pytest.fixture(autouse=True)
 def set_env(monkeypatch):
+    # In CI environments, rely on environment variables set by GitHub Actions
+    if is_ci_environment():
+        # Don't override environment variables in CI mode - use what's already set
+        return
+    
+    # For local development, set the traditional test environment variables
     monkeypatch.setenv("DATABASE_URL", get_test_db_info()["db_url"])
     monkeypatch.setenv("DISCORD_CLIENT_ID", "test")
     monkeypatch.setenv("DISCORD_CLIENT_SECRET", "test")
