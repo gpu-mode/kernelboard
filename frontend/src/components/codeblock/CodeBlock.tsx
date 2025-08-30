@@ -3,14 +3,11 @@ import {
   Box,
   IconButton,
   Tooltip,
-  Typography,
   useTheme,
-  type SxProps,
-  type Theme,
 } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface CodeBlockProps {
   code: string;
@@ -56,11 +53,9 @@ export default function CodeBlock({ code }: CodeBlockProps) {
         </Tooltip>
       </Box>
 
-      {/* Scrollable Code */}
+      {/* Scrollable Code with Syntax Highlighting */}
       <Box
-        component="pre"
         sx={{
-          ...styles.pre,
           maxHeight: {
             xs: "40vh", // mobile
             sm: "50vh", // ipad
@@ -69,12 +64,30 @@ export default function CodeBlock({ code }: CodeBlockProps) {
           overflowY: "auto", // pass maxHeight to overflowY to enable scrolling
           border: `1px solid ${theme.palette.divider}`,
           borderRadius: 2,
-          p: 1.5,
-          fontSize: "0.85rem",
           bgcolor: theme.palette.background.paper,
+          "& pre": {
+            margin: "0 !important",
+            padding: "12px !important",
+            fontSize: "0.85rem !important",
+            fontFamily: "monospace !important",
+            background: "transparent !important",
+          },
         }}
       >
-        <code>{code}</code>
+        <SyntaxHighlighter
+          language="python"
+          style={oneLight}
+          customStyle={{
+            margin: 0,
+            padding: 12,
+            fontSize: "0.85rem",
+            fontFamily: "monospace",
+            background: "transparent",
+          }}
+          wrapLongLines={true}
+        >
+          {code}
+        </SyntaxHighlighter>
       </Box>
     </Box>
   );
