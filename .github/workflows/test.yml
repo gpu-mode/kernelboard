@@ -1,0 +1,73 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm ci
+    
+    - name: Run frontend tests
+      run: |
+        cd frontend
+        npm run test -- --run
+
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install -e .
+    
+    - name: Run backend tests
+      env:
+        REDIS_URL: memory://
+        DATABASE_URL: sqlite:///tmp/test.db
+        DISCORD_CLIENT_ID: test
+        DISCORD_CLIENT_SECRET: test
+        SECRET_KEY: test-secret-key
+        DISCORD_CLUSTER_MANAGER_API_BASE_URL: http://test.example.com
+      run: |
+        pytest -v
+    
+    - name: Run coverage
+      env:
+        REDIS_URL: memory://
+        DATABASE_URL: sqlite:///tmp/test.db
+        DISCORD_CLIENT_ID: test
+        DISCORD_CLIENT_SECRET: test
+        SECRET_KEY: test-secret-key
+        DISCORD_CLUSTER_MANAGER_API_BASE_URL: http://test.example.com
+      run: |
+        coverage run -m pytest
+        coverage report -m
