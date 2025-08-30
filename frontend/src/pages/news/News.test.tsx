@@ -6,6 +6,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
+import { BrowserRouter } from "react-router-dom";
 import News from "./News"; // 假设你当前文件路径为 pages/News.tsx
 import * as apiHook from "../../lib/hooks/useApi";
 
@@ -20,6 +21,11 @@ vi.mock("../../components/markdown-renderer/MarkdownRenderer", () => ({
 }));
 
 const mockCall = vi.fn();
+
+// Test wrapper that provides router context
+const renderWithRouter = (component: React.ReactElement) => {
+  return render(<BrowserRouter>{component}</BrowserRouter>);
+};
 
 const mockData = [
   {
@@ -58,7 +64,7 @@ describe("News", () => {
     );
 
     // render
-    render(<News />);
+    renderWithRouter(<News />);
 
     // asserts
     expect(screen.getByText(/Summoning/i)).toBeInTheDocument();
@@ -79,7 +85,7 @@ describe("News", () => {
     );
 
     // render
-    render(<News />);
+    renderWithRouter(<News />);
 
     // asserts
     expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
@@ -100,7 +106,7 @@ describe("News", () => {
     );
 
     // render
-    render(<News />);
+    renderWithRouter(<News />);
 
     // asserts
     expect(screen.getByText("News and Announcements")).toBeInTheDocument();
@@ -123,6 +129,9 @@ describe("News", () => {
   it("calls scrollIntoView when sidebar item is clicked", () => {
     // prepare
     const scrollIntoViewMock = vi.fn();
+    
+    // Mock scrollIntoView on Element prototype
+    Element.prototype.scrollIntoView = scrollIntoViewMock;
 
     const mockHookReturn = {
       data: mockData,
@@ -137,19 +146,10 @@ describe("News", () => {
     );
 
     // render
-    render(<News />);
+    renderWithRouter(<News />);
 
     // asserts
     const sidebar = screen.getByTestId("news-sidbar");
-    const newsContent = screen.getByTestId("news-content");
-
-    const section = within(newsContent).getByText("Title Two").closest("div");
-    if (section) {
-      Object.defineProperty(section, "scrollIntoView", {
-        value: scrollIntoViewMock,
-        writable: true,
-      });
-    }
 
     // click a button to navigate to item 2 in Sidebar
     const button = within(sidebar).getByTestId("news-sidbar-button-news-2");
