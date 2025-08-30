@@ -23,8 +23,6 @@ import { fetcherApiCallback } from "../../../../lib/hooks/useApi";
 import SubmissionStatusChip from "./SubmissionStatusChip";
 import SubmissionDoneCell from "./SubmissionDoneCell";
 import { Fragment } from "react";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { fmt } from "../../../../lib/utils/date";
 import { SubmissionRunsTable, type SubmissionRun } from "./SubmissionRunsTable";
 
@@ -46,6 +44,20 @@ type Props = {
 };
 
 const styles = {
+  reportButton: {
+    textTransform: "none",
+    borderRadius: 2,
+    bgcolor: "#F472B6",
+    color: "#fff",
+    "&:hover": { bgcolor: "#EC4899" },
+  },
+  reportButtonOpen: {
+    textTransform: "none",
+    borderRadius: 2,
+    bgcolor: "#A78BFA",
+    color: "#fff",
+    "&:hover": { bgcolor: "#8B5CF6" },
+  },
   refreshSection: {
     display: "flex",
     alignItems: "center",
@@ -223,16 +235,15 @@ export default function SubmissionHistorySection({
           >
             <TableHead>
               <TableRow>
-                <TableCell width="25%">File</TableCell>
-                <TableCell width="25%">Submitted At</TableCell>
-                <TableCell width="10%">Run Reports</TableCell>
-                <TableCell width="20%">Submission Signal</TableCell>
+                <TableCell width="15%">File</TableCell>
+                <TableCell width="15%">Submitted At</TableCell>
+                <TableCell width="10%">Submission Signal</TableCell>
                 <TableCell width="10%" align="center">
                   Finished
                 </TableCell>
+                <TableCell width="10%">Run Reports</TableCell>
               </TableRow>
             </TableHead>
-
             <TableBody>
               {/* loading to keep the same skeleton to make sure ui does not jump*/}
               {loading && (
@@ -277,25 +288,29 @@ export default function SubmissionHistorySection({
                         </TableCell>
                         <TableCell>{fmt(s.submitted_at)}</TableCell>
                         <TableCell>
+                          <SubmissionStatusChip status={s.status} />
+                        </TableCell>
+                        <TableCell align="center">
+                          <SubmissionDoneCell done={s.submission_done} />
+                        </TableCell>
+                        <TableCell>
                           {hasRuns ? (
                             <Button
                               size="small"
                               onClick={() => toggleRow(s.submission_id)}
+                              sx={
+                                open
+                                  ? styles.reportButtonOpen
+                                  : styles.reportButton
+                              }
                             >
                               <Typography variant="body2">
-                                {open ? "Hide" : "Show"}
-                                {`(${runs.length})`}
+                                {open ? "hide" : `open(${runs.length})`}
                               </Typography>
                             </Button>
                           ) : (
                             "N/A"
                           )}
-                        </TableCell>
-                        <TableCell>
-                          <SubmissionStatusChip status={s.status} />
-                        </TableCell>
-                        <TableCell align="center">
-                          <SubmissionDoneCell done={s.submission_done} />
                         </TableCell>
                       </TableRow>
                       <TableRow>
