@@ -11,7 +11,6 @@ import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface CodeBlockProps {
   code: string;
-  language?: string;
   maxHeight?: number | string;
 }
 
@@ -32,7 +31,7 @@ const styles = {
   },
 };
 
-export default function CodeBlock({ code, language = "text" }: CodeBlockProps) {
+export default function CodeBlock({ code }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const theme = useTheme();
 
@@ -76,7 +75,7 @@ export default function CodeBlock({ code, language = "text" }: CodeBlockProps) {
         }}
       >
         <SyntaxHighlighter
-          language={language}
+          language="python"
           style={oneLight}
           customStyle={{
             margin: 0,

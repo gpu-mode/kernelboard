@@ -176,7 +176,7 @@ export default function Leaderboard() {
             <CardContent>
               <CardTitle fontWeight="bold">Reference Implementation</CardTitle>
               <Box>
-                <CodeBlock code={data.reference} language="cpp" />
+                <CodeBlock code={data.reference} />
               </Box>
             </CardContent>
           </Card>

@@ -19,8 +19,8 @@ describe("CodeBlock", () => {
     expect(screen.getByText(/Hello, world!/)).toBeInTheDocument();
   });
 
-  it("renders with syntax highlighting", () => {
-    render(<CodeBlock code={sampleCode} language="javascript" />);
+  it("renders with Python syntax highlighting", () => {
+    render(<CodeBlock code={sampleCode} />);
     // Check that syntax highlighter is applied - it should create a pre element
     const preElement = screen.getByRole("button").closest("[data-testid]") || document.querySelector("pre");
     expect(preElement || screen.getByText(/Hello, world!/).closest("pre")).toBeInTheDocument();
@@ -42,13 +42,10 @@ describe("CodeBlock", () => {
     });
   });
 
-  it("accepts language prop for syntax highlighting", () => {
-    render(<CodeBlock code="print('Hello')" language="python" />);
+  it("handles Python code properly", () => {
+    render(<CodeBlock code="print('Hello')" />);
     expect(screen.getByText(/Hello/)).toBeInTheDocument();
   });
 
-  it("defaults to text language when no language specified", () => {
-    render(<CodeBlock code="plain text" />);
-    expect(screen.getByText("plain text")).toBeInTheDocument();
-  });
+
 });
