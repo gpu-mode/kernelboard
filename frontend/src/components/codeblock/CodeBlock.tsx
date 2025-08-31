@@ -1,10 +1,5 @@
 import React, { useState } from "react";
-import {
-  Box,
-  IconButton,
-  Tooltip,
-  useTheme,
-} from "@mui/material";
+import { Box, IconButton, Tooltip, useTheme } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
