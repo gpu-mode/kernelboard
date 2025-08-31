@@ -235,6 +235,7 @@ export default function SubmissionHistorySection({
           >
             <TableHead>
               <TableRow>
+                <TableCell width="10%">Id</TableCell>
                 <TableCell width="15%">File</TableCell>
                 <TableCell width="15%">Submitted At</TableCell>
                 <TableCell width="10%">Submission Signal</TableCell>
@@ -283,6 +284,7 @@ export default function SubmissionHistorySection({
                   return (
                     <Fragment key={s.submission_id}>
                       <TableRow hover sx={{ height: 44 }}>
+                        <TableCell>{s.submission_id}</TableCell>
                         <TableCell>
                           {s.file_name || `Submission #${s.submission_id}`}
                         </TableCell>
