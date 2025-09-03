@@ -8,5 +8,5 @@ const exitCodeMessages: { [key: number]: string } = {
 };
 
 export function getExitCodeMessage(code: number): string {
-  return exitCodeMessages[code] ?? `Unknown exit code: ${code}`;
+  return exitCodeMessages[code] ?? `non-running exit code found: ${code}`;
 }
