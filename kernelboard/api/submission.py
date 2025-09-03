@@ -266,27 +266,22 @@ def _query_list_submission(
                 j.last_heartbeat,
                 j.created_at        AS job_created_at,
                 COALESCE(
-                  (
+                    (
                     SELECT jsonb_agg(
-                      jsonb_build_object(
+                        jsonb_build_object(
                         'start_time', r.start_time,
                         'end_time',   r.end_time,
                         'mode',       r.mode,
                         'passed',     r.passed,
-                        'score',      r.score
-                      )
-                      || CASE
-                           WHEN r.passed = false
-                                AND COALESCE((r.meta::jsonb)->>'stderr', '') <> ''
-                             THEN jsonb_build_object('run_info', (r.meta::jsonb)->>'stderr')
-                           ELSE '{}'::jsonb
-                         END
-                      ORDER BY r.start_time
+                        'score',      r.score,
+                        'meta',       COALESCE(r.meta::jsonb, '{}'::jsonb)
+                        )
+                        ORDER BY r.start_time
                     )
                     FROM leaderboard.runs AS r
-                    WHERE r.submission_id = s.id and r.secret = false
-                  ),
-                  '[]'::jsonb
+                    WHERE r.submission_id = s.id AND r.secret = false
+                    ),
+                    '[]'::jsonb
                 )::json AS runs_json
             FROM leaderboard.submission AS s
             LEFT JOIN leaderboard.submission_job_status AS j
