@@ -15,7 +15,7 @@ The [hackathon challenge](https://github.com/janestreet-gpu-mode/hackathon/tree/
   <figcaption>Round 1 winners</figcaption>
 </figure>
 <figure>
-  <img src="/static/images/round_2_JS.png" alt="Leaderboard Round 1" />
+  <img src="/static/images/round_2_JS.png" alt="Leaderboard Round 2" />
   <figcaption>Round 2 winners. The teams that placed 2nd & 3rd place won those slots for both rounds. Sparrow was #1 for most of the day and got a discretionary prize. </figcaption>
 </figure>
 
