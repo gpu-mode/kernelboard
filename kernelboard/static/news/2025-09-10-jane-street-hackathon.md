@@ -38,14 +38,14 @@ Team strategies tended to range. Some folks ignored the hidden state or portions
 ![Don't Compile](/static/images/compile_woes_3_JS.png)
 
 ###### BackendBench & other wisdom
-Before the hacking, attendees got to hear from [Tri Dao](https://www.youtube.com/watch?v=5qSN-R_E3w0), a panel of the PyTorch founders (Soumith Chintala, Gregory Chanan,  Sam Gross) and NYC native/ founder of GPU Mode Mark Saroufim.
-Mark presented [BackendBench](https://github.com/meta-pytorch/BackendBench/blob/main/docs/correctness.md) ([full presentation](https://www.youtube.com/watch?v=BTfjdyZOKww)), an eval suite designed to test how well LLMs and humans can write PyTorch backends, focusing on operator correctness and performance. Key features include comprehensive correctness testing, using PyTorch’s OpInfo test suite, performance benchmarks using real tensor shapes from Hugging Face/TorchBench, and easy integration by enabling kernels to be pip-installed and used in real models without code changes.  Overall, folks who care about correctness of kernels like Tri Dao, Tianqi Chen and the original KernelBench team gave positive feedback.
+Before the hacking, attendees got to hear from [Tri Dao](https://x.com/tri_dao?lang=en), a panel of the PyTorch founders ([Soumith Chintala](https://x.com/soumithchintala), [Gregory Chanan](https://www.linkedin.com/in/gregory-chanan-49530836?trk=public_post-text), [Sam Gross](https://www.linkedin.com/in/samgross?trk=public_post-text)) and NYC native/ founder of GPU Mode [Mark Saroufim](https://x.com/marksaroufim?lang=en).
+Mark presented [BackendBench](https://github.com/meta-pytorch/BackendBench/blob/main/docs/correctness.md) ([full presentation](https://www.youtube.com/watch?v=BTfjdyZOKww)), an eval suite designed to test how well LLMs and humans can write PyTorch backends, focusing on operator correctness and performance. Key features include comprehensive correctness testing, using PyTorch’s OpInfo test suite, performance benchmarks using real tensor shapes from Hugging Face/TorchBench, and easy integration by enabling kernels to be pip-installed and used in real models without code changes.  Overall, folks who care about correctness of kernels like Tri Dao, [Tianqi Chen](https://www.linkedin.com/in/tianqi-chen-679a9856) and the original KernelBench team gave positive feedback.
 
 Recently Tri has been thinking a lot about the tradeoff between productivity and performance of various DSLs to optimize models (ie. torch.compile, Triton, CuTe DSL). [He spoke](https://www.youtube.com/watch?v=5qSN-R_E3w0) about his thoughts on this Pareto frontier. Speed-of-light GPU kernel performance demands deep hardware-aware tuning, especially for memory-bound operations. Tri is a large fan of CuTe DSL as it offers both the productivity of Python with the control and performance of CUDA/PTX.
 
 ![Tri Dao presenting](/static/images/Tri_JS.png)
 
-The panel was a special treat and we heard some old stories ranging from Jeff Johnson’s 3h crash course to Greg on GPUs, Soumith’s past music career and thoughts on compilation times and finally Sam’s belief that we'd have had python in prod sooner if we had no-gil.
+The panel was a special treat and we heard some old stories ranging from [Jeff Johnson](https://github.com/wickedfoo)’s 3h crash course to Greg on GPUs, Soumith’s past music career and thoughts on compilation times and finally Sam’s belief that we'd have had python in prod sooner if we had no-gil.
 
 ![PyTorch Founder Panel ](/static/images/panel_JS.png)
 
