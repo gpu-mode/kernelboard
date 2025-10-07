@@ -9,15 +9,15 @@ Roughly 3 months ago, interspersed between several larger competitions with AMD 
 
 This competition was for participants, who, as some would say, did it “for the love of the game”. If you’ve been paying attention to or participating in GPU MODE competitions recently, you’ll notice a general trend towards production-ready, large-scale kernels for LLM training and inference. However, there are plenty of domains outside of LLMs that are in dire need of memory-efficient and blazingly fast kernels — biology + ML in particular tends to use domain-specific modules and layers such as the Triangle Multiplicative Update that use disproportionately large amounts of activation memory, and are not cache-friendly when written in PyTorch! We knew that this problem was likely out of the comfort zone for most members of our community, so we were very impressed with the submissions and final results of the competition.
 
-![trimul-winners.png](static/images/trimul-winners.png)
+![trimul-winners.png](/static/images/trimul-winners.png)
 
-The rest of this post will be dedicated to an analysis of why this particular problem is quite nasty (and is still a bottleneck in production structure prediction models), as well as a peek into the top submissions by our two winners 🏆, [**Arseni Ivanov](https://arseniivanov.github.io/blog.html) and [David Berard](https://davidberard98.github.io/gpumode-trimul/)**! We also will briefly discuss our ***intended*** solution and how we would have approached the problem, had we participated.
+The rest of this post will be dedicated to an analysis of why this particular problem is quite nasty (and is still a bottleneck in production structure prediction models), as well as a peek into the top submissions by our two winners 🏆, **[Arseni Ivanov](https://arseniivanov.github.io/blog.html) and [David Berard](https://davidberard98.github.io/gpumode-trimul/)**! We also will briefly discuss our ***intended*** solution and how we would have approached the problem, had we participated.
 
 **Table of Contents:**
 
 ## The Wonderful Participant Writeups ✍🏻
 
-Normally this section would go at the end of the blog, but we wanted to highlight the wonderful writeups created by participants and members of our community. There is a lot of cool and interesting tricks that were discovered over the course of the competition. PS: if you also participated and made a writeup, shoot me ([@a1zhang)](https://x.com/a1zhang?lang=en)) a message on X and I’ll add it here!
+Normally this section would go at the end of the blog, but we wanted to highlight the wonderful writeups created by participants and members of our community. There is a lot of cool and interesting tricks that were discovered over the course of the competition. PS: if you also participated and made a writeup, shoot me ([@a1zhang](https://x.com/a1zhang?lang=en)) a message on X and I’ll add it here!
 
 - 🥇 Arseni Ivanov: [https://arseniivanov.github.io/blog.html](https://arseniivanov.github.io/blog.html)
 - 🥇 David Berard: [https://davidberard98.github.io/gpumode-trimul/](https://davidberard98.github.io/gpumode-trimul/)
@@ -29,7 +29,7 @@ The original [AlphaFold2](https://deepmind.google/science/alphafold/) breakthrou
 
 We took one of the popular layers, the Triangle Multiplicative Update (or TriMul for short), and turned the forward pass for inference into a problem for our leaderboard. In particular, we took **Algorithm 12** from the original paper as the reference implementation that each participant’s kernels have to match. We sampled inputs from both a random normal, as well as a long-tailed distribution — the Cauchy distribution.
 
-![trimul-algo12.png](static/images/trimul-algo12.png)
+![trimul-algo12.png](/static/images/trimul-algo12.png)
 
 **Algorithm 12** roughly translates in PyTorch to:
 
@@ -73,15 +73,13 @@ During the course of the competition, participants could submit to NVIDIA A100, 
 
 We had two separate scoring / ranking criteria for determining our two winners. The first was the **fastest overall submission across all available GPUs**, which likely meant producing a fast B200 or MI300 solution. The second was the **highest average ranking across all GPUs**, which was computed as:
 
-$$
-P_{\text{winner}} = \text{argmin}_{p} \left( \sum_{d \in \mathcal{D}} \text{rank}_p(d) \right) \quad \mathcal{D} = \{\text{A100,H100,B200,MI300}\}
-$$
+![trimul-ranking](/static/images/trimul-ranking.png)
 
 ⚡ The fastest overall submission was [**David Berard’s B200 kernel**](https://davidberard98.github.io/gpumode-trimul/), which achieved an average speed of 1088.491μs, **8x faster than the reference PyTorch baseline and 2x faster than torch.compile! [[code](https://github.com/davidberard98/gpumode-trimul/blob/main/impl.py)]**
 
 🥇 The participant with the highest average ranking was [**Arseni Ivanov**](https://arseniivanov.github.io/blog.html), who ranked 1st on the A100, 1st on the MI300, 2nd on the B200, and 3rd on the H100! These were extremely impressive and consistent results, and he tuned his kernels to each GPU! [[**code**](https://github.com/arseniivanov/trimul)]
 
-[!trimul-water](static/images/trimul-water.png)
+![trimul-water](/static/images/trimul-water.png)
 
 Congratulations to the winners David and Arseni, who received one-of-a-kind GPU MODE merch (an $80+ custom water bottle) that not even the organizers own!
 
@@ -103,7 +101,7 @@ We won’t go into too much detail to highlight the participant submissions, but
 
 We briefly discuss the top solutions and our thoughts on their optimizations. We highly recommend reaching each solution separately to get the full details of how they topped the leaderboard!
 
-![trimul-david](static/images/trimul-david.png)
+![trimul-david](/static/images/trimul-david.png)
 
 **David Berard’s solution. [[writeup](https://davidberard98.github.io/gpumode-trimul/)] [[code](https://github.com/davidberard98/gpumode-trimul/blob/main/impl.py)]** David’s solution is written as a worklog of his changes over time, which can be summarized as follows:
 
@@ -119,7 +117,7 @@ Perhaps the most surprising thing for me is Step 2, where David found replacing 
 
 ---
 
-![trimul-arseni](static/images/trimul-arseni.png)
+![trimul-arseni](/static/images/trimul-arseni.png)
 
 **Arseni Ivanov’s solution. [[writeup](https://arseniivanov.github.io/blog.html)] [[code](https://github.com/arseniivanov/trimul)]** Arseni’s solution is also written as a worklog of his changes over time, but he took a different approach in tackling this problem. Here, he reports the slowest 🐌 and fastest ⚡ times for two different inputs on an H100. He first starts purely in PyTorch land:
 
