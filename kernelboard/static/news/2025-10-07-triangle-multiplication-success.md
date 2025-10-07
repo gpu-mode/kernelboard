@@ -5,15 +5,13 @@ date: 2025-10-07
 category: "General"
 ---
 
-Roughly 3 months ago, interspersed between several larger competitions with AMD and Jane Street, we released the “Triangle Multiplicative Update” kernel writing competition to sample interest in kernel writing outside of the large language model stack. Since the competition has concluded as of last week, we wanted to write a short introspective piece on why we found this particular problem so interesting and what kinds of solutions emerged from it.
+Roughly 3 months ago, interspersed between several larger competitions with [AMD](https://www.datamonsters.com/amd-developer-challenge-2025) and [Jane Street](https://github.com/janestreet-gpu-mode/hackathon), we released the “Triangle Multiplicative Update” kernel writing competition to sample interest in kernel writing outside of the large language model stack. Since the competition has concluded as of last week, we wanted to write a short introspective piece on why we found this particular problem so interesting and what kinds of solutions emerged from it.
 
-This competition was for participants, who, as some would say, did it “for the love of the game”. If you’ve been paying attention to or participating in GPU MODE competitions recently, you’ll notice a general trend towards production-ready, large-scale kernels for LLM training and inference. However, there are plenty of domains outside of LLMs that are in dire need of memory-efficient and blazingly fast kernels — biology + ML in particular tends to use domain-specific modules and layers such as the Triangle Multiplicative Update that use disproportionately large amounts of activation memory, and are not cache-friendly when written in PyTorch! We knew that this problem was likely out of the comfort zone for most members of our community, so we were very impressed with the submissions and final results of the competition.
+This competition was for participants, who, as some would say, did it “*for the love of the game*”. If you’ve been paying attention to or participating in GPU MODE competitions recently, you’ll notice a general trend towards production-ready, large-scale kernels for LLM training and inference. However, there are plenty of domains outside of LLMs that are in dire need of memory-efficient and blazingly fast kernels — biology + ML in particular tends to use domain-specific modules and layers such as the Triangle Multiplicative Update that use disproportionately large amounts of activation memory, and are not cache-friendly when written in PyTorch! We knew that this problem was likely out of the comfort zone for most members of our community, so we were very impressed with the submissions and final results of the competition.
 
 ![trimul-winners.png](/static/images/trimul-winners.png)
 
 The rest of this post will be dedicated to an analysis of why this particular problem is quite nasty (and is still a bottleneck in production structure prediction models), as well as a peek into the top submissions by our two winners 🏆, **[Arseni Ivanov](https://arseniivanov.github.io/blog.html) and [David Berard](https://davidberard98.github.io/gpumode-trimul/)**! We also will briefly discuss our ***intended*** solution and how we would have approached the problem, had we participated.
-
-**Table of Contents:**
 
 ## The Wonderful Participant Writeups ✍🏻
 
@@ -33,21 +31,7 @@ We took one of the popular layers, the Triangle Multiplicative Update (or TriMul
 
 **Algorithm 12** roughly translates in PyTorch to:
 
-```python
-# Lines 1-3
-left = self.left_proj(x)
-right = self.right_proj(x)
-
-mask = mask.unsqueeze(-1)
-left = left * mask
-right = right * mask
-
-left_gate = self.left_gate(x).sigmoid()
-right_gate = self.right_gate(x).sigmoid()
-out_gate = self.out_gate(x).sigmoid()
-
-left = left * left_gate
-right = right * right_gate
+![trimul-python.png](/static/images/trimul-python.png)
 
 # Line 4
 out = einsum('bikh,bjkh->bijh', left, right) # main compute bottleneck
@@ -79,7 +63,7 @@ We had two separate scoring / ranking criteria for determining our two winners. 
 
 🥇 The participant with the highest average ranking was [**Arseni Ivanov**](https://arseniivanov.github.io/blog.html), who ranked 1st on the A100, 1st on the MI300, 2nd on the B200, and 3rd on the H100! These were extremely impressive and consistent results, and he tuned his kernels to each GPU! [[**code**](https://github.com/arseniivanov/trimul)]
 
-![trimul-water](/static/images/trimul-water.png)
+![trimul-water](/static/images/trimul-water.jpg)
 
 Congratulations to the winners David and Arseni, who received one-of-a-kind GPU MODE merch (an $80+ custom water bottle) that not even the organizers own!
 
@@ -106,10 +90,10 @@ We briefly discuss the top solutions and our thoughts on their optimizations. We
 **David Berard’s solution. [[writeup](https://davidberard98.github.io/gpumode-trimul/)] [[code](https://github.com/davidberard98/gpumode-trimul/blob/main/impl.py)]** David’s solution is written as a worklog of his changes over time, which can be summarized as follows:
 
 1. Baseline PyTorch with tf32 enabled: **8.61 ms**
-2. Persistent matmul kernel to fuse all Linear layers in Lines 1-3: **6.28ms (27% ↓)**
-3. Custom LayerNorm for last layer: **4.58ms (47% ↓)**
-4. Transposing + Batched MM in Line 4: **2.73ms (68% ↓)**
-5. tf32 —> fp16: **1.91ms (77% ↓)**
+2. Persistent matmul kernel to fuse all Linear layers in Lines 1-3: **6.28ms <span style="color:green;">(27% ↓)</span>**
+3. Custom LayerNorm for last layer: **4.58ms <span style="color:green;">(47% ↓)</span>**
+4. Transposing + Batched MM in Line 4: **2.73ms <span style="color:green;">(68% ↓)</span>**
+5. tf32 —> fp16: **1.91ms <span style="color:green;">(77% ↓)</span>**
 
 **Note**: He reported these numbers from his own local tests, which differ slightly from the number reported on our leaderboard.
 
@@ -144,4 +128,4 @@ We honestly had no idea if anyone would participate in this competition — it w
 
 Thanks to everyone for participating, and we hope to see you at the GPU MODE IRL#2 event later this month!
 
-- az
+— az
