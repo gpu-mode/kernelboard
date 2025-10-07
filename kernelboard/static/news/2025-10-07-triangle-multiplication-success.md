@@ -33,12 +33,6 @@ We took one of the popular layers, the Triangle Multiplicative Update (or TriMul
 
 ![trimul-python.png](/static/images/trimul-python.png)
 
-# Line 4
-out = einsum('bikh,bjkh->bijh', left, right) # main compute bottleneck
-out = self.to_out_norm(out)
-out = out * out_gate
-```
-
 In plain english, you start with a 4D input tensor of shape `[batch, seq_len, seq_len, hidden_dim]` that is `LayoutRight`. You then form a left and right tensor of the same shape through some normalization and linear transformations + epilogue activations. You compute a big batched matmul between the sequence dimensions of the left/right tensors, then normalize again and apply an output gate. In this algorithm, all normalization and linear layers apply to the last dimension, i.e. `hidden_dim`.
 
 So let’s think a little bit about what’s going on here. Lines 1-3 have dependencies along the `hidden_dim`, which requires extra reads and writes if we chunk along the last dimension (see [LayerNorm implementations](https://triton-lang.org/main/getting-started/tutorials/05-layer-norm.html)). Line 4 *batches* over the hidden dimension, and is essentially a batched matrix multiplication `ik,jk->ij` where both the `batch` and `hidden_dim` are batch dimensions. **However**, notice that the inner dimension `k` is not contiguous in global memory! Then, at the very end, we again have a layer norm over the `hidden_dim`.
