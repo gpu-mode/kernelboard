@@ -1,10 +1,10 @@
 import {
-  render,
   screen,
   fireEvent,
   within,
   waitFor,
 } from "@testing-library/react";
+import { renderWithProviders } from "../../tests/test-utils";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import News from "./News"; // 假设你当前文件路径为 pages/News.tsx
 import * as apiHook from "../../lib/hooks/useApi";
@@ -57,8 +57,8 @@ describe("News", () => {
       mockHookReturn,
     );
 
-    // render
-    render(<News />);
+  // render inside MemoryRouter + ThemeProvider
+  renderWithProviders(<News />);
 
     // asserts
     expect(screen.getByText(/Summoning/i)).toBeInTheDocument();
@@ -78,8 +78,8 @@ describe("News", () => {
       mockHookReturn,
     );
 
-    // render
-    render(<News />);
+  // render inside MemoryRouter + ThemeProvider
+  renderWithProviders(<News />);
 
     // asserts
     expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
@@ -99,8 +99,8 @@ describe("News", () => {
       mockHookReturn,
     );
 
-    // render
-    render(<News />);
+  // render inside MemoryRouter + ThemeProvider
+  renderWithProviders(<News />);
 
     // asserts
     expect(screen.getByText("News and Announcements")).toBeInTheDocument();
@@ -136,8 +136,8 @@ describe("News", () => {
       mockHookReturn,
     );
 
-    // render
-    render(<News />);
+  // render inside MemoryRouter + ThemeProvider
+  renderWithProviders(<News />);
 
     // asserts
     const sidebar = screen.getByTestId("news-sidbar");

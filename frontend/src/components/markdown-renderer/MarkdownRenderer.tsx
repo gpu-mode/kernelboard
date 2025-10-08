@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 
 type MarkdownRendererProps = {
   content: string;
   imageProps?: MarkdownRendererImageProps;
+  // called when the rendered content is fully laid out (images loaded)
+  onLoadComplete?: () => void;
 };
 
 type MarkdownRendererImageProps = {
@@ -40,11 +42,58 @@ const defaultImageProps: MarkdownRendererImageProps = {
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   content,
   imageProps,
+  onLoadComplete,
 }) => {
   const mergedImageProps = { ...defaultImageProps, ...imageProps };
   const { align, ...styleProps } = mergedImageProps;
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // Detect when images inside the rendered markdown finish loading.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) {
+      onLoadComplete?.();
+      return;
+    }
+
+    const imgs = Array.from(el.querySelectorAll("img")) as HTMLImageElement[];
+    if (imgs.length === 0) {
+      // no images -> content is effectively ready
+      // schedule on next tick to ensure paint
+      const t = window.setTimeout(() => onLoadComplete?.(), 0);
+      return () => clearTimeout(t);
+    }
+
+    let settled = 0;
+    const handlers: Array<() => void> = [];
+    imgs.forEach((img) => {
+      if (img.complete) {
+        settled += 1;
+        return;
+      }
+      const onFinish = () => {
+        settled += 1;
+        if (settled === imgs.length) onLoadComplete?.();
+      };
+      img.addEventListener("load", onFinish);
+      img.addEventListener("error", onFinish);
+      handlers.push(() => {
+        img.removeEventListener("load", onFinish);
+        img.removeEventListener("error", onFinish);
+      });
+    });
+
+    if (settled === imgs.length) {
+      // all images already complete
+      const t = window.setTimeout(() => onLoadComplete?.(), 0);
+      return () => clearTimeout(t);
+    }
+
+    return () => handlers.forEach((h) => h());
+  }, [content, onLoadComplete]);
   return (
-    <ReactMarkdown
+    <div ref={containerRef}>
+      <ReactMarkdown
       rehypePlugins={[rehypeRaw]}
       components={{
         figure: ({ node, ...props }) => (
@@ -70,7 +119,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       }}
     >
       {content}
-    </ReactMarkdown>
+      </ReactMarkdown>
+    </div>
   );
 };
 
