@@ -57,9 +57,7 @@ We had two separate scoring / ranking criteria for determining our two winners. 
 
 🥇 The participant with the highest average ranking was [**Arseni Ivanov**](https://arseniivanov.github.io/blog.html), who ranked 1st on the A100, 1st on the MI300, 2nd on the B200, and 3rd on the H100! These were extremely impressive and consistent results, and he tuned his kernels to each GPU! [[**code**](https://github.com/arseniivanov/trimul)]
 
-![trimul-water](/static/images/trimul-water.jpg)
-
-Congratulations to the winners David and Arseni, who received one-of-a-kind GPU MODE merch (an $80+ custom water bottle) that not even the organizers own!
+Congratulations to the winners David and Arseni, who received one-of-a-kind GPU MODE merch (an [$80+ custom water bottle](/static/images/trimul-water.jpg)) that not even the organizers own!
 
 ## Our Intended Solution + Design Thoughts
 
