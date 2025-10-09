@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { fetchLeaderBoard } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { isExpired, toDateUtc } from "../../lib/date/utils";
@@ -24,6 +24,7 @@ import { SubmissionMode } from "../../lib/types/mode";
 import { useAuthStore } from "../../lib/store/authStore";
 import SubmissionHistorySection from "./components/submission-history/SubmissionHistorySection";
 import LeaderboardSubmit from "./components/LeaderboardSubmit";
+import MarkdownRenderer from "../../components/markdown-renderer/MarkdownRenderer";
 export const CardTitle = styled(Typography)(() => ({
   fontSize: "1.5rem",
   fontWeight: "bold",
@@ -131,7 +132,18 @@ export default function Leaderboard() {
           <Card>
             <CardContent>
               <CardTitle fontWeight="bold">Description</CardTitle>
-              {descriptionText(data.description)}
+              <Suspense fallback={<div>Loading content...</div>}>
+                <MarkdownRenderer
+                  content={data.description}
+                  imageProps={{
+                    maxWidth: "800px",
+                    width: "100%",
+                    minWidth: "200px",
+                    height: "auto",
+                    align: "center",
+                  }}
+                />
+              </Suspense>
             </CardContent>
           </Card>
         </Grid>

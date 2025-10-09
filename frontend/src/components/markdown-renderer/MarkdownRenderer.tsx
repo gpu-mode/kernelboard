@@ -1,6 +1,8 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import rehypeMathjax from "rehype-mathjax";
+import remarkMath from "remark-math";
 
 type MarkdownRendererProps = {
   content: string;
@@ -45,7 +47,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   const { align, ...styleProps } = mergedImageProps;
   return (
     <ReactMarkdown
-      rehypePlugins={[rehypeRaw]}
+      remarkPlugins={[remarkMath]}
+      rehypePlugins={[rehypeRaw, rehypeMathjax]}
       components={{
         figure: ({ node, ...props }) => (
           <figure style={{ textAlign: align, margin: "1.5rem 0" }} {...props} />
