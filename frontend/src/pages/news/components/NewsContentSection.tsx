@@ -27,9 +27,11 @@ const styles = {
 export function NewsContentSection({
   data,
   sectionRefs,
+  onSectionLoad,
 }: {
   data: any[];
   sectionRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>;
+  onSectionLoad?: () => void;
 }) {
   return (
     <Box sx={styles.content} data-testid="news-content">
@@ -59,6 +61,7 @@ export function NewsContentSection({
                 height: "auto",
                 align: "center",
               }}
+              onLoadComplete={() => onSectionLoad?.()}
             />
           </Suspense>
         </Box>
