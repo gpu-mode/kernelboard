@@ -134,7 +134,6 @@ cd frontend && npm run build
 ```
 or at root:
 ```bash
-```
 npm run heroku-postbuild
 ```
 
