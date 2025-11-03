@@ -27,7 +27,7 @@ One grand prize winner will receive a **Dell Pro Max with a GB300** from our gen
 * 3rd Place. NVIDIA RTX 5080
 
 ## Logistics
-Please register at https://luma.com/9n27uem4 to be eligible for prizes
+Please register at [https://luma.com/9n27uem4](https://luma.com/9n27uem4) to be eligible for prizes
 Registration is open until Feb 13. 
 Winners who can attend GTC 2026 will receive their prizes with an award ceremony.
 
