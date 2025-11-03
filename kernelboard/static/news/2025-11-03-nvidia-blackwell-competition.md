@@ -8,6 +8,8 @@ The wait is over -- it's go time!
 
 GPU MODE is teaming up with [NVIDIA](https://www.nvidia.com/), [Sesterce](https://www.sesterce.com), and [Dell](https://www.dell.com) to launch a brand new kernel competition, and you’re invited to push the limits of low-bit kernels on NVIDIA B200s.
 
+![blackwell.png](/static/images/blackwell.png)
+
 With the release of [CuTe DSL / CUTLASS 4.0](https://docs.nvidia.com/cutlass/media/docs/pythonDSL/cute_dsl_general/dsl_introduction.html) and many more pythonic kernel DSLs, there has been a lot of interest in finding problems to practice and learn how to write kernels in Python. This competition is the perfect opportunity for both beginners and experts to learn and compete on the newest NVIDIA Blackwell B200s — all for free! We are excited to see how close you can get to speed-of-light!
 
 The focus of the competition will be common low-bit, single-device kernels for deep learning workloads in the [NVFP4](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/) format. Like other GPU MODE competitions, we will provide written descriptions of each problem, as well as reference code in CuTe DSL to get started. All testing, reference, and template code will be open-source during the competition as well. 
