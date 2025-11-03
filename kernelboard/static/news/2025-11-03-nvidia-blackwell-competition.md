@@ -6,7 +6,7 @@ category: "General"
 ---
 The wait is over -- it's go time! 
 
-GPU MODE is teaming up with [NVIDIA](https://www.nvidia.com/), [Sesterce](https://www.sesterce.com), and [Dell](https://www.dell.com) to launch a brand new kernel competition, and you’re invited to push the limits of low-bit kernels on NVIDIA B200s.
+GPU MODE is teaming up with [NVIDIA](https://www.nvidia.com/), [Sesterce](https://cloud.sesterce.com/compute?referralCode=SES-KNYPOQ-3b6e), and [Dell](https://www.dell.com) to launch a brand new kernel competition, and you’re invited to push the limits of low-bit kernels on NVIDIA B200s.
 
 ![blackwell.png](/static/images/blackwell.png)
 
@@ -28,8 +28,8 @@ One grand prize winner will receive a **Dell Pro Max with a GB300** from our gen
 
 ## Logistics
 Please register at [https://luma.com/9n27uem4](https://luma.com/9n27uem4) to be eligible for prizes
-Registration is open until Feb 13. 
-Winners who can attend GTC 2026 will receive their prizes with an award ceremony.
+* Registration is open until Feb 13. 
+* Winners who can attend GTC 2026 will receive their prizes with an award ceremony.
 
 Similar to other GPU MODE competitions in the past, you can expect to:
 * Make submissions at ⁠#submissions,
