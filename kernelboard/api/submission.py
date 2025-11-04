@@ -233,7 +233,6 @@ def toReport(run:any):
     compilation = run['compilation']
 
     report = {}
-    print("mode: ", mode, "passed: ", passed, "compilation: ",compilation,"result: ", result)
 
     # if crash, just return empty report
     if not _is_crash_report(compilation, passed):
