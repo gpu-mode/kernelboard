@@ -207,6 +207,12 @@ def list_user_submissions_with_status(
             }
             for r in rows
         ]
+
+        for item in items:
+            for run in item["runs"]:
+               report = toReport(run)
+               run["report"] = report
+               run["result"] = None
         cur.execute(
             """
             SELECT COUNT(*) AS total
@@ -220,6 +226,142 @@ def list_user_submissions_with_status(
         total = int(row[0]) if row else 0
     return items, total
 
+def toReport(run:any):
+    mode = run['mode']
+    passed = run['passed']
+    result = run['result']
+    compilation = run['compilation']
+
+    report = {}
+    print("mode: ", mode, "passed: ", passed, "compilation: ",compilation,"result: ", result)
+
+    # if crash, just return empty report
+    if not _is_crash_report(compilation, passed):
+        log = generate_report_by_type(mode,result)
+        report={"log":log}
+    return report
+
+def generate_report_by_type(mode,result):
+    if mode == 'test':
+        return make_test_log(result)
+    elif mode == 'benchmark':
+        return make_benchmark_log(result)
+    elif mode == 'profile':
+        return make_profile_log(result)
+    elif mode == 'leaderboard':
+        return make_benchmark_log(result)
+    return ""
+
+
+def make_test_log(result: dict) -> str:
+    test_log = []
+    for i in range(len(result)):
+        status = result.get(f"test.{i}.status", None)
+        spec = result.get(f"test.{i}.spec", "<Error>")
+        if status is None:
+            break
+        if status == "pass":
+            test_log.append(f"✅ {spec}")
+            msg = result.get(f"test.{i}.message", None)
+            if msg:
+                test_log.append(f"> {msg.replace('\\n', '\n')}")
+        elif status == "fail":
+            test_log.append(f"❌ {spec}")
+            error = result.get(f"test.{i}.error", "No error information available")
+            if error:
+                test_log.append(f"> {error.replace('\\n', '\n')}")
+    if len(test_log) > 0:
+        return str.join("\n", test_log)
+    else:
+        return "❗ Could not find any test cases"
+
+def make_benchmark_log(result:dict) -> str:
+    num_bench = int(result.get("benchmark-count", 0))
+
+    def log_one(base_name):
+        status = result.get(f"{base_name}.status")
+        spec = result.get(f"{base_name}.spec")
+        if status == "fail":
+            bench_log.append(f"❌ {spec} failed testing:\n")
+            bench_log.append(result.get(f"{base_name}.error"))
+            return
+        mean = result.get(f"{base_name}.mean")
+        err = result.get(f"{base_name}.err")
+        best = result.get(f"{base_name}.best")
+        worst = result.get(f"{base_name}.worst")
+
+        bench_log.append(f"{spec}")
+        bench_log.append(f" ⏱ {format_time(mean, err)}")
+        if best is not None and worst is not None:
+            bench_log.append(f" ⚡ {format_time(best)} 🐌 {format_time(worst)}")
+
+    bench_log = []
+    for i in range(num_bench):
+        log_one(f"benchmark.{i}")
+        bench_log.append("")
+    if len(bench_log) > 0:
+        return "\n".join(bench_log)
+    else:
+        return "❗ Could not find any benchmarks"
+
+def make_profile_log(result: dict) -> str:
+    num_bench = int(result.get("benchmark-count", 0))
+    def log_one(base_name):
+        spec = result.get(f"{base_name}.spec")
+        report: str = result.get(f"{base_name}.report")
+        report = base64.b64decode(report.encode("utf-8"), b"+*").decode("utf-8")
+        report = textwrap.indent(report, "  ")
+        bench_log.append(f"{spec}\n")
+        bench_log.append(report)
+
+    bench_log = []
+    for i in range(num_bench):
+        log_one(f"benchmark.{i}")
+        bench_log.append("")
+
+    if len(bench_log) > 0:
+        return "\n".join(bench_log)
+    else:
+        return "❗ Could not find any profiling data"
+
+def make_benchmark_log(result: dict) -> str:
+    num_bench = int(result.get("benchmark-count", 0))
+
+    def log_one(base_name):
+        status = result.get(f"{base_name}.status")
+        spec = result.get(f"{base_name}.spec")
+        if status == "fail":
+            bench_log.append(f"❌ {spec} failed testing:\n")
+            bench_log.append(result.get(f"{base_name}.error"))
+            return
+
+        mean = result.get(f"{base_name}.mean")
+        err = result.get(f"{base_name}.err")
+        best = result.get(f"{base_name}.best")
+        worst = result.get(f"{base_name}.worst")
+
+        bench_log.append(f"{spec}")
+        bench_log.append(f" ⏱ {format_time(mean, err)}")
+        if best is not None and worst is not None:
+            bench_log.append(f" ⚡ {format_time(best)} 🐌 {format_time(worst)}")
+
+    bench_log = []
+    for i in range(num_bench):
+        log_one(f"benchmark.{i}")
+        bench_log.append("")
+
+    if len(bench_log) > 0:
+        return "\n".join(bench_log)
+    else:
+        return "❗ Could not find any benchmarks"
+
+
+def _is_crash_report(compilation: dict, passed: bool):
+    if not passed:
+        return True
+    if compilation and not compilation.get("success",false):
+        return True
+    return False
 
 def get_user_token(user_id: int) -> Optional[str]:
     conn = get_db_connection()
@@ -274,7 +416,9 @@ def _query_list_submission(
                         'mode',       r.mode,
                         'passed',     r.passed,
                         'score',      r.score,
-                        'meta',       COALESCE(r.meta::jsonb, '{}'::jsonb)
+                        'meta',       COALESCE(r.meta::jsonb, '{}'::jsonb),
+                        'result',    COALESCE(r.result::jsonb, '{}'::jsonb),
+                        'compilation', COALESCE(r.compilation::jsonb, '{}'::jsonb)
                         )
                         ORDER BY r.start_time
                     )
@@ -293,3 +437,45 @@ def _query_list_submission(
             """
     params = (leaderboard_id, user_id, limit, offset)
     return sql, params
+
+def format_time(nanoseconds: float | str, err: Optional[float | str] = None):  # noqa: C901
+    if nanoseconds is None:
+        logging.warning("Expected a number, got None", stack_info=True)
+        return "–"
+
+    # really ugly, but works for now
+    nanoseconds = float(nanoseconds)
+
+    scale = 1  # nanoseconds
+    unit = "ns"
+    if nanoseconds > 2_000_000:
+        scale = 1000_000
+        unit = "ms"
+    elif nanoseconds > 2000:
+        scale = 1000
+        unit = "µs"
+
+    time_in_unit = nanoseconds / scale
+    if err is not None:
+        err = float(err)
+        err /= scale
+    if time_in_unit < 1:
+        if err:
+            return f"{time_in_unit} ± {err} {unit}"
+        else:
+            return f"{time_in_unit} {unit}"
+    elif time_in_unit < 10:
+        if err:
+            return f"{time_in_unit:.2f} ± {err:.3f} {unit}"
+        else:
+            return f"{time_in_unit:.2f} {unit}"
+    elif time_in_unit < 100:
+        if err:
+            return f"{time_in_unit:.1f} ± {err:.2f} {unit}"
+        else:
+            return f"{time_in_unit:.1f} {unit}"
+    else:
+        if err:
+            return f"{time_in_unit:.0f} ± {err:.1f} {unit}"
+        else:
+            return f"{time_in_unit:.0f} {unit}"
