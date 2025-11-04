@@ -213,6 +213,7 @@ def list_user_submissions_with_status(
                report = toReport(run)
                run["report"] = report
                run["result"] = None
+        print("items",items)
         cur.execute(
             """
             SELECT COUNT(*) AS total
@@ -237,7 +238,9 @@ def toReport(run:any):
     # if crash, just return empty report
     if not _is_crash_report(compilation, passed):
         log = generate_report_by_type(mode,result)
-        report={"log":log}
+
+        if log:
+            report={"log":log}
     return report
 
 def generate_report_by_type(mode,result):
@@ -353,7 +356,6 @@ def make_benchmark_log(result: dict) -> str:
         return "\n".join(bench_log)
     else:
         return "❗ Could not find any benchmarks"
-
 
 def _is_crash_report(compilation: dict, passed: bool):
     if not passed:
