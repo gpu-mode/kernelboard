@@ -12,14 +12,8 @@ The hackathon was open ended, with the 170 participants coming to the hackathon 
 
 **A tremendous thanks** to the speakers [William Fedus](https://x.com/liamfedus), [Edward Yang](https://github.com/ezyang) and [Adam Peske](https://x.com/apaszke); the judges [Tianqi Chen](https://tqchen.com/), [Edward Yang](https://github.com/ezyang), [Daniel Han](https://github.com/danielhanchen) and [Mark Saroufim](https://x.com/marksaroufim?lang=en); and the TAs [Horace He](https://github.com/chillee), [Amir Afzali](https://github.com/amirafzali), [Vincent Moens](https://github.com/vmoens), [Aleksa Gordic](https://github.com/gordicaleksa), [Benjamin Chetioui](https://github.com/bchetioui), [Daniel Vega-Myhre](https://github.com/danielvegamyhre), [Hicham Badri](https://github.com/mobicham), [Tristan Rice](https://github.com/d4l3k) and [Alban Desmaisons](https://github.com/alband), all without whom this would not have been possible.
 
-<figure>
-  <img src="/static/images/accel_irl_hacking.png" alt="Hacking" />
-  <figcaption>Hackers in the zone</figcaption>
-</figure>
-<figure>
-  <img src="/static/images/accel_irl_Mark.png" alt="Mark Presenting" />
-  <figcaption>Wisdom from Mark</figcaption>
-</figure>
+![Hackers in the zones](/static/images/accel_irl_hacking.png)
+![Wisdom from Mark](/static/images/accel_irl_Mark.png)
 
 #### The Winners
 Congratulations to the winners for impressive ideas executed in the span of <6 hours, and for coming top out of 22 submissions!
