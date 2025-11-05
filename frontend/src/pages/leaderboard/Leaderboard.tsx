@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useEffect, useState } from "react";
-import { fetchLeaderBoard } from "../../api/api";
+import { fetchCodes, fetchLeaderBoard } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { isExpired, toDateUtc } from "../../lib/date/utils";
 import RankingsList from "./components/RankingLists";
@@ -61,6 +61,7 @@ function TabPanel(props: {
 
 export default function Leaderboard() {
   const { id } = useParams<{ id: string }>();
+
   const { data, loading, error, errorStatus, call } =
     fetcherApiCallback(fetchLeaderBoard);
   const me = useAuthStore((s) => s.me);
@@ -109,6 +110,7 @@ export default function Leaderboard() {
     { title: "Language", content: <span>{data.lang}</span> },
     { title: "GPU types", content: <span>{data.gpu_types.join(", ")}</span> },
   ];
+
   return (
     <ConstrainedContainer>
       <Box>
@@ -155,7 +157,7 @@ export default function Leaderboard() {
         <TabPanel value={tab} index={0}>
           <Box>
             {Object.entries(data.rankings).length > 0 ? (
-              <RankingsList rankings={data.rankings} />
+              <RankingsList rankings={data.rankings} leaderboardId={id} />
             ) : (
               <Box display="flex" flexDirection="column" alignItems="center">
                 <Typography variant="h6" fontWeight="bold">
