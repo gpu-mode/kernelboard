@@ -98,12 +98,15 @@ def ensure_user_info_with_token(user_id: int, user_name: str) -> Optional[Any]:
         return cur.fetchone()
 
 
-def get_whitelist(leaderboard_id: str ="") -> set[str]:
+def get_whitelist(leaderboard_id: str = "") -> set[str]:
     """
      return a unique set of cleaned Discord user IDs.
     TODO: move this to a db table if more roles are needed
     """
-    # GpuMode CORE Team
+    if not isinstance(leaderboard_id, str):
+        leaderboard_id = str(leaderboard_id)
+
+    # GpuMode CORE Team, always have access to all leaderboards
     GPU_TEAM_WHITE_LIST = [
         "1372260358621888674",
         "489144435032981515",
@@ -113,5 +116,7 @@ def get_whitelist(leaderboard_id: str ="") -> set[str]:
         "1394757548833509408",
     ]
 
-    # Add leaderboard based white_list
-    return set(GPU_TEAM_WHITE_LIST)
+    whitelist = GPU_TEAM_WHITE_LIST
+
+    # Add leaderboard based white_list,notice leaderboard_id is a string
+    return set(whitelist)

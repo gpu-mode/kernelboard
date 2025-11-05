@@ -149,8 +149,7 @@ def list_codes():
             code=10000 + http.HTTPStatus.BAD_REQUEST.value,
             status_code=http.HTTPStatus.BAD_REQUEST,
         )
-
-    whilte_list = get_whitelist()
+    whilte_list = get_whitelist(leaderboard_id)
     if user_id not in whilte_list:
         logger.info("[list_codes] user is not admin, skip the request")
         return http_success(message="skip since user is not admin", data={})
