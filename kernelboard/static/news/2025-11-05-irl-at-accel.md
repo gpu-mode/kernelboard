@@ -14,7 +14,7 @@ The hackathon was open ended, with the 170 participants coming to the hackathon 
 
 <figure>
   <img src="/static/images/accel_irl_hacking.jpg" alt="Hackers in the zone" />
-  <figcaption>Hackers in the zones</figcaption>
+  <figcaption>Hackers in the zone</figcaption>
 </figure>
 <figure>
   <img src="/static/images/accel_irl_mark.jpg" alt="Wisdom from Mark" />
