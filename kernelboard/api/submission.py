@@ -177,7 +177,9 @@ def list_codes():
         )
 
 
-def check_admin_access_codes(user_id: str, leaderboard_id: int, submission_ids: List[int]):
+def check_admin_access_codes(
+    user_id: str, leaderboard_id: int, submission_ids: List[int]
+):
     # check if user able to see the leaderboard codes
     whilte_list = get_whitelist(leaderboard_id)
     if user_id not in whilte_list:
@@ -281,7 +283,9 @@ def list_codes(
 
 
 def decodeCodeText(code_text):
-    if isinstance(code_text, bytes):
+    if isinstance(code_text, memoryview):
+        return code_text.tobytes().decode("utf-8")
+    elif isinstance(code_text, bytes):
         # already bytes -> decode directly
         return code_text.decode("utf-8", errors="replace")
     elif isinstance(code_text, str):
