@@ -5,6 +5,7 @@ from flask_login import login_required, current_user
 import requests
 from kernelboard.lib.auth_utils import (
     get_id_and_username_from_session,
+    get_whitelist,
 )
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.error import ValidationError, validate_required_fields
@@ -120,6 +121,54 @@ def submission():
         )
 
 
+@submission_bp.route("/codes", methods=["POST"])
+# @login_required
+def list_codes():
+    """
+    POST /codes
+    Body example:
+      {
+        "leaderboard_id": 123,
+        "submission_ids": [1, 2, 3]
+      }
+    """
+    logger.info("[list_codes] list code request is received")
+
+    user_id, _ = get_id_and_username_from_session()
+
+    if not user_id:
+        logger.info("[list_codes] skip since user is not logged in")
+        return http_success(message="skip since user is not logged in", data={})
+
+    data = request.get_json(silent=True) or {}
+    leaderboard_id = data.get("leaderboard_id")
+    submission_ids = data.get("submission_ids", [])
+    if leaderboard_id is None:
+        return http_error(
+            message="leaderboard_id is required (int)",
+            code=10000 + http.HTTPStatus.BAD_REQUEST.value,
+            status_code=http.HTTPStatus.BAD_REQUEST,
+        )
+
+    whilte_list = get_whitelist()
+    if user_id not in whilte_list:
+        logger.info("[list_codes] user is not admin, skip the request")
+        return http_success(message="skip since user is not admin", data={})
+    else:
+        logger.info("[list_codes] user is admin, continue the request")
+
+    if not submission_ids:
+        return http_success(
+            message="skip since request has empty submission_id list",
+            data={},
+        )
+
+    results = list_codes(leaderboard_id, submission_ids)
+    return http_success(
+        data={"results": results},
+    )
+
+
 @submission_bp.route("/submissions", methods=["GET"])
 @login_required
 def list_submissions():
@@ -144,7 +193,7 @@ def list_submissions():
             code=10000 + http.HTTPStatus.BAD_REQUEST.value,
             status_code=http.HTTPStatus.BAD_REQUEST,
         )
-    # clamp limit
+
     limit = max(1, min(limit, 100))
     try:
         items, total = list_user_submissions_with_status(
@@ -171,6 +220,46 @@ def list_submissions():
             "offset": offset,
         },
     )
+
+
+def list_codes(
+    leaderboard_id: int,
+    submission_ids: List[int],
+) -> Tuple[List[dict[str, Any]], int]:
+    conn = get_db_connection()
+    with conn.cursor() as cur:
+        sql, params = _query_list_codes(leaderboard_id, submission_ids)
+        cur.execute(sql, params)
+        rows = cur.fetchall()
+        items = [
+            {
+                "submission_id": r[0],
+                "leaderboard_id": r[1],
+                "code_id": r[2],
+                "code": decodeCodeText(r[3]),
+            }
+            for r in rows
+        ]
+    return items
+
+
+def decodeCodeText(code_text):
+    if isinstance(code_text, bytes):
+        # already bytes -> decode directly
+        return code_text.decode("utf-8", errors="replace")
+    elif isinstance(code_text, str):
+        # looks like hex string representation from Postgres bytea (\x...)
+        if code_text.startswith("\\x"):
+            try:
+                return bytes.fromhex(code_text[2:]).decode("utf-8", errors="replace")
+            except Exception as e:
+                logger.info("decode error:", e)
+                return code_text
+        else:
+            return code_text
+    else:
+        logger.info("unexpected type:", type(code_text))
+        return str(code_text)
 
 
 def get_cluster_manager_endpoint():
@@ -400,6 +489,27 @@ def log_rate_limit():
         used = limit_ - remaining
         reset_in = max(0, int(rl.reset_at - time.time()))
     logger.info(f"rate limit: {limit_},used {used}, reset{reset_in}")
+
+
+def _query_list_codes(
+    leaderboard_id: int, submission_ids: List[int]
+) -> Tuple[str, tuple]:
+    sql = """
+    SELECT
+      s.id               AS submission_id,
+      s.leaderboard_id,
+      cf.id              AS code_id,
+      cf.code            AS code_raw
+    FROM leaderboard.submission AS s
+    JOIN leaderboard.code_files AS cf
+      ON cf.id = s.code_id
+    WHERE
+      s.leaderboard_id = %s
+      AND s.id = ANY(%s::int[])
+    ORDER BY s.id DESC;
+    """
+    params = (leaderboard_id, submission_ids)
+    return sql, params
 
 
 def _query_list_submission(
