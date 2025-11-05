@@ -6,9 +6,7 @@ from kernelboard.lib.status_code import http_error, http_success
 from http import HTTPStatus
 
 
-leaderboard_bp = Blueprint(
-    "leaderboard_bp", __name__, url_prefix="/leaderboard"
-)
+leaderboard_bp = Blueprint("leaderboard_bp", __name__, url_prefix="/leaderboard")
 
 
 @leaderboard_bp.route("/<int:leaderboard_id>", methods=["GET"])
@@ -30,6 +28,7 @@ def leaderboard(leaderboard_id: int):
 
     res = to_api_leaderboard_item(data)
     return http_success(res)
+
 
 # converts db record to api
 def to_api_leaderboard_item(data: dict[str, Any]):
@@ -114,6 +113,7 @@ def _get_query():
                 r.score AS score,
                 s.submission_time AS submission_time,
                 s.file_name AS file_name,
+                r.submission_id AS submission_id,
                 RANK() OVER (PARTITION BY r.runner, u.id ORDER BY r.score ASC) AS rank
             FROM leaderboard.runs r
                 JOIN leaderboard.submission s ON r.submission_id = s.id
@@ -130,7 +130,8 @@ def _get_query():
                     jsonb_build_object(
                         'user_name', r.user_name,
                         'score', r.score,
-                        'file_name', r.file_name
+                        'file_name', r.file_name,
+                        'submission_id', r.submission_id
                     )
                     ORDER BY r.score ASC
                 )
