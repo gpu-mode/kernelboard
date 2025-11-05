@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -13,6 +13,8 @@ import RankingTitleBadge from "./RankingTitleBadge";
 
 import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
 import { getMedalIcon } from "../../../components/common/medal.tsx";
+import { fetchCodes } from "../../../api/api.ts";
+import { CodeDialog } from "./CodeDialog.tsx";
 
 interface RankingItem {
   file_name: string;
@@ -20,10 +22,12 @@ interface RankingItem {
   rank: number;
   score: number;
   user_name: string;
+  submission_id: number;
 }
 
 interface RankingsListProps {
   rankings: Record<string, RankingItem[]>;
+  leaderboardId?: string;
 }
 
 const styles: Record<string, SxProps<Theme>> = {
@@ -65,11 +69,47 @@ const styles: Record<string, SxProps<Theme>> = {
   },
 };
 
-export default function RankingsList({ rankings }: RankingsListProps) {
+export default function RankingsList({
+  rankings,
+  leaderboardId,
+}: RankingsListProps) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [colorHash, _] = useState<string>(
     Math.random().toString(36).slice(2, 8),
   );
+  const [codes, setCodes] = useState<Map<number, string>>(new Map());
+
+  const submissionIds = useMemo(() => {
+    if (!rankings) return [];
+    const ids: number[] = [];
+    Object.entries(rankings).forEach(([key, value]) => {
+      const li = value as any[];
+      if (Array.isArray(li) && li.length > 0) {
+        li.forEach((item) => {
+          if (item?.submission_id) {
+            ids.push(item.submission_id);
+          }
+        });
+      }
+    });
+    return ids;
+  }, [rankings]);
+
+  useEffect(() => {
+    if (!submissionIds || submissionIds.length === 0 || !leaderboardId) return;
+    fetchCodes(leaderboardId, submissionIds)
+      .then((data) => {
+        const map = new Map<number, string>();
+        for (const item of data?.results ?? []) {
+          map.set(item.submission_id, item.code);
+        }
+        setCodes(map);
+      })
+      .catch((err) => {
+        // soft error handle it since it's not critical
+        console.warn("[RankingsList] Failed to fetch codes:", err);
+      });
+  }, [leaderboardId, submissionIds]);
 
   const toggleExpanded = (field: string) => {
     setExpanded((prev) => ({
@@ -136,7 +176,12 @@ export default function RankingsList({ rankings }: RankingsListProps) {
                     </Typography>
                   </Grid>
                   <Grid size={3}>
-                    <Typography>{item.file_name}</Typography>
+                    <Typography>
+                      <CodeDialog
+                        code={codes.get(item?.submission_id)}
+                        fileName={item.file_name}
+                      />
+                    </Typography>
                   </Grid>
                 </Grid>
               ))}

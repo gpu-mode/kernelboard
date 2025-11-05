@@ -1,5 +1,5 @@
-
 import secrets
+import os
 from typing import Any, Optional
 
 from flask import session
@@ -7,9 +7,11 @@ from flask_login import current_user
 
 from kernelboard.lib.db import get_db_connection
 import logging
+
 logger = logging.getLogger(__name__)
 
-def get_provider_and_identity(user_id: Optional[str])-> Any:
+
+def get_provider_and_identity(user_id: Optional[str]) -> Any:
     provider = identity = None
     if user_id and ":" in user_id:
         provider, identity = user_id.split(":", 1)
@@ -17,6 +19,7 @@ def get_provider_and_identity(user_id: Optional[str])-> Any:
         "provider": provider,
         "identity": identity,
     }
+
 
 def get_user_info_from_session() -> Any:
     is_auth = not current_user.is_anonymous
@@ -36,6 +39,7 @@ def get_user_info_from_session() -> Any:
     }
     return res
 
+
 def get_id_and_username_from_session():
     """
     Get identity, display_name from session.
@@ -49,8 +53,10 @@ def get_id_and_username_from_session():
     display_name = info["user"]["display_name"]
     return identity, display_name
 
+
 def is_auth() -> bool:
     return not current_user.is_anonymous
+
 
 def ensure_user_info_with_token(user_id: int, user_name: str) -> Optional[Any]:
     """
@@ -90,3 +96,27 @@ def ensure_user_info_with_token(user_id: int, user_name: str) -> Optional[Any]:
             (user_id,),
         )
         return cur.fetchone()
+
+
+def get_whitelist(leaderboard_id: str = "") -> set[str]:
+    """
+     return a unique set of cleaned Discord user IDs.
+    TODO: move this to a db table if more roles are needed
+    """
+    if not isinstance(leaderboard_id, str):
+        leaderboard_id = str(leaderboard_id)
+
+    # GpuMode CORE Team, always have access to all leaderboards
+    GPU_TEAM_WHITE_LIST = [
+        "1372260358621888674",
+        "489144435032981515",
+        "838132355075014667",
+        "325883680419610631",
+        "557943190045327360",
+        "1394757548833509408",
+    ]
+
+    whitelist = GPU_TEAM_WHITE_LIST
+
+    # Add leaderboard based white_list,notice leaderboard_id is a string
+    return set(whitelist)
