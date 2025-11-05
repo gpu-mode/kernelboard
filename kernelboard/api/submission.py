@@ -145,10 +145,12 @@ def list_codes():
     submission_ids = data.get("submission_ids", [])
     if leaderboard_id is None:
         return http_error(
-            message="leaderboard_id is required (int)",
+            message="leaderboard_id is required",
             code=10000 + http.HTTPStatus.BAD_REQUEST.value,
             status_code=http.HTTPStatus.BAD_REQUEST,
         )
+
+    # check if user able to see the leaderboard codes
     whilte_list = get_whitelist(leaderboard_id)
     if user_id not in whilte_list:
         logger.info("[list_codes] user is not admin, skip the request")
