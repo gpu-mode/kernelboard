@@ -18,6 +18,8 @@ from typing import Any, List, Tuple
 import json
 from typing import Any, Tuple, List
 import json
+import base64
+import textwrap
 
 
 logger = logging.getLogger(__name__)
@@ -210,10 +212,9 @@ def list_user_submissions_with_status(
 
         for item in items:
             for run in item["runs"]:
-               report = toReport(run)
-               run["report"] = report
-               run["result"] = None
-        print("items",items)
+                report = toReport(run)
+                run["report"] = report
+                run["result"] = {}
         cur.execute(
             """
             SELECT COUNT(*) AS total
@@ -227,30 +228,31 @@ def list_user_submissions_with_status(
         total = int(row[0]) if row else 0
     return items, total
 
-def toReport(run:any):
-    mode = run['mode']
-    passed = run['passed']
-    result = run['result']
-    compilation = run['compilation']
+
+def toReport(run: any):
+    mode = run["mode"]
+    passed = run["passed"]
+    result = run["result"]
+    compilation = run["compilation"]
 
     report = {}
 
     # if crash, just return empty report
     if not _is_crash_report(compilation, passed):
-        log = generate_report_by_type(mode,result)
-
+        log = generate_report_by_type(mode, result)
         if log:
-            report={"log":log}
+            report = {"log": log}
     return report
 
-def generate_report_by_type(mode,result):
-    if mode == 'test':
+
+def generate_report_by_type(mode, result):
+    if mode == "test":
         return make_test_log(result)
-    elif mode == 'benchmark':
+    elif mode == "benchmark":
         return make_benchmark_log(result)
-    elif mode == 'profile':
+    elif mode == "profile":
         return make_profile_log(result)
-    elif mode == 'leaderboard':
+    elif mode == "leaderboard":
         return make_benchmark_log(result)
     return ""
 
@@ -277,7 +279,8 @@ def make_test_log(result: dict) -> str:
     else:
         return "❗ Could not find any test cases"
 
-def make_benchmark_log(result:dict) -> str:
+
+def make_benchmark_log(result: dict) -> str:
     num_bench = int(result.get("benchmark-count", 0))
 
     def log_one(base_name):
@@ -306,11 +309,15 @@ def make_benchmark_log(result:dict) -> str:
     else:
         return "❗ Could not find any benchmarks"
 
+
 def make_profile_log(result: dict) -> str:
     num_bench = int(result.get("benchmark-count", 0))
+
     def log_one(base_name):
         spec = result.get(f"{base_name}.spec")
-        report: str = result.get(f"{base_name}.report")
+        report: str = result.get(f"{base_name}.report", "")
+        if not report:
+            return ""
         report = base64.b64decode(report.encode("utf-8"), b"+*").decode("utf-8")
         report = textwrap.indent(report, "  ")
         bench_log.append(f"{spec}\n")
@@ -325,6 +332,7 @@ def make_profile_log(result: dict) -> str:
         return "\n".join(bench_log)
     else:
         return "❗ Could not find any profiling data"
+
 
 def make_benchmark_log(result: dict) -> str:
     num_bench = int(result.get("benchmark-count", 0))
@@ -357,12 +365,15 @@ def make_benchmark_log(result: dict) -> str:
     else:
         return "❗ Could not find any benchmarks"
 
+
 def _is_crash_report(compilation: dict, passed: bool):
     if not passed:
         return True
-    if compilation and not compilation.get("success",false):
+    is_success = compilation.get("success", False)
+    if compilation and not is_success:
         return True
     return False
+
 
 def get_user_token(user_id: int) -> Optional[str]:
     conn = get_db_connection()
@@ -439,7 +450,10 @@ def _query_list_submission(
     params = (leaderboard_id, user_id, limit, offset)
     return sql, params
 
-def format_time(nanoseconds: float | str, err: Optional[float | str] = None):  # noqa: C901
+
+def format_time(
+    nanoseconds: float | str, err: Optional[float | str] = None
+):  # noqa: C901
     if nanoseconds is None:
         logging.warning("Expected a number, got None", stack_info=True)
         return "–"

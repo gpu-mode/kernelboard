@@ -21,7 +21,7 @@ export function ReportCell({ report }: { report: any }) {
             onClick={() => setOpen(true)}
             sx={{ textTransform: "none" }}
           >
-            details
+            click
           </Button>
           <Dialog
             open={open}
@@ -37,8 +37,9 @@ export function ReportCell({ report }: { report: any }) {
                   m: 0,
                   p: 1,
                   fontSize: 12,
-                  whiteSpace: "pre-wrap",
+                  whiteSpace: "pre",
                   fontFamily: "monospace",
+                  overflowX: "auto",
                 }}
               >
                 {report}
