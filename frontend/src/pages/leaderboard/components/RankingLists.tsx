@@ -106,7 +106,8 @@ export default function RankingsList({
         setCodes(map);
       })
       .catch((err) => {
-        console.error("Failed to fetch codes:", err);
+        // soft error handle it since it's not critical
+        console.warn("[RankingsList] Failed to fetch codes:", err);
       });
   }, [leaderboardId, submissionIds]);
 
