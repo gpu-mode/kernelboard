@@ -13,6 +13,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import { fmt } from "../../../../lib/utils/date";
 import { formatMicroseconds } from "../../../../lib/utils/ranking";
 import { getExitCodeMessage } from "../../../../lib/types/exit_code";
+import { ReportCell } from "./ReportCell";
 
 // --- Types ---
 export type SubmissionRun = {
@@ -22,6 +23,7 @@ export type SubmissionRun = {
   passed: boolean;
   score: number | null;
   meta: any | null; // present, but null when passed = true
+  report: any | null; // present, but null when passed = true
 };
 
 // --- Child table for runs (rendered inside Collapse) ---
@@ -36,6 +38,7 @@ export function SubmissionRunsTable({ runs }: { runs: SubmissionRun[] }) {
           <TableCell>Passed</TableCell>
           <TableCell>Score</TableCell>
           <TableCell>Debug Info</TableCell>
+          <TableCell>Report</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -49,6 +52,8 @@ export function SubmissionRunsTable({ runs }: { runs: SubmissionRun[] }) {
               : null,
             duration: r.meta?.duration,
           };
+
+          const report = r.report?.log;
 
           return (
             <TableRow key={`${r.start_time}-${idx}`}>
@@ -92,6 +97,7 @@ export function SubmissionRunsTable({ runs }: { runs: SubmissionRun[] }) {
                   "—"
                 )}
               </TableCell>
+              <ReportCell report={report} />
             </TableRow>
           );
         })}
