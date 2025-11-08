@@ -28,3 +28,5 @@ Some detailed write-ups from the participants:
 - [yotta on all 3 problems](https://www.yottalabs.ai/post/optimizing-distributed-inference-kernels-for-amd-developer-challenge-2025)
 
 As done previously, all 60,000 kernel submissions  will be released with a permissive license. We are also working with Hugging Face to distribute the best kernels on their kernels project.
+
+Learn more from this [wonderful blog from AMD](https://www.amd.com/en/developer/resources/technical-articles/2025/inside-amd-ai-devday-2025.html)
