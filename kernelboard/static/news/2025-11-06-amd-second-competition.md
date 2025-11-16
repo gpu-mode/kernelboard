@@ -29,4 +29,4 @@ Some detailed write-ups from the participants:
 
 As done previously, all 60,000 kernel submissions  will be released with a permissive license. We are also working with Hugging Face to distribute the best kernels on their kernels project.
 
-If you'd like to learn more about AMD AI DevDay, please see [this nice post AMD wrote](https://www.amd.com/en/developer/resources/technical-articles/2025/inside-amd-ai-devday-2025.html)
+If you'd like to learn more about AMD AI DevDay, please see [this nice post AMD wrote](https://www.amd.com/en/developer/resources/technical-articles/2025/open-source-ai-week-recap.html)
