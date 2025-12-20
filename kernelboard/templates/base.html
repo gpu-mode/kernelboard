@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GPU MODE{% endblock %}</title>
-    
+
     <!-- Emoji Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
-    
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    
+
     {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-white">
@@ -26,6 +26,11 @@
                     <div class="header-item">
                         <a href="{{ url_for('news') }}" class="header-link">
                             News
+                        </a>
+                    </div>
+                    <div class="header-item">
+                        <a href="https://docs.google.com/document/d/1LprkfyOP5cRtv7rwkFiEHx2XEKhtwf9J4bQkD6btzgo/edit?usp=sharing" target="_blank" class="header-link external-link">
+                            Working Groups
                         </a>
                     </div>
                     <div class="header-item">
@@ -100,6 +105,7 @@
             <a href="https://x.com/GPU_MODE" class="footer-link">X</a>
             <a href="https://www.youtube.com/@GPUMODE" class="footer-link">YouTube</a>
             <a href="https://github.com/gpu-mode/" class="footer-link">GitHub</a>
+            <a href="https://www.linkedin.com/company/gpu-mode-c" class="footer-link">LinkedIn</a>
             <span class="footer-text">© 2025 GPU MODE</span>
         </div>
     </footer>
@@ -108,4 +114,4 @@
     <script src="{{ url_for('static', filename='js/flash.js') }}"></script> {# Ensure flash script is linked #}
     {% block scripts %}{% endblock %}
 </body>
-</html> 
+</html>

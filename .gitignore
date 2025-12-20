@@ -13,6 +13,5 @@ node_modules/
 
 .env
 .vscode
-
-
-kernelboard/static/kb
+*.DS_Store
+kernelboard/static/v2
