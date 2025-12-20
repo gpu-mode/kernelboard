@@ -175,6 +175,7 @@ def callback(provider: str):
         redirect_uri = url_for(
             "api.auth.callback", provider=provider, _external=True
         )
+        app.logger.error(f"REDIRECT URI: {redirect_uri}")
         token_res = requests.post(
             provider_data["token_url"],
             data={
@@ -201,6 +202,7 @@ def callback(provider: str):
         app.logger.error(
             "Token exchange failed: status=%s", token_res.status_code
         )
+        app.logger.error(f"TOKEN RES: {token_res.json()}")
         return redirect_with_error(
             "token_error", "Failed to exchange authorization code"
         )
