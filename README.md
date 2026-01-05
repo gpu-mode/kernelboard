@@ -8,6 +8,54 @@ cluster manager, and contains helpful links related to GPU MODE.
 
 Here's how to get started:
 
+### Quick Start (News Tab Only)
+
+If you just want to test the news section without setting up the full database:
+
+1. Create a minimal `.env` file in the root directory:
+
+   ```env
+   SECRET_KEY=dev
+   FLASK_DEBUG=1
+   DATABASE_URL=postgresql://dummy:dummy@localhost/dummy
+   REDIS_URL=redis://localhost:6379
+   DISCORD_CLUSTER_MANAGER_API_BASE_URL=http://dummy
+   DISCORD_CLIENT_ID=dummy
+   DISCORD_CLIENT_SECRET=dummy
+   ```
+
+2. Set up Python environment:
+
+   ```shell
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+3. In one terminal, run Flask:
+
+   ```shell
+   flask --app kernelboard run --debug
+   ```
+
+4. In another terminal, run the React dev server:
+
+   ```shell
+   cd frontend && npm install && npm run dev
+   ```
+
+5. Open your browser to: `http://localhost:5173/v2/news`
+
+   You can test direct blog links like:
+   - `http://localhost:5173/v2/news/irl-at-accel`
+   - `http://localhost:5173/v2/news/amd-second-competition`
+
+### Full Development Setup
+
+For working on the full application (leaderboard, submissions, etc.):
+
+Here's how to get started:
+
 1. Create and activate a virtual environment:
 
    ```shell
