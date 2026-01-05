@@ -25,9 +25,11 @@ const styles = {
 export function Sidebar({
   data,
   scrollTo,
+  currentSlug,
 }: {
   data: any[];
   scrollTo: (id: string) => void;
+  currentSlug?: string;
 }) {
   return (
     <Box sx={styles.sidebar} data-testid="news-sidbar">
@@ -40,6 +42,7 @@ export function Sidebar({
             key={item.id}
             onClick={() => scrollTo(item.id)}
             title={item.title}
+            selected={currentSlug === item.id}
             data-testid={`news-sidbar-button-${item.id}`}
           >
             <ListItemText
