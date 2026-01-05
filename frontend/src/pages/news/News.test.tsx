@@ -14,12 +14,23 @@ vi.mock("../../lib/hooks/useApi", () => ({
   fetcherApiCallback: vi.fn(),
 }));
 
+// Mock React Router hooks
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
+  return {
+    ...actual,
+    useParams: vi.fn(),
+    useNavigate: vi.fn(),
+  };
+});
+
 // Mock MarkdownRenderer to avoid lazy loading issues in tests
 vi.mock("../../components/markdown-renderer/MarkdownRenderer", () => ({
   default: ({ content }: { content: string }) => <div>{content}</div>,
 }));
 
 const mockCall = vi.fn();
+const mockNavigate = vi.fn();
 
 const mockData = [
   {
@@ -41,6 +52,9 @@ const mockData = [
 describe("News", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    const { useParams, useNavigate } = require("react-router-dom");
+    (useParams as ReturnType<typeof vi.fn>).mockReturnValue({});
+    (useNavigate as ReturnType<typeof vi.fn>).mockReturnValue(mockNavigate);
   });
 
   it("shows loading state", () => {
@@ -159,5 +173,50 @@ describe("News", () => {
       behavior: "smooth",
       block: "start",
     });
+    expect(mockNavigate).toHaveBeenCalledWith("/news/news-2", {
+      replace: true,
+    });
+  });
+
+  it("scrolls to section when slug is provided in URL", async () => {
+    // prepare
+    const scrollIntoViewMock = vi.fn();
+    const { useParams } = require("react-router-dom");
+    (useParams as ReturnType<typeof vi.fn>).mockReturnValue({ slug: "news-2" });
+
+    const mockHookReturn = {
+      data: mockData,
+      loading: false,
+      error: null,
+      errorStatus: null,
+      call: mockCall,
+    };
+
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockHookReturn,
+    );
+
+    // render
+    render(<News />);
+
+    const newsContent = screen.getByTestId("news-content");
+    const section = within(newsContent).getByText("Title Two").closest("div");
+    if (section) {
+      Object.defineProperty(section, "scrollIntoView", {
+        value: scrollIntoViewMock,
+        writable: true,
+      });
+    }
+
+    // Wait for the scroll effect to trigger
+    await waitFor(
+      () => {
+        expect(scrollIntoViewMock).toHaveBeenCalledWith({
+          behavior: "smooth",
+          block: "start",
+        });
+      },
+      { timeout: 200 },
+    );
   });
 });
