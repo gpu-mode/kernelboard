@@ -51,6 +51,7 @@ function App() {
             <Route path="/home" element={<Home />} />
             <Route path="/leaderboard/:id" element={<Leaderboard />} />
             <Route path="/news" element={<News />} />
+            <Route path="/news/:slug" element={<News />} />
             <Route path="/login" element={<Login />} />
             // error handling page
             {errorRoutes.map(({ path, code, title, description }) => (
