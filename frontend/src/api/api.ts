@@ -51,6 +51,25 @@ export async function fetchCodes(
   return r.data;
 }
 
+export async function onDeleteSubmission(
+  submissionId?: string | number,
+): Promise<void> {
+  if (!submissionId) {
+    throw new Error("No submission ID provided for deletion");
+  }
+
+  const res = await fetch(`/api/submission/${submissionId}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Failed to delete submission: ${text}`);
+  }
+}
+
 export async function fetchAllNews(): Promise<any> {
   const res = await fetch("/api/news");
   if (!res.ok) {

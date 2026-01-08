@@ -5,7 +5,6 @@ from kernelboard.lib.time import to_time_left
 from kernelboard.lib.status_code import http_error, http_success
 from http import HTTPStatus
 
-
 leaderboard_bp = Blueprint("leaderboard_bp", __name__, url_prefix="/leaderboard")
 
 
