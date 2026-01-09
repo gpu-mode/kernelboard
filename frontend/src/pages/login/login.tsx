@@ -12,6 +12,7 @@ import { ConstrainedContainer } from "../../components/app-layout/ConstrainedCon
 import { useSearchParams } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import { DiscordIcon } from "../../components/common/DiscordDefaultIcon";
+import { GoogleIcon } from "../../components/common/GoogleIcon";
 import AlertBar from "../../components/alert/AlertBar";
 
 export default function Login() {
@@ -19,6 +20,10 @@ export default function Login() {
   const discordLoginUrl = () => {
     const loginDiscrodHref = `/api/auth/discord?next=/v2/`;
     return loginDiscrodHref;
+  };
+  const googleLoginUrl = () => {
+    const loginGoogleHref = `/api/auth/google?next=/v2/`;
+    return loginGoogleHref;
   };
   const error = params.get("error");
 
@@ -101,6 +106,15 @@ export default function Login() {
                   startIcon={<DiscordIcon />}
                 >
                   Continue with Discord
+                </Button>
+                <Button
+                  variant="outlined"
+                  href={googleLoginUrl()}
+                  size="small"
+                  sx={{ borderRadius: 999 }}
+                  startIcon={<GoogleIcon />}
+                >
+                  Continue with Gmail
                 </Button>
                 <Divider>or</Divider>
                 <Stack spacing={1}>
