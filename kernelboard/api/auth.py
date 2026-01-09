@@ -66,7 +66,18 @@ def providers():
                 "identity": lambda json: json["id"],
             },
             "scopes": ["identify"],
-        }
+        },
+        "google": {
+            "client_id": os.getenv("GOOGLE_CLIENT_ID"),
+            "client_secret": os.getenv("GOOGLE_CLIENT_SECRET"),
+            "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+            "token_url": "https://oauth2.googleapis.com/token",
+            "userinfo": {
+                "url": "https://www.googleapis.com/oauth2/v2/userinfo",
+                "identity": lambda json: json["id"],
+            },
+            "scopes": ["openid", "email", "profile"],
+        },
     }
 
 
@@ -84,6 +95,35 @@ def _discord_avatar_url(uid: str, avatar_hash: str | None) -> str | None:
         return None
     ext = "gif" if avatar_hash.startswith("a_") else "png"
     return f"https://cdn.discordapp.com/avatars/{uid}/{avatar_hash}.{ext}"
+
+
+def _google_avatar_url(picture_url: str | None) -> str | None:
+    """
+    Return Google's picture URL directly (already a full URL).
+    """
+    return picture_url if picture_url else None
+
+
+def _get_username_from_provider(provider: str, data: dict) -> str:
+    """
+    Extract username from provider-specific user data.
+    """
+    if provider == "discord":
+        return data.get("global_name") or data.get("username") or "unknown"
+    elif provider == "google":
+        return data.get("name") or data.get("email", "").split("@")[0] or "unknown"
+    return "unknown"
+
+
+def _get_avatar_url_from_provider(provider: str, identity: str, data: dict) -> str | None:
+    """
+    Extract avatar URL from provider-specific user data.
+    """
+    if provider == "discord":
+        return _discord_avatar_url(identity, data.get("avatar"))
+    elif provider == "google":
+        return _google_avatar_url(data.get("picture"))
+    return None
 
 
 # ----- Routes -----
@@ -235,11 +275,11 @@ def callback(provider: str):
 
     data = me_res.json() or {}
     identity = provider_data["userinfo"]["identity"](data)
-    username = data.get("global_name") or data.get("username") or "unknown"
+    username = _get_username_from_provider(provider, data)
 
     # 4) Stash display-only info (safe for SPA header)
     session["display_name"] = username
-    session["avatar_url"] = _discord_avatar_url(identity, data.get("avatar"))
+    session["avatar_url"] = _get_avatar_url_from_provider(provider, identity, data)
 
     # ensure user exists and has web_auth_id
     # if not, update the user with the new token

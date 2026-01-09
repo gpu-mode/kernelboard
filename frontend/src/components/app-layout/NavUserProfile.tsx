@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
-import { DiscordIcon } from "../common/DiscordDefaultIcon";
+import LoginIcon from "@mui/icons-material/Login";
 import AlertBar from "../alert/AlertBar";
 import { useAuthStore } from "../../lib/store/authStore";
 // Optional: reduce re-renders
@@ -66,13 +66,13 @@ export default function NavUserProfile() {
   };
 
   const defaultUser = () => (
-    <Tooltip title="Login with Discord">
+    <Tooltip title="Login">
       <Button
         variant="outlined"
         href={"/v2/login"}
         size="small"
         sx={styles.loginButoon}
-        startIcon={<DiscordIcon />}
+        startIcon={<LoginIcon />}
         data-testid="login-btn"
       >
         Login
