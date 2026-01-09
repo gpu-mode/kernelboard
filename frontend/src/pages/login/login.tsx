@@ -114,7 +114,7 @@ export default function Login() {
                   sx={{ borderRadius: 999 }}
                   startIcon={<GoogleIcon />}
                 >
-                  Continue with Gmail
+                  Continue with Google
                 </Button>
                 <Divider>or</Divider>
                 <Stack spacing={1}>
