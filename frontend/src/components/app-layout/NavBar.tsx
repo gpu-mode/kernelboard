@@ -37,7 +37,7 @@ export default function NavBar() {
     },
     {
       label: "Docs",
-      href: "https://gpu-mode.github.io/discord-cluster-manager/docs/intro",
+      href: "https://gpu-mode.github.io/kernelbot/docs/intro",
       external: true,
     },
   ];
