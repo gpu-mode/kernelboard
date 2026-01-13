@@ -78,6 +78,17 @@ def providers():
             },
             "scopes": ["openid", "email", "profile"],
         },
+        "github": {
+            "client_id": os.getenv("GITHUB_CLIENT_ID"),
+            "client_secret": os.getenv("GITHUB_CLIENT_SECRET"),
+            "authorize_url": "https://github.com/login/oauth/authorize",
+            "token_url": "https://github.com/login/oauth/access_token",
+            "userinfo": {
+                "url": "https://api.github.com/user",
+                "identity": lambda json: str(json["id"]),
+            },
+            "scopes": ["read:user"],
+        },
     }
 
 
@@ -112,6 +123,8 @@ def _get_username_from_provider(provider: str, data: dict) -> str:
         return data.get("global_name") or data.get("username") or "unknown"
     elif provider == "google":
         return data.get("name") or data.get("email", "").split("@")[0] or "unknown"
+    elif provider == "github":
+        return data.get("name") or data.get("login") or "unknown"
     return "unknown"
 
 
@@ -123,6 +136,8 @@ def _get_avatar_url_from_provider(provider: str, identity: str, data: dict) -> s
         return _discord_avatar_url(identity, data.get("avatar"))
     elif provider == "google":
         return _google_avatar_url(data.get("picture"))
+    elif provider == "github":
+        return data.get("avatar_url")
     return None
 
 
