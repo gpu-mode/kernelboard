@@ -15,3 +15,4 @@ node_modules/
 .vscode
 *.DS_Store
 kernelboard/static/v2
+.claude
