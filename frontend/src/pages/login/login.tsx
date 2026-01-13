@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Divider,
   Stack,
   Typography,
 } from "@mui/material";
@@ -13,6 +12,7 @@ import { useSearchParams } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import { DiscordIcon } from "../../components/common/DiscordDefaultIcon";
 import { GoogleIcon } from "../../components/common/GoogleIcon";
+import { GitHubIcon } from "../../components/common/GitHubIcon";
 import AlertBar from "../../components/alert/AlertBar";
 
 export default function Login() {
@@ -24,6 +24,10 @@ export default function Login() {
   const googleLoginUrl = () => {
     const loginGoogleHref = `/api/auth/google?next=/v2/`;
     return loginGoogleHref;
+  };
+  const githubLoginUrl = () => {
+    const loginGithubHref = `/api/auth/github?next=/v2/`;
+    return loginGithubHref;
   };
   const error = params.get("error");
 
@@ -116,19 +120,15 @@ export default function Login() {
                 >
                   Continue with Google
                 </Button>
-                <Divider>or</Divider>
-                <Stack spacing={1}>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    textAlign="center"
-                  >
-                    More providers coming soon
-                  </Typography>
-                  <Button variant="outlined" size="large" disabled>
-                    GitHub (soon)
-                  </Button>
-                </Stack>
+                <Button
+                  variant="outlined"
+                  href={githubLoginUrl()}
+                  size="small"
+                  sx={{ borderRadius: 999 }}
+                  startIcon={<GitHubIcon />}
+                >
+                  Continue with GitHub
+                </Button>
               </Stack>
             </CardContent>
           </Card>
