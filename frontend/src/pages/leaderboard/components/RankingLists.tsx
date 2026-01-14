@@ -180,6 +180,7 @@ export default function RankingsList({
                       <CodeDialog
                         code={codes.get(item?.submission_id)}
                         fileName={item.file_name}
+                        submissionId={item?.submission_id}
                       />
                     </Typography>
                   </Grid>

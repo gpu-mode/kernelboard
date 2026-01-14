@@ -120,6 +120,44 @@ def submission():
             status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
         )
 
+@submission_bp.route("/submission", methods=["DELETE"])
+@login_required
+def delete_submission():
+    """
+    DELETE /submission
+    Body example:
+    {
+        "submission_id": 123,
+        "leaderboard_id": 123,
+    }
+    this will soft-delete the submission, and can only be done by the admins of the leaderboard
+    """
+    logger.info("[delete_submission] delete submission request is received")
+
+    user_id, username = get_id_and_username_from_session()
+    submission_id = request.args.get("submission_id", type=int)
+    leaderboard_id = request.args.get("leaderboard_id", type=int)
+
+    if submission_id is None or user_id is None or leaderboard_id is None:
+        return http_error(
+            message="submission_id, leaderboard_id and user_id are required (int) for delete submission",
+            code=10000 + http.HTTPStatus.BAD_REQUEST.value,
+            status_code=http.HTTPStatus.BAD_REQUEST,
+        )
+
+    # check if user able to delete the submission
+    whitelist = get_whitelist(leaderboard_id)
+    if user_id not in whitelist:
+        logger.info("[delete_submission] user is not admin, skip the request")
+        return http_success(message="skip since user is not admin", data={})
+    else:
+        logger.info("[delete_submission] user is admin, continue the request")
+
+    # try to soft-delete the submission
+    try:
+        # update submission status to "inactive"
+
+
 
 @submission_bp.route("/codes", methods=["POST"])
 def list_codes():
