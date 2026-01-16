@@ -38,6 +38,9 @@ REQUIRED_SUBMISSION_REQUEST_FIELDS = [
 WEB_AUTH_HEADER = "X-Web-Auth-Id"
 MAX_CONTENT_LENGTH = 1 * 1024 * 1024  # 1MB max file size
 
+# This blocks the leaderboard to show all the ranking codes when the leaderboard is ended, since
+# some of those competition codes can be affect the upcoming competition results
+BLOCKED_CODE_LEADERBOARD_LIST: list[str] = ["598"]  # leaderboard id to block show
 
 @submission_bp.route("/submission", methods=["POST"])
 @login_required
@@ -156,11 +159,16 @@ def list_codes():
         )
 
     try:
-        # if leaderboard is ended, allow all users to see the leaderboard codes
+        # if leaderboard is allowed, allow all users to see the leaderboard codes
         is_ended = is_leaderboard_ended(leaderboard_id)
-        if is_ended:
+        is_allowed = str(leaderboard_id) not in BLOCKED_CODE_LEADERBOARD_LIST
+        logger.info("[list_codes] leaderboard is ended: %s", is_ended)
+        logger.info("[list_codes] leaderboard is allowed: %s", is_allowed)
+
+        # if leaderboard is ended and allowed, allow all users to see the leaderboard codes
+        if is_ended and is_allowed:
             logger.info(
-                "[list_codes] leaderboard is ended, allow all users to see the leaderboard codes"
+                "[list_codes] leaderboard is allowed, allow all users to see the leaderboard codes"
             )
             results = list_codes(leaderboard_id, submission_ids)
             return http_success(
