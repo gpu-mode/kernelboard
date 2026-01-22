@@ -5,7 +5,13 @@
 {% block content %}
 <div class="content-stack">
     <h1>Leaderboards</h1>
-    
+
+    <div class="get-started-box">
+        <a href="https://github.com/gpu-mode/popcorn-cli" target="_blank" class="get-started-link">
+            Submit your first kernel
+        </a>
+    </div>
+
     <div class="leaderboard-grid">
         {% for leaderboard in leaderboards %}
             <a href="{{ url_for('leaderboard', id=leaderboard['id']) }}" class="leaderboard-tile-link">

@@ -1293,6 +1293,33 @@ h3 {
   background-color: rgb(79 90 217 / var(--tw-bg-opacity, 1));
 }
 
+.get-started-box {
+  margin-bottom: 1rem;
+}
+
+.get-started-link {
+  display: inline-block;
+  border-radius: 0.375rem;
+  --tw-bg-opacity: 1;
+  background-color: rgb(56 189 248 / var(--tw-bg-opacity, 1));
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  font-weight: 500;
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+  text-decoration-line: none;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+.get-started-link:hover {
+  --tw-brightness: brightness(1.1);
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
+}
+
 .toast-container-error {
   position: fixed;
   top: 5rem;
@@ -1591,6 +1618,10 @@ h3 {
   width: 1.25rem;
 }
 
+.max-w-\[50\%\] {
+  max-width: 50%;
+}
+
 .max-w-full {
   max-width: 100%;
 }
@@ -1666,6 +1697,10 @@ h3 {
 
 .font-medium {
   font-weight: 500;
+}
+
+.italic {
+  font-style: italic;
 }
 
 .leading-relaxed {
