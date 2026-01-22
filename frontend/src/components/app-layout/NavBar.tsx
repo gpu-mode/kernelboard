@@ -35,11 +35,6 @@ export default function NavBar() {
       href: "https://github.com/gpu-mode/resource-stream",
       external: true,
     },
-    {
-      label: "Docs",
-      href: "https://gpu-mode.github.io/kernelbot/docs/intro",
-      external: true,
-    },
   ];
 
   const Brand = () => (
