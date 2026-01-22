@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useEffect } from "react";
 import { fetchLeaderboardSummaries } from "../../api/api";
@@ -7,6 +7,7 @@ import { ErrorAlert } from "../../components/alert/ErrorAlert";
 import LeaderboardTile from "./components/LeaderboardTile";
 import Loading from "../../components/common/loading";
 import { ConstrainedContainer } from "../../components/app-layout/ConstrainedContainer";
+import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 
 interface TopUser {
   rank: number;
@@ -54,6 +55,24 @@ export default function Home() {
         <Typography variant="h1" component="h1" sx={{ mb: 3 }}>
           Leaderboards
         </Typography>
+
+        <Box sx={{ mb: 4 }}>
+          <Button
+            variant="contained"
+            href="https://github.com/gpu-mode/popcorn-cli"
+            target="_blank"
+            rel="noopener"
+            endIcon={<ArrowOutwardIcon />}
+            sx={{
+              textTransform: "none",
+              fontWeight: 500,
+              px: 3,
+              py: 1.5,
+            }}
+          >
+            Submit your first kernel
+          </Button>
+        </Box>
 
         {leaderboards.length > 0 ? (
           <Grid container spacing={3}>
