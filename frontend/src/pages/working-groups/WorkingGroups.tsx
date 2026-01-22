@@ -144,7 +144,7 @@ const kernelDSLChannels: Project[] = [
   {
     name: "CUTLASS",
     description:
-      "NVIDIA's CUDA Templates for Linear Algebra Subroutines. A collection of highly efficient CUDA C++ templates for matrix operations.",
+      "NVIDIA's CUDA Templates for Linear Algebra Subroutines. A collection of highly efficient CUDA C++ templates for matrix operations. More recently also including CuteDSL",
     link: "https://github.com/NVIDIA/cutlass",
   },
   {
@@ -169,7 +169,7 @@ const kernelDSLChannels: Project[] = [
     name: "CuTile",
     description:
       "NVIDIA's tile abstraction library for writing efficient GPU kernels.",
-    link: "https://github.com/NVIDIA/cutlass",
+    link: "https://github.com/NVIDIA/cutile-python",
   },
 ];
 
@@ -251,9 +251,7 @@ export default function WorkingGroups() {
 
       <Box sx={styles.highlight}>
         <Typography sx={{ fontWeight: 500 }}>
-          We are especially interested in any working groups doing{" "}
-          <strong>distributed training</strong>, <strong>inference</strong> and{" "}
-          <strong>fault tolerance</strong>.
+          We are always open to new working groups and we can help arrange compute
         </Typography>
       </Box>
 
@@ -298,7 +296,7 @@ export default function WorkingGroups() {
           Governance
         </Typography>
         <Typography>
-          Mark Saroufim is BDFL (Benevolent Dictator For Life). The two main
+          Mark Saroufim is BDFL. The two main
           moderators are Alex Zhang and Matej Sirovatka.
         </Typography>
       </Box>
