@@ -11,12 +11,10 @@ describe("NavBar", () => {
     });
 
     expect(workingGroupsLink).toBeInTheDocument();
-    expect(workingGroupsLink).toHaveAttribute(
-      "href",
-      "https://docs.google.com/document/d/1LprkfyOP5cRtv7rwkFiEHx2XEKhtwf9J4bQkD6btzgo/edit?usp=sharing",
-    );
-    expect(workingGroupsLink).toHaveAttribute("target", "_blank");
-    expect(workingGroupsLink).toHaveAttribute("rel", "noopener");
+    expect(workingGroupsLink).toHaveAttribute("href", "/v2/working-groups");
+    // Internal link should not have target="_blank" or rel="noopener"
+    expect(workingGroupsLink).not.toHaveAttribute("target", "_blank");
+    expect(workingGroupsLink).not.toHaveAttribute("rel", "noopener");
   });
 
   it("renders all expected navigation links in correct order", () => {
