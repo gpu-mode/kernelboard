@@ -353,6 +353,12 @@ Appending --watch will watch for changes and update main.css automatically.
   .login-button {
     @apply bg-discord text-white px-8 py-4 rounded-md text-base cursor-pointer no-underline inline-block mb-5 hover:bg-discord-darker transition-all duration-200 ease-in-out;
   }
+  .get-started-box {
+    @apply mb-4;
+  }
+  .get-started-link {
+    @apply inline-block px-6 py-3 bg-secondary text-white font-medium rounded-md hover:brightness-110 transition-all duration-200 no-underline;
+  }
   .toast-container-error {
     @apply fixed top-20 left-1/2 -translate-x-1/2 z-50;
     @apply flex flex-col items-center space-y-2;
