@@ -232,15 +232,18 @@ export default function WorkingGroups() {
 
       <Typography sx={styles.intro}>
         This page aggregates current and past working groups in GPU MODE.
-        Working groups are effectively open source projects built in the open on
+        Working groups are open source projects built in the open on
         some existing channel on GPU MODE so they welcome new and experienced
-        contributors. However, you need some level of agency to be successful at
+        contributors. You need some level of agency to be successful at
         contributing.
       </Typography>
 
       <Box sx={styles.highlight}>
         <Typography sx={{ fontWeight: 500 }}>
-          We are always open to new working groups and we can help arrange compute
+          We are always open to new working groups and we can help arrange compute.
+          We're looking for ideas, especially anything involving large scale training,
+          minimal reimplementations of popular repos, and profilers. We're also very interested
+          in seeing more advanced usage of some of the newer kernel DSLs.
         </Typography>
       </Box>
 
