@@ -1,5 +1,5 @@
 ---
-id: kernelbench-cuda-compute
+id: kernel-competition-cuda-compute
 title: "Topping the GPU MODE Leaderboard with cuda.compute"
 date: 2026-01-22
 category: "General"
