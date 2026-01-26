@@ -111,12 +111,6 @@ const customerSupportProjects: Project[] = [
     link: "https://github.com/open-thought/reasoning-gym",
   },
   {
-    name: "ThunderKittens",
-    description:
-      "Tile primitives in C++, easy to use, tiny library that doesn't get in your way.",
-    link: "https://github.com/HazyResearch/ThunderKittens",
-  },
-  {
     name: "torchao",
     description:
       "PyTorch native quantization library. Development now happens primarily on GitHub and there is a lot of interest in acceleration of MX formats on newer NVIDIA and AMD hardware.",
@@ -127,16 +121,6 @@ const customerSupportProjects: Project[] = [
     description:
       "A very fast dynamic quantization algorithm. For quantization related projects on GPU MODE, I suggest you hear what gauge-nernst, mobicham and drisspg have to say on the server.",
     link: "https://mobiusml.github.io/hqq_blog/",
-  },
-  {
-    name: "TileLang",
-    description: "A domain specific DSL that's super fast.",
-    link: "https://github.com/tile-ai/tilelang",
-  },
-  {
-    name: "Helion",
-    description: "A domain specific DSL that autotunes everything.",
-    link: "https://github.com/pytorch/helion",
   },
 ];
 
@@ -170,6 +154,11 @@ const kernelDSLChannels: Project[] = [
     description:
       "NVIDIA's tile abstraction library for writing efficient GPU kernels.",
     link: "https://github.com/NVIDIA/cutile-python",
+  },
+  {
+    name: "TileLang",
+    description: "A domain specific DSL that's super fast.",
+    link: "https://github.com/tile-ai/tilelang",
   },
 ];
 
@@ -298,6 +287,7 @@ export default function WorkingGroups() {
         <Typography>
           Mark Saroufim is BDFL. The two main
           moderators are Alex Zhang and Matej Sirovatka.
+          The community was originally founded by Andreas Köpf and Mark Saroufim.
         </Typography>
       </Box>
     </Box>
