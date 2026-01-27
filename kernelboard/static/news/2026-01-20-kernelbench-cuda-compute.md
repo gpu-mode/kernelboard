@@ -1,11 +1,13 @@
 ---
 id: kernel-competition-cuda-compute
 title: "Topping the GPU MODE Leaderboard with cuda.compute"
-date: 2026-01-22
+date: 2026-01-20
 category: "General"
 ---
 
-NVIDIA Engineers submitted solutions to the GPU MODE kernel competition for 6 classic primitive problems. These benchmarks evaluate kernel performance across multiple NVIDIA GPU architectures: B200, H100, A100, and L4.
+*By Nader Al Awar and Daniel Rodriguez*
+
+NVIDIA Engineers submitted solutions to the GPU MODE kernel competition for 6 classic primitive problems inspired by the [Programming Massively Parallel Processors](https://www.amazon.com/Programming-Massively-Parallel-Processors-Hands/dp/0323912311) book. These benchmarks evaluate kernel performance across multiple NVIDIA GPU architectures: B200, H100, A100, and L4.
 
 The goal of this post is to showcase a new library in the CUDA Python family: `cuda.compute`. It provides a Pythonic interface to [CCCL ("CUDA Core Compute Library)](https://github.com/NVIDIA/cccl) algorithms, especially the CUB device-wide primitives that deliver highly tuned implementations of common algorithms across GPU generations. 
 
@@ -15,12 +17,14 @@ If you’ve watched earlier GPU MODE talks such as [Scan at the Speed of Light](
 
 We achieved the following results across six problems that directly exercise the core strengths of `cuda.compute`:
 
-- [prefixsum](https://www.gpumode.com/v2/leaderboard/541?tab=rankings) (scan): 4/4 first places  
-- [histogram](https://www.gpumode.com/v2/leaderboard/539?tab=rankings): 3/4 first places  
-- [vectoradd](https://www.gpumode.com/v2/leaderboard/543?tab=rankings) (transform): 4/4 first places (one \#1 submission was also using `cuda.compute` but was not submitted by us)  
-- [grayscale](https://www.gpumode.com/v2/leaderboard/538?tab=rankings) (transform): 1/4 first places, with the other GPUs very close  
-- [sort](https://www.gpumode.com/v2/leaderboard/542?tab=rankings): 4/4 second places (the \#1 submissions all used CUB, the same library used by `cuda.compute` under the hood, but were submitted by another contestant)  
+- [prefixsum](https://www.gpumode.com/v2/leaderboard/541?tab=rankings) (scan): 4/4 first places
+- [histogram](https://www.gpumode.com/v2/leaderboard/539?tab=rankings): 3/4 first places
+- [vectoradd](https://www.gpumode.com/v2/leaderboard/543?tab=rankings) (transform): 4/4 first places (one \#1 submission was also using `cuda.compute` but was not submitted by us)
+- [grayscale](https://www.gpumode.com/v2/leaderboard/538?tab=rankings) (transform): 1/4 first places, with the other GPUs very close
+- [sort](https://www.gpumode.com/v2/leaderboard/542?tab=rankings): 4/4 second places (the \#1 submissions all used CUB, the same library used by `cuda.compute` under the hood, but were submitted by another contestant)
 - [vectorsum](https://www.gpumode.com/v2/leaderboard/544?tab=rankings) (reduce): no first places but very close
+
+You can browse the solutions for these problems by logging in at [gpumode.com](https://www.gpumode.com).
 
 Our implementations were among the top performers, but the leaderboard also highlighted specific edge cases where we can further optimize. We’ve already identified these gaps and are working on improvements for those architecture-problem combinations.
 
