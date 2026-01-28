@@ -91,10 +91,10 @@ const activeProjects: Project[] = [
     link: "https://ppc-exercises.cs.aalto.fi/course/aalto2025/contest",
   },
   {
-    name: "Singularity Zero to Hero",
+    name: "Teenygrad",
     description:
-      "A minimal reimplementation of PyTorch built in Rust. Looking for help across building models, compiler and the language.",
-    link: "https://j4orz.ai/sctp/",
+      "A teaching deep learning framework: the bridge from micrograd to tinygrad",
+    link: "https://j4orz.ai/sitp/",
   },
   {
     name: "Triton Puzzles",
