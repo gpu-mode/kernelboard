@@ -38,6 +38,12 @@ If you just want to test the news section without setting up the full database:
    flask --app kernelboard run --debug
    ```
 
+   **macOS users:** Port 5000 is often used by AirPlay Receiver. If you see "Address already in use", either disable AirPlay Receiver in System Settings, or use a different port:
+
+   ```shell
+   flask --app kernelboard run --no-debugger --port 5001
+   ```
+
 4. In another terminal, run the React dev server:
 
    ```shell
