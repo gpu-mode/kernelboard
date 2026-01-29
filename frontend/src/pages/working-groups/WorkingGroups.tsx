@@ -94,7 +94,7 @@ const activeProjects: Project[] = [
     name: "Teenygrad",
     description:
       "A teaching deep learning framework: the bridge from micrograd to tinygrad",
-    link: "https://j4orz.ai/sitp/",
+    link: "https://book.j4orz.ai",
   },
   {
     name: "Triton Puzzles",
