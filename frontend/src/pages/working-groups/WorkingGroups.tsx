@@ -101,6 +101,11 @@ const activeProjects: Project[] = [
     description: "Puzzles for learning Triton.",
     link: "https://github.com/srush/Triton-Puzzles",
   },
+  {
+    name: "Triton-viz",
+    description: "A visualization tool for Triton code.",
+    link: "https://github.com/Deep-Learning-Profiling-Tools/triton-viz",
+  },
 ];
 
 const customerSupportProjects: Project[] = [
@@ -186,12 +191,6 @@ const pastProjects: Project[] = [
     description:
       "Written at the GPU Mode hackathon, collective implementations in Triton. Key ideas are now pushed harder in triton-distributed.",
     link: "https://github.com/cchan/tccl",
-  },
-  {
-    name: "Triton-viz",
-    description:
-      "A visualization of Triton code. Rumors are this will become active again soon.",
-    link: "https://github.com/Deep-Learning-Profiling-Tools/triton-viz",
   },
 ];
 
