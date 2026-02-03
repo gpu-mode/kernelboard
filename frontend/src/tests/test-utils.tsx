@@ -8,7 +8,7 @@ export function renderWithRouter(ui: React.ReactElement, options = {}) {
   return render(ui, { wrapper: MemoryRouter, ...options });
 }
 
-export function renderWithProviders(ui: ReactNode, route = "/v2") {
+export function renderWithProviders(ui: ReactNode, route = "/") {
   return render(
     <ThemeProvider theme={appTheme}>
       <CssBaseline />
