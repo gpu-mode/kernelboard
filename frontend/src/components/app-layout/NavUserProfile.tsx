@@ -69,7 +69,7 @@ export default function NavUserProfile() {
     <Tooltip title="Login">
       <Button
         variant="outlined"
-        href={"/login"}
+        href={"/v2/login"}
         size="small"
         sx={styles.loginButoon}
         startIcon={<LoginIcon />}

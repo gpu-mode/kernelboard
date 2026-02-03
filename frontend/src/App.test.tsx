@@ -5,8 +5,8 @@ import App from "./App";
 
 describe("App", () => {
   it("renders the App component", () => {
-    // lead route to /about for unit testing
-    <MemoryRouter initialEntries={["/about"]}>
+    // lead route to /v2/about for unit testing
+    <MemoryRouter initialEntries={["/v2/about"]}>
       render(
       <App />
       );
