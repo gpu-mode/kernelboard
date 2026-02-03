@@ -33,19 +33,19 @@ export default function RankingTitleBadge({
       sx={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 1,
-        px: 2,
-        py: 1,
+        gap: 0.5,
+        px: 1.5,
+        py: 0.5,
         borderRadius: "200px",
         background: gradient,
         color: "white",
         fontWeight: "bold",
-        fontSize: "1rem",
+        fontSize: "0.8rem",
         boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
         width: "fit-content",
       }}
     >
-      <Typography component="span" sx={{ fontWeight: "bold", fontSize: 18 }}>
+      <Typography component="span" sx={{ fontWeight: "bold", fontSize: 13 }}>
         {name}
       </Typography>
     </Box>
