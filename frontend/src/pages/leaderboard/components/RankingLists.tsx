@@ -32,7 +32,7 @@ interface RankingsListProps {
 
 const styles: Record<string, SxProps<Theme>> = {
   rankingListSection: {
-    mt: 5,
+    mt: 3,
   },
   rankingRow: {
     borderBottom: "1px solid #ddd",
@@ -41,31 +41,34 @@ const styles: Record<string, SxProps<Theme>> = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    mb: 1,
+    mb: 0.5,
   },
   fieldLabel: {
     fontWeight: "bold",
-    fontSize: "1.1rem",
+    fontSize: "0.85rem",
     textTransform: "capitalize",
   },
   row: {
     display: "flex",
     gap: 2,
-    fontSize: "0.95rem",
+    fontSize: "0.8rem",
     alignItems: "center",
     flexWrap: "wrap",
   },
   name: {
-    fontWeight: 800,
-    minWidth: "90px",
+    fontWeight: 700,
+    minWidth: "80px",
+    fontSize: "0.8rem",
   },
   score: {
     fontFamily: "monospace",
-    minWidth: "100px",
+    minWidth: "90px",
+    fontSize: "0.8rem",
   },
   delta: {
     color: grey[600],
-    minWidth: "90px",
+    minWidth: "80px",
+    fontSize: "0.8rem",
   },
 };
 
@@ -144,6 +147,18 @@ export default function RankingsList({
                   data-testid={`ranking-show-all-button-${ridx}`}
                   onClick={() => toggleExpanded(field)}
                   size="small"
+                  sx={{
+                    backgroundColor: grey[200],
+                    color: grey[700],
+                    fontSize: "0.75rem",
+                    px: 1.5,
+                    py: 0.25,
+                    borderRadius: 1,
+                    textTransform: "none",
+                    "&:hover": {
+                      backgroundColor: grey[300],
+                    },
+                  }}
                 >
                   {isExpanded ? "Hide" : `Show all (${items.length})`}
                 </Button>
