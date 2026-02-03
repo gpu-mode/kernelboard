@@ -110,34 +110,29 @@ def create_app(test_config=None):
     app.register_blueprint(health.blueprint)
     app.add_url_rule("/health", endpoint="health")
 
-    @app.route("/")
-    def root():
-        # permanent redirect
-        return redirect("/v2", code=302)
-
     if not app.blueprints.get("api"):
         api = create_api_blueprint()
         app.register_blueprint(api)
 
     @app.errorhandler(401)
     def unauthorized(_error):
-        return redirect("/v2/401")
+        return redirect("/401")
 
     @app.errorhandler(404)
     def not_found(_error):
-        return redirect("/v2/404")
+        return redirect("/404")
 
     @app.errorhandler(500)
     def server_error(_error):
-        return redirect("/v2/500")
+        return redirect("/500")
 
-    # Route for serving React frontend from the /v2/ path
-    # # This handles both the base path `/v2/` and any subpath `/v2/<path>`
-    @app.route("/v2/", defaults={"path": ""})
-    @app.route("/v2/<path:path>")
+    # Route for serving React frontend from the root path
+    # This handles both the base path `/` and any subpath `/<path>`
+    @app.route("/", defaults={"path": ""})
+    @app.route("/<path:path>")
     def serve_react(path):
         # set the react static binary path
-        static_dir = os.path.join(app.static_folder, "v2")
+        static_dir = os.path.join(app.static_folder, "app")
         full_path = os.path.join(static_dir, path)
 
         if path != "" and os.path.exists(full_path):
