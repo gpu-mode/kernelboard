@@ -19,8 +19,8 @@ export interface NavLink {
 
 export default function NavBar() {
   const links: NavLink[] = [
-    { label: "News", href: "/news" },
-    { label: "Working Groups", href: "/working-groups" },
+    { label: "News", href: "/v2/news" },
+    { label: "Working Groups", href: "/v2/working-groups" },
     {
       label: "Lectures",
       href: "https://www.youtube.com/@GPUMODE",
@@ -35,7 +35,7 @@ export default function NavBar() {
 
   const Brand = () => (
     <Box sx={brandStyle}>
-      <Link href="/" underline="none" color="inherit">
+      <Link href="/v2/" underline="none" color="inherit">
         <Box sx={{ ...flexRowCenter }}>
           <FlashOnOutlinedIcon sx={flashIconStyle} />
           <Box>GPU MODE</Box>
