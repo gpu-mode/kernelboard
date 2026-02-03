@@ -4,7 +4,7 @@ import { defineConfig, type UserConfig} from 'vite'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/v2/',
+  base: '/',
   test: {
     environment: 'jsdom',
     globals: true,
@@ -17,7 +17,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: path.resolve(__dirname, '../kernelboard/static/v2'),
+    outDir: path.resolve(__dirname, '../kernelboard/static/app'),
     emptyOutDir: true,
   },
   resolve: {

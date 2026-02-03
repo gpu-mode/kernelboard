@@ -1,4 +1,10 @@
-import { Box, Typography, Card, CardActionArea, CardContent } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Card,
+  CardActionArea,
+  CardContent,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 interface NewsItem {
@@ -58,7 +64,11 @@ export function NewsIndex({ data }: { data: NewsItem[] }) {
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 {item.date}
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 1.5 }}
+              >
                 {getExcerpt(item.markdown)}
               </Typography>
             </CardContent>

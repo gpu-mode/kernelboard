@@ -231,18 +231,19 @@ export default function WorkingGroups() {
 
       <Typography sx={styles.intro}>
         This page aggregates current and past working groups in GPU MODE.
-        Working groups are open source projects built in the open on
-        some existing channel on GPU MODE so they welcome new and experienced
+        Working groups are open source projects built in the open on some
+        existing channel on GPU MODE so they welcome new and experienced
         contributors. You need some level of agency to be successful at
         contributing.
       </Typography>
 
       <Box sx={styles.highlight}>
         <Typography sx={{ fontWeight: 500 }}>
-          We are always open to new working groups and we can help arrange compute.
-          We're looking for ideas, especially anything involving large scale training,
-          minimal reimplementations of popular repos, and profilers. We're also very interested
-          in seeing more advanced usage of some of the newer kernel DSLs.
+          We are always open to new working groups and we can help arrange
+          compute. We're looking for ideas, especially anything involving large
+          scale training, minimal reimplementations of popular repos, and
+          profilers. We're also very interested in seeing more advanced usage of
+          some of the newer kernel DSLs.
         </Typography>
       </Box>
 
@@ -287,9 +288,9 @@ export default function WorkingGroups() {
           Governance
         </Typography>
         <Typography>
-          Mark Saroufim is BDFL. The two main
-          moderators are Alex Zhang and Matej Sirovatka.
-          The community was originally founded by Andreas Köpf and Mark Saroufim.
+          Mark Saroufim is BDFL. The two main moderators are Alex Zhang and
+          Matej Sirovatka. The community was originally founded by Andreas Köpf
+          and Mark Saroufim.
         </Typography>
       </Box>
     </Box>
