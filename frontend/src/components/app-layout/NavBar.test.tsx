@@ -11,7 +11,7 @@ describe("NavBar", () => {
     });
 
     expect(workingGroupsLink).toBeInTheDocument();
-    expect(workingGroupsLink).toHaveAttribute("href", "/working-groups");
+    expect(workingGroupsLink).toHaveAttribute("href", "/v2/working-groups");
     // Internal link should not have target="_blank" or rel="noopener"
     expect(workingGroupsLink).not.toHaveAttribute("target", "_blank");
     expect(workingGroupsLink).not.toHaveAttribute("rel", "noopener");
