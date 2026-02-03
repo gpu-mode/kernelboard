@@ -21,12 +21,12 @@ def test_auth_already_logged_in(client):
 
     response = client.get("/api/auth/discord")
     assert response.status_code == 302
-    assert response.headers.get("Location") == "/v2/"
+    assert response.headers.get("Location") == "/"
 
 
 def test_auth_unknown_provider(client):
     response = client.get("/api/auth/unknown_provider")
-    assert response.headers.get("Location") == "/v2/404"
+    assert response.headers.get("Location") == "/404"
 
 
 def test_callback_already_logged_in(client):
@@ -41,7 +41,7 @@ def test_callback_already_logged_in(client):
 def test_callback_unknown_provider(client):
     response = client.get("/api/auth/unknown_provider/callback")
     location = response.headers.get("Location")
-    assert "/v2/login?error=invalid_provider" in location
+    assert "/login?error=invalid_provider" in location
 
 
 def test_callback_mismatched_state(client):
@@ -165,7 +165,7 @@ def assert_redirect_with_error(
     response, expected_error: str, expected_message: str | None = None
 ):
     """
-    Assert that a response redirected to /v2/login with given error and optional message.
+    Assert that a response redirected to /login with given error and optional message.
     """
     location = response.headers.get("Location")
     assert location, "Response has no Location header"
@@ -174,7 +174,7 @@ def assert_redirect_with_error(
     qs = parse_qs(parsed.query)
 
     # path check
-    assert parsed.path == "/v2/login"
+    assert parsed.path == "/login"
 
     # error code check
     assert qs.get("error") == [expected_error]
