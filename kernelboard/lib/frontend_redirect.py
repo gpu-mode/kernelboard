@@ -1,5 +1,5 @@
 
-FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "/v2/")  # e.g. "/", "/v2/", or "https://app.example.com"
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "/")  # e.g. "/", or "https://app.example.com"
 
 def _is_safe_path(p: str) -> bool:
     """Allow only same-origin paths (no scheme/netloc)."""

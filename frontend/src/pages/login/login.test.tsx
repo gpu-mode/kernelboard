@@ -15,7 +15,7 @@ vi.mock("../../components/alert/AlertBar", () => ({
   ),
 }));
 
-function renderLogin(initialUrl = "/v2/login") {
+function renderLogin(initialUrl = "/login") {
   return render(
     <MemoryRouter initialEntries={[initialUrl]}>
       <Login />
@@ -29,11 +29,11 @@ describe("<Login />", () => {
     const discordBtn = screen.getByRole("link", {
       name: /continue with discord/i,
     });
-    expect(discordBtn).toHaveAttribute("href", "/api/auth/discord?next=/v2/");
+    expect(discordBtn).toHaveAttribute("href", "/api/auth/discord?next=/");
   });
 
   it("shows error when URL has error and message", async () => {
-    renderLogin("/v2/login?error=BadAuth&message=nope");
+    renderLogin("/login?error=BadAuth&message=nope");
     const alert = await screen.findByTestId("alert");
     await waitFor(() => {
       expect(alert).toHaveAttribute("data-open", "true");
