@@ -18,15 +18,15 @@ import AlertBar from "../../components/alert/AlertBar";
 export default function Login() {
   const [params] = useSearchParams();
   const discordLoginUrl = () => {
-    const loginDiscrodHref = `/api/auth/discord?next=/v2/`;
+    const loginDiscrodHref = `/api/auth/discord?next=/`;
     return loginDiscrodHref;
   };
   const googleLoginUrl = () => {
-    const loginGoogleHref = `/api/auth/google?next=/v2/`;
+    const loginGoogleHref = `/api/auth/google?next=/`;
     return loginGoogleHref;
   };
   const githubLoginUrl = () => {
-    const loginGithubHref = `/api/auth/github?next=/v2/`;
+    const loginGithubHref = `/api/auth/github?next=/`;
     return loginGithubHref;
   };
   const error = params.get("error");
