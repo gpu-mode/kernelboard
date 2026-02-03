@@ -50,11 +50,11 @@ If you just want to test the news section without setting up the full database:
    cd frontend && npm install && npm run dev
    ```
 
-5. Open your browser to: `http://localhost:5173/news`
+5. Open your browser to: `http://localhost:5173/v2/news`
 
    You can test direct blog links like:
-   - `http://localhost:5173/news/irl-at-accel`
-   - `http://localhost:5173/news/amd-second-competition`
+   - `http://localhost:5173/v2/news/irl-at-accel`
+   - `http://localhost:5173/v2/news/amd-second-competition`
 
 ### Full Development Setup
 
@@ -178,7 +178,7 @@ The gunicorn server will use port 8000, so visit http://localhost:8000/health
 The React frontend is currently under development. Here's how to run it and view your changes locally.
 
 ### Build for Flask (Static Mode)
-To build the React app and serve it through the Flask backend at `http://localhost:5000/`:
+To build the React app and serve it through the Flask backend at `http://localhost:5000/v2/`:
 
 1. Make changes to your React code.
 2. Run the following command to rebuild the static assets:
@@ -207,7 +207,7 @@ To preview React changes instantly (without rebuilding manually each time):
 cd frontend && npm run dev
 ```
 
-3. Open the React dev server (e.g. `http://localhost:5173/about`) in your browser.
+3. Open the React dev server (e.g. `http://localhost:5173/v2/about`) in your browser.
 
 > In this mode, the React app is served separately with hot-reloading. Use it for faster iteration during development.
 
