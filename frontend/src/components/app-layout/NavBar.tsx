@@ -32,10 +32,14 @@ export default function NavBar() {
     <Box sx={brandStyle}>
       <Link href="/" underline="none" color="inherit">
         <Box sx={{ ...flexRowCenter }}>
-          <img
+          <Box
+            component="img"
             src="/gpu-mode-logo/black-cropped.svg"
             alt="GPU MODE"
-            style={{ height: 32 }}
+            sx={{
+              height: { xs: 24, sm: 32 },
+              maxWidth: "100%",
+            }}
           />
         </Box>
       </Link>
