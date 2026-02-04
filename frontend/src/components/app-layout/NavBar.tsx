@@ -21,11 +21,7 @@ export default function NavBar() {
   const links: NavLink[] = [
     { label: "News", href: "/news" },
     { label: "Working Groups", href: "/working-groups" },
-    {
-      label: "Lectures",
-      href: "https://www.youtube.com/@GPUMODE",
-      external: true,
-    },
+    { label: "Lectures", href: "/lectures" },
     {
       label: "Resources",
       href: "https://github.com/gpu-mode/resource-stream",
