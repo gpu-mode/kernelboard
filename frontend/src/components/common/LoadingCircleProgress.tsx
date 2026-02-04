@@ -1,14 +1,21 @@
 import { CircularProgress } from "@mui/material";
+import { getRandomGpuJoke } from "./gpuJokes";
+import { useMemo } from "react";
 
 export default function LoadingCircleProgress({
-  message = "loading...",
+  message,
 }: {
-  message: string;
+  message?: string;
 }) {
+  const displayMessage = useMemo(
+    () => message ?? getRandomGpuJoke(),
+    [message]
+  );
+
   return (
     <>
       <CircularProgress size={18} sx={{ mr: 1 }} />
-      {message}
+      {displayMessage}
     </>
   );
 }
