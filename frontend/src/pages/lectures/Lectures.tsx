@@ -230,7 +230,7 @@ export default function Lectures() {
 
       <Typography sx={styles.intro}>
         GPU MODE hosts hackathons, lectures, and events featuring experts in GPU
-        programming, CUDA, Triton, and deep learning optimization.
+        programming.
       </Typography>
 
       {/* Hackathons Section */}
