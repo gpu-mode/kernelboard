@@ -8,6 +8,7 @@ from kernelboard.api.leaderboard_summaries import leaderboard_summaries_bp
 from kernelboard.api.news import news_bp
 from kernelboard.api.auth import auth_bp
 from kernelboard.api.submission import submission_bp
+from kernelboard.api.events import events_bp
 
 
 
@@ -66,4 +67,5 @@ def create_api_blueprint():
     api.register_blueprint(leaderboard_summaries_bp)
     api.register_blueprint(auth_bp)
     api.register_blueprint(submission_bp)
+    api.register_blueprint(events_bp)
     return api

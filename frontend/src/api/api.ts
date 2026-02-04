@@ -143,3 +143,23 @@ export async function fetchUserSubmissions(
   const r = await res.json();
   return r.data;
 }
+
+export interface DiscordEvent {
+  id: string;
+  name: string;
+  description: string;
+  scheduled_start_time: string;
+  scheduled_end_time?: string;
+  event_url: string;
+}
+
+export async function fetchEvents(): Promise<DiscordEvent[]> {
+  const res = await fetch("/api/events");
+  if (!res.ok) {
+    const json = await res.json();
+    const message = json?.message || "Unknown error";
+    throw new APIError(`Failed to fetch events: ${message}`, res.status);
+  }
+  const r = await res.json();
+  return r.data;
+}
