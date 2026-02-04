@@ -1,6 +1,7 @@
-import { Box, Typography, Link, CircularProgress, Chip } from "@mui/material";
+import { Box, Typography, Link, Chip } from "@mui/material";
 import { useEffect, useState } from "react";
 import { fetchEvents, DiscordEvent } from "../../api/api";
+import Loading from "../../components/common/loading";
 
 const styles = {
   container: {
@@ -264,9 +265,7 @@ export default function Lectures() {
           .
         </Typography>
         {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", padding: "24px" }}>
-            <CircularProgress />
-          </Box>
+          <Loading />
         ) : error ? (
           <Typography sx={styles.noEvents}>{error}</Typography>
         ) : events.length === 0 ? (
