@@ -9,6 +9,7 @@ import Leaderboard from "./pages/leaderboard/Leaderboard";
 import Home from "./pages/home/Home";
 import News from "./pages/news/News";
 import WorkingGroups from "./pages/working-groups/WorkingGroups";
+import Lectures from "./pages/lectures/Lectures";
 import ErrorPage from "./pages/Error";
 import Login from "./pages/login/login";
 import { useAuthStore } from "./lib/store/authStore";
@@ -54,6 +55,7 @@ function App() {
             <Route path="/news" element={<News />} />
             <Route path="/news/:slug" element={<News />} />
             <Route path="/working-groups" element={<WorkingGroups />} />
+            <Route path="/lectures" element={<Lectures />} />
             <Route path="/login" element={<Login />} />
             // error handling page
             {errorRoutes.map(({ path, code, title, description }) => (
