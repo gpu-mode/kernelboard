@@ -43,12 +43,12 @@ export default function NavBar() {
   return (
     <AppBar position="fixed" sx={appBarStyle}>
       <ConstrainedContainer>
-        <Toolbar sx={{ px: 0, gap: 2 }}>
+        <Toolbar sx={{ px: 0, gap: 2, overflowX: "auto" }}>
           {/* Left: Brand */}
           <Brand />
 
           {/* Middle: Links */}
-          <Box sx={{ ...flexRowCenterMediumGap, ml: 3 }}>
+          <Box sx={{ ...flexRowCenterMediumGap, ml: 3, flexShrink: 0 }}>
             {links.map(({ label, href, external }) => (
               <Link
                 key={label}
@@ -57,6 +57,7 @@ export default function NavBar() {
                 rel={external ? "noopener" : undefined}
                 underline="none"
                 color="inherit"
+                sx={{ whiteSpace: "nowrap" }}
               >
                 <Box sx={{ ...flexRowCenter, ...mediumText }}>
                   {label}
@@ -67,7 +68,7 @@ export default function NavBar() {
               </Link>
             ))}
           </Box>
-          <Box sx={{ ml: "auto" }}>
+          <Box sx={{ ml: "auto", flexShrink: 0 }}>
             <NavUserProfile />
           </Box>
         </Toolbar>
