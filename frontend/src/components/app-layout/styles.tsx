@@ -10,11 +10,6 @@ export const appBarStyle: SxProps<Theme> = {
   maxWidth: "100vw",
 };
 
-export const flashIconStyle: SxProps<Theme> = {
-  color: "#FFD700",
-  fontSize: 20,
-};
-
 export const brandStyle: SxProps<Theme> = {
   ...flexRowCenter,
   ...mediumText,
