@@ -6,8 +6,7 @@ import {
   flexRowCenterMediumGap,
   mediumText,
 } from "../common/styles/shared_style";
-import FlashOnOutlinedIcon from "@mui/icons-material/FlashOnOutlined";
-import { appBarStyle, brandStyle, flashIconStyle } from "./styles";
+import { appBarStyle, brandStyle } from "./styles";
 import { ConstrainedContainer } from "./ConstrainedContainer";
 import NavUserProfile from "./NavUserProfile";
 
@@ -33,8 +32,11 @@ export default function NavBar() {
     <Box sx={brandStyle}>
       <Link href="/" underline="none" color="inherit">
         <Box sx={{ ...flexRowCenter }}>
-          <FlashOnOutlinedIcon sx={flashIconStyle} />
-          <Box>GPU MODE</Box>
+          <img
+            src="/gpu-mode-logo/black.svg"
+            alt="GPU MODE"
+            style={{ height: 32 }}
+          />
         </Box>
       </Link>
     </Box>
