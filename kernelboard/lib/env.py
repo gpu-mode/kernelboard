@@ -1,4 +1,5 @@
 import os
+import secrets
 
 
 def check_env_vars():
@@ -6,19 +7,19 @@ def check_env_vars():
     Check that required environment variables are set. If they are not set,
     print a message and exit.
 
-    Core infrastructure vars (DATABASE_URL, REDIS_URL, SECRET_KEY) are always required.
-    Discord vars are optional for preview/review app deployments.
+    Core infrastructure vars (DATABASE_URL, REDIS_URL) are always required.
+    Other vars are optional for preview/review app deployments.
     """
 
     # Core infrastructure - always required
     required_env_vars = [
         "DATABASE_URL",
         "REDIS_URL",
-        "SECRET_KEY",
     ]
 
     # Optional for preview deployments - set defaults if not provided
     optional_with_defaults = {
+        "SECRET_KEY": secrets.token_hex(32),
         "DISCORD_CLIENT_ID": "preview-disabled",
         "DISCORD_CLIENT_SECRET": "preview-disabled",
         "DISCORD_CLUSTER_MANAGER_API_BASE_URL": "http://localhost:8080",
