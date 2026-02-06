@@ -226,55 +226,6 @@ Please notice, you need to make sure both of them connects to same db instance.
 
 ## PR Preview Deployments
 
-This project uses **Heroku Review Apps** to automatically deploy preview environments for each pull request.
+This project supports automatic PR preview deployments via Heroku Review Apps. When you open a PR, a preview environment is automatically created.
 
-### How it works
-
-When you open a PR, Heroku automatically creates a temporary app with:
-- Its own PostgreSQL database
-- Its own Redis instance
-- The full application stack (Flask + React)
-
-The preview URL will be posted as a comment on your PR (e.g., `https://kernelboard-pr-123.herokuapp.com`).
-
-### Setup (One-time, for maintainers)
-
-To enable Review Apps, follow these steps in the Heroku Dashboard:
-
-1. **Create a Heroku Pipeline:**
-   ```bash
-   heroku pipelines:create kernelboard -a your-production-app-name
-   ```
-
-2. **Connect GitHub:**
-   - Go to the [Heroku Dashboard](https://dashboard.heroku.com)
-   - Navigate to your pipeline
-   - Click "Connect to GitHub" and authorize the repository
-
-3. **Enable Review Apps:**
-   - In the pipeline view, click "Enable Review Apps"
-   - Check "Create new review apps for new pull requests automatically"
-   - Check "Destroy stale review apps automatically" (recommended: after 5 days)
-   - Configure which environment variables to inherit from the parent app
-
-4. **Configure Environment Variables:**
-   Review apps will inherit these from your staging/production app:
-   - `DISCORD_BOT_TOKEN`
-   - `DISCORD_GUILD_ID`
-   - `DISCORD_CLIENT_ID`
-   - `DISCORD_CLIENT_SECRET`
-   - `DISCORD_CLUSTER_MANAGER_API_BASE_URL`
-
-   The following are auto-provisioned:
-   - `DATABASE_URL` (from heroku-postgresql add-on)
-   - `REDIS_URL` (from heroku-redis add-on)
-   - `SECRET_KEY` (auto-generated)
-
-### Using Review Apps
-
-Once enabled:
-1. Create a PR against `main`
-2. Heroku automatically builds and deploys a preview
-3. A comment with the preview URL appears on the PR
-4. The preview updates on every push to the PR
-5. The preview is destroyed when the PR is closed/merged
+For setup instructions, see [docs/review-apps-setup.md](docs/review-apps-setup.md).
