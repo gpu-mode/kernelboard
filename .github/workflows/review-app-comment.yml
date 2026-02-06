@@ -13,40 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for Heroku deployment
-        run: sleep 60
-
-      - name: Get Review App URL from Heroku
-        id: heroku
-        env:
-          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: |
-          if [ -z "$HEROKU_API_KEY" ]; then
-            echo "url=https://dashboard.heroku.com/pipelines/kernelboard" >> $GITHUB_OUTPUT
-            echo "status=pending" >> $GITHUB_OUTPUT
-          else
-            REVIEW_APPS=$(curl -s -n https://api.heroku.com/pipelines/kernelboard/review-apps \
-              -H "Authorization: Bearer $HEROKU_API_KEY" \
-              -H "Accept: application/vnd.heroku+json; version=3")
-
-            PR_NUMBER=${{ github.event.pull_request.number }}
-            APP_URL=$(echo "$REVIEW_APPS" | jq -r ".[] | select(.pr_number == $PR_NUMBER) | .app.web_url // empty")
-
-            if [ -n "$APP_URL" ]; then
-              echo "url=$APP_URL" >> $GITHUB_OUTPUT
-              echo "status=ready" >> $GITHUB_OUTPUT
-            else
-              echo "url=https://dashboard.heroku.com/pipelines/kernelboard" >> $GITHUB_OUTPUT
-              echo "status=building" >> $GITHUB_OUTPUT
-            fi
-          fi
+        run: sleep 30
 
       - name: Comment PR with Review App URL
         uses: actions/github-script@v7
         with:
           script: |
             const prNumber = context.payload.pull_request.number;
-            const url = '${{ steps.heroku.outputs.url }}';
-            const status = '${{ steps.heroku.outputs.status }}';
 
             const comments = await github.rest.issues.listComments({
               owner: context.repo.owner,
@@ -58,27 +31,22 @@ jobs:
               c.body.includes('Review App Preview')
             );
 
-            let body;
-            if (status === 'ready') {
-              body = `## 🔍 Review App Preview\n\n✅ Your preview is ready:\n**${url}**`;
-            } else if (status === 'building') {
-              body = `## 🔍 Review App Preview\n\n⏳ Building... Check status at:\n${url}`;
-            } else {
-              body = `## 🔍 Review App Preview\n\n⚠️ Add \`HEROKU_API_KEY\` secret to get direct preview links.\n\nCheck the pipeline: ${url}`;
-            }
+            const body = `## 🔍 Review App Preview
+
+A Heroku Review App is being deployed for this PR.
+
+**View your preview:** Check the [Heroku Pipeline](https://dashboard.heroku.com/pipelines/kernelboard) for the review app URL.
+
+> The review app may take a few minutes to build after pushing.`;
 
             if (botComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: body
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prNumber,
-                body: body
-              });
+              // Don't update if already commented
+              return;
             }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: body
+            });
