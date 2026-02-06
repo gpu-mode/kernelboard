@@ -223,3 +223,9 @@ and pass the url to your .env file:
 DISCORD_CLUSTER_MANAGER_API_BASE_URL=http://localhost:8080
 ```
 Please notice, you need to make sure both of them connects to same db instance.
+
+## PR Preview Deployments
+
+This project supports automatic PR preview deployments via Heroku Review Apps. When you open a PR, a preview environment is automatically created.
+
+For setup instructions, see [docs/review-apps-setup.md](docs/review-apps-setup.md).

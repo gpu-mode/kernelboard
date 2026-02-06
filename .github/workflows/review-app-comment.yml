@@ -1,0 +1,52 @@
+name: Comment Review App URL
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Heroku deployment
+        run: sleep 30
+
+      - name: Comment PR with Review App URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const botComment = comments.data.find(c =>
+              c.body.includes('Review App Preview')
+            );
+
+            const body = `## 🔍 Review App Preview
+
+A Heroku Review App is being deployed for this PR.
+
+**View your preview:** Check the [Heroku Pipeline](https://dashboard.heroku.com/pipelines/kernelboard) for the review app URL.
+
+> The review app may take a few minutes to build after pushing.`;
+
+            if (botComment) {
+              // Don't update if already commented
+              return;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: body
+            });
