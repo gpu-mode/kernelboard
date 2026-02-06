@@ -1,0 +1,71 @@
+{
+  "name": "kernelboard",
+  "description": "Kernelboard - GPU kernel development platform",
+  "repository": "https://github.com/your-org/kernelboard",
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:essential-0"
+    },
+    {
+      "plan": "heroku-redis:mini"
+    }
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    },
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "env": {
+    "SECRET_KEY": {
+      "generator": "secret"
+    },
+    "FLASK_DEBUG": {
+      "value": "false"
+    },
+    "DISCORD_BOT_TOKEN": {
+      "required": false,
+      "description": "Discord bot token for fetching scheduled events (optional for previews)"
+    },
+    "DISCORD_GUILD_ID": {
+      "required": false,
+      "description": "Discord server/guild ID (optional for previews)"
+    },
+    "DISCORD_CLIENT_ID": {
+      "required": false,
+      "description": "Discord OAuth2 client ID (optional for previews)"
+    },
+    "DISCORD_CLIENT_SECRET": {
+      "required": false,
+      "description": "Discord OAuth2 client secret (optional for previews)"
+    },
+    "DISCORD_CLUSTER_MANAGER_API_BASE_URL": {
+      "required": false,
+      "description": "GPU cluster manager API URL"
+    }
+  },
+  "environments": {
+    "review": {
+      "addons": [
+        "heroku-postgresql:essential-0",
+        "heroku-redis:mini"
+      ],
+      "env": {
+        "FLASK_DEBUG": {
+          "value": "true"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "postdeploy": "echo 'Review app deployed successfully'"
+  }
+}

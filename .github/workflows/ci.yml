@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Run Python tests
+        run: pytest --tb=short
+
+      - name: Run frontend tests
+        run: cd frontend && npm test -- --run
+
+      - name: Build frontend
+        run: cd frontend && npm run build
+
+      - name: Check build artifacts
+        run: |
+          if [ -d "kernelboard/static/app" ]; then
+            echo "✅ Frontend build successful"
+            ls -la kernelboard/static/app
+          else
+            echo "❌ Frontend build failed - no output directory"
+            exit 1
+          fi
