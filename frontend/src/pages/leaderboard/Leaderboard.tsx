@@ -15,6 +15,7 @@ import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { isExpired, toDateUtc } from "../../lib/date/utils";
 import RankingsList from "./components/RankingLists";
 import CodeBlock from "../../components/codeblock/CodeBlock";
+import MarkdownRenderer from "../../components/markdown-renderer/MarkdownRenderer";
 import { ErrorAlert } from "../../components/alert/ErrorAlert";
 import { useParams, useSearchParams } from "react-router-dom";
 import Loading from "../../components/common/loading";
@@ -97,13 +98,10 @@ export default function Leaderboard() {
   if (loading) return <Loading />;
   if (error) return <ErrorAlert status={errorStatus} message={error} />;
 
-  const descriptionText = (text: string) => (
-    <Typography component="div" sx={{ whiteSpace: "pre-line" }}>
-      {text}
-    </Typography>
-  );
-
-  const toDeadlineUTC = (raw: string) => `ended (${toDateUtc(raw)}) UTC`;
+  const toDeadlineUTC = (raw: string) => {
+    const verb = isExpired(raw) ? "Ended" : "Ends";
+    return `${verb} ${toDateUtc(raw)} UTC`;
+  };
 
   const info_items = [
     { title: "Deadline", content: <span>{toDeadlineUTC(data.deadline)}</span> },
@@ -132,7 +130,7 @@ export default function Leaderboard() {
           <Card>
             <CardContent>
               <CardTitle fontWeight="bold">Description</CardTitle>
-              {descriptionText(data.description)}
+              <MarkdownRenderer content={data.description} />
             </CardContent>
           </Card>
         </Grid>
