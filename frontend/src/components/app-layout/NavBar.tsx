@@ -28,7 +28,7 @@ export default function NavBar() {
   const isDark = theme.palette.mode === "dark";
 
   const logoSrc = isDark
-    ? "/gpu-mode-logo/white.svg"
+    ? "/gpu-mode-logo/white-cropped.svg"
     : "/gpu-mode-logo/black-cropped.svg";
 
   const cycleMode = () => {
