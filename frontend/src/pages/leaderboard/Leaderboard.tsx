@@ -105,7 +105,6 @@ export default function Leaderboard() {
 
   const info_items = [
     { title: "Deadline", content: <span>{toDeadlineUTC(data.deadline)}</span> },
-    { title: "Language", content: <span>{data.lang}</span> },
     { title: "GPU types", content: <span>{data.gpu_types.join(", ")}</span> },
   ];
 
@@ -116,7 +115,7 @@ export default function Leaderboard() {
         {/* Header info cards shown above tabs */}
         <Grid container spacing={2} marginBottom={2}>
           {info_items.map((info, idx) => (
-            <Grid size={{ xs: 12, md: 4 }} key={idx}>
+            <Grid size={{ xs: 12, md: 6 }} key={idx}>
               <Card>
                 <CardContent>
                   <CardTitle>{info.title}</CardTitle>
