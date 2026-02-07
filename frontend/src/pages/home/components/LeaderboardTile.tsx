@@ -25,8 +25,8 @@ const styles = {
     },
   },
   priorityGpuType: {
-    backgroundColor: "#f5f5f5",
-    color: "#666",
+    backgroundColor: "action.hover",
+    color: "text.secondary",
     fontSize: "0.9rem",
   },
   topUsersList: {

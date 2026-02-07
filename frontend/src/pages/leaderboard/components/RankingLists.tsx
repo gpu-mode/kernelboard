@@ -8,7 +8,6 @@ import {
   type Theme,
   Typography,
 } from "@mui/material";
-import { grey } from "@mui/material/colors";
 import RankingTitleBadge from "./RankingTitleBadge";
 
 import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
@@ -35,7 +34,8 @@ const styles: Record<string, SxProps<Theme>> = {
     mt: 5,
   },
   rankingRow: {
-    borderBottom: "1px solid #ddd",
+    borderBottom: 1,
+    borderColor: "divider",
   },
   header: {
     display: "flex",
@@ -64,7 +64,7 @@ const styles: Record<string, SxProps<Theme>> = {
     minWidth: "100px",
   },
   delta: {
-    color: grey[600],
+    color: "text.secondary",
     minWidth: "90px",
   },
 };

@@ -2,10 +2,11 @@ import type { SxProps, Theme } from "@mui/material";
 import { flexRowCenter, mediumText } from "../common/styles/shared_style";
 
 export const appBarStyle: SxProps<Theme> = {
-  backgroundColor: "white",
-  color: "black",
+  backgroundColor: "background.paper",
+  color: "text.primary",
   boxShadow: "none",
-  borderBottom: "1px solid #ddd",
+  borderBottom: 1,
+  borderColor: "divider",
   width: "100%",
   maxWidth: "100vw",
 };

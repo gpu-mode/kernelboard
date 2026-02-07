@@ -1,4 +1,4 @@
-import { createTheme, type Components } from "@mui/material/styles";
+import { createTheme, type Components, type PaletteMode } from "@mui/material/styles";
 
 const colorPalette = {
   primary: "#5865F2", // Blurple, Discord's brand color
@@ -25,78 +25,91 @@ declare module "@mui/material/styles" {
 
 // the global styles apply to app-wide
 
-const MuiCardGlobalStyle: Components["MuiCard"] = {
+const getMuiCardGlobalStyle = (mode: PaletteMode): Components["MuiCard"] => ({
   styleOverrides: {
     root: {
-      border: `1px solid ${colorPalette.neutral}`,
+      border: `1px solid ${mode === "dark" ? "#333" : colorPalette.neutral}`,
       boxShadow: "none",
       borderRadius: "12px",
       padding: "16px",
     },
   },
-};
+});
 
-const MuiButtonGlobalStyle: Components["MuiButton"] = {
+const getMuiButtonGlobalStyle = (
+  mode: PaletteMode,
+): Components["MuiButton"] => ({
   defaultProps: {
     variant: "contained",
     disableElevation: true,
   },
   styleOverrides: {
     root: {
-      backgroundColor: "#e6f0ff",
-      color: "#333",
+      backgroundColor: mode === "dark" ? "#23272f" : "#e6f0ff",
+      color: mode === "dark" ? "#e0e0e0" : "#333",
       fontWeight: 500,
       fontSize: "0.9rem",
       textTransform: "none",
       borderRadius: "13px",
       padding: "1px 5px",
       boxShadow: "none",
-      border: "1px solid #ddd",
+      border: `1px solid ${mode === "dark" ? "#444" : "#ddd"}`,
       "&:hover": {
-        backgroundColor: "#d0e4ff",
+        backgroundColor: mode === "dark" ? "#2d3340" : "#d0e4ff",
       },
       "&:active": {
-        backgroundColor: "#b3d4ff",
+        backgroundColor: mode === "dark" ? "#3a4050" : "#b3d4ff",
       },
     },
   },
-};
-
-export const appTheme = createTheme({
-  palette: {
-    primary: {
-      main: colorPalette.primary,
-    },
-    secondary: {
-      main: colorPalette.secondary,
-    },
-    custom: colorPalette,
-  },
-  typography: {
-    fontFamily:
-      'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
-    fontSize: 14,
-    h1: {
-      fontSize: "1.875rem",
-      lineHeight: "2.25rem",
-      fontWeight: 700,
-      marginTop: "1rem",
-    },
-    h2: {
-      fontSize: "1.5rem",
-      lineHeight: "2rem",
-      fontWeight: 700,
-      marginTop: "1rem",
-    },
-    h3: {
-      fontSize: "1.25rem",
-      lineHeight: "1.75rem",
-      fontWeight: 700,
-      marginTop: "1rem",
-    },
-  },
-  components: {
-    MuiCard: MuiCardGlobalStyle,
-    MuiButton: MuiButtonGlobalStyle,
-  },
 });
+
+export function createAppTheme(mode: PaletteMode) {
+  return createTheme({
+    palette: {
+      mode,
+      primary: {
+        main: colorPalette.primary,
+      },
+      secondary: {
+        main: colorPalette.secondary,
+      },
+      custom: colorPalette,
+      ...(mode === "dark" && {
+        background: {
+          default: "#0f1117",
+          paper: "#181a20",
+        },
+      }),
+    },
+    typography: {
+      fontFamily:
+        'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
+      fontSize: 14,
+      h1: {
+        fontSize: "1.875rem",
+        lineHeight: "2.25rem",
+        fontWeight: 700,
+        marginTop: "1rem",
+      },
+      h2: {
+        fontSize: "1.5rem",
+        lineHeight: "2rem",
+        fontWeight: 700,
+        marginTop: "1rem",
+      },
+      h3: {
+        fontSize: "1.25rem",
+        lineHeight: "1.75rem",
+        fontWeight: 700,
+        marginTop: "1rem",
+      },
+    },
+    components: {
+      MuiCard: getMuiCardGlobalStyle(mode),
+      MuiButton: getMuiButtonGlobalStyle(mode),
+    },
+  });
+}
+
+export const appTheme = createAppTheme("light");

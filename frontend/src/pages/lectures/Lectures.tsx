@@ -1,4 +1,5 @@
 import { Box, Typography, Link, Chip } from "@mui/material";
+import type { Theme } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import { fetchEvents, DiscordEvent } from "../../api/api";
 import Loading from "../../components/common/loading";
@@ -16,15 +17,17 @@ const styles = {
     fontSize: "1.5rem",
     fontWeight: 600,
     marginBottom: "16px",
-    borderBottom: "2px solid #eee",
+    borderBottom: "2px solid",
+    borderColor: "divider",
     paddingBottom: "8px",
   },
   card: {
     marginBottom: "16px",
     padding: "16px",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "action.hover",
     borderRadius: "8px",
-    border: "1px solid #eee",
+    border: "1px solid",
+    borderColor: "divider",
   },
   cardTitle: {
     fontSize: "1.1rem",
@@ -32,37 +35,40 @@ const styles = {
     marginBottom: "4px",
   },
   cardMeta: {
-    color: "#666",
+    color: "text.secondary",
     marginBottom: "8px",
     fontSize: "0.9rem",
   },
   cardDescription: {
     marginBottom: "8px",
-    color: "#333",
+    color: "text.primary",
   },
   link: {
-    color: "#1976d2",
+    color: "primary.main",
     textDecoration: "none",
     "&:hover": {
       textDecoration: "underline",
     },
   },
   archiveBox: {
-    backgroundColor: "#e3f2fd",
+    backgroundColor: (theme: Theme) =>
+      theme.palette.mode === "dark" ? "rgba(33, 150, 243, 0.08)" : "#e3f2fd",
     padding: "16px",
     borderRadius: "8px",
     marginTop: "32px",
-    border: "1px solid #90caf9",
+    border: "1px solid",
+    borderColor: (theme: Theme) =>
+      theme.palette.mode === "dark" ? "rgba(144, 202, 249, 0.3)" : "#90caf9",
   },
   intro: {
     marginBottom: "24px",
     lineHeight: 1.6,
   },
   noEvents: {
-    color: "#666",
+    color: "text.secondary",
     fontStyle: "italic",
     padding: "16px",
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "action.hover",
     borderRadius: "8px",
   },
   chipContainer: {
@@ -251,14 +257,14 @@ export default function Lectures() {
       {/* Upcoming Lectures Section */}
       <Box sx={styles.section}>
         <Typography sx={styles.sectionTitle}>Upcoming Lectures</Typography>
-        <Typography sx={{ color: "#666", fontSize: "0.875rem", marginBottom: "16px" }}>
+        <Typography sx={{ color: "text.secondary", fontSize: "0.875rem", marginBottom: "16px" }}>
           Lectures are pulled live from our Discord server. For the most up-to-date schedule,
           join the{" "}
           <Link
             href="https://discord.gg/gpumode"
             target="_blank"
             rel="noopener noreferrer"
-            sx={{ color: "#1976d2" }}
+            sx={{ color: "primary.main" }}
           >
             GPU MODE Discord
           </Link>
