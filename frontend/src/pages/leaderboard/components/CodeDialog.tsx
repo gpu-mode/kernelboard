@@ -1,5 +1,6 @@
 import { Box, Button, Dialog, DialogContent, DialogTitle } from "@mui/material";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import CodeBlock from "../../../components/codeblock/CodeBlock";
 
 export function CodeDialog({
@@ -11,7 +12,18 @@ export function CodeDialog({
 }) {
   const [open, setOpen] = useState(false);
 
-  if (!code) return <Box>{fileName}</Box>;
+  if (!code)
+    return (
+      <Button
+        component={Link}
+        to="/login"
+        variant="text"
+        size="small"
+        sx={{ textTransform: "none" }}
+      >
+        {fileName}
+      </Button>
+    );
 
   return (
     <>
