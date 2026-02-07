@@ -14,6 +14,7 @@ import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
 import { getMedalIcon } from "../../../components/common/medal.tsx";
 import { fetchCodes } from "../../../api/api.ts";
 import { CodeDialog } from "./CodeDialog.tsx";
+import { isExpired } from "../../../lib/date/utils.ts";
 
 interface RankingItem {
   file_name: string;
@@ -27,6 +28,7 @@ interface RankingItem {
 interface RankingsListProps {
   rankings: Record<string, RankingItem[]>;
   leaderboardId?: string;
+  deadline?: string;
 }
 
 const styles: Record<string, SxProps<Theme>> = {
@@ -70,13 +72,16 @@ const styles: Record<string, SxProps<Theme>> = {
   loc: {
     fontFamily: "monospace",
     color: "text.secondary",
+    textAlign: "right",
   },
 };
 
 export default function RankingsList({
   rankings,
   leaderboardId,
+  deadline,
 }: RankingsListProps) {
+  const showLoc = !!deadline && isExpired(deadline);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [colorHash, _] = useState<string>(
     Math.random().toString(36).slice(2, 8),
@@ -168,12 +173,12 @@ export default function RankingsList({
                       {item.user_name} {getMedalIcon(item.rank)}
                     </Typography>
                   </Grid>
-                  <Grid size={2}>
+                  <Grid size={showLoc ? 2 : 3}>
                     <Typography sx={styles.score}>
                       {formatMicroseconds(item.score)}
                     </Typography>
                   </Grid>
-                  <Grid size={2}>
+                  <Grid size={showLoc ? 2 : 3}>
                     <Typography sx={styles.delta}>
                       {item.prev_score > 0 &&
                         `+${formatMicroseconds(item.prev_score)}`}
@@ -187,16 +192,18 @@ export default function RankingsList({
                       />
                     </Typography>
                   </Grid>
-                  <Grid size={2}>
-                    <Typography sx={styles.loc}>
-                      {(() => {
-                        const code = codes.get(item?.submission_id);
-                        if (!code) return "";
-                        const lines = code.split("\n").length;
-                        return `${lines} LOC`;
-                      })()}
-                    </Typography>
-                  </Grid>
+                  {showLoc && (
+                    <Grid size={2}>
+                      <Typography sx={styles.loc}>
+                        {(() => {
+                          const code = codes.get(item?.submission_id);
+                          if (!code) return "";
+                          const lines = code.split("\n").length;
+                          return `${lines} LOC`;
+                        })()}
+                      </Typography>
+                    </Grid>
+                  )}
                 </Grid>
               ))}
             </Stack>
