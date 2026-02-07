@@ -11,7 +11,7 @@ export const FooterLinkContainer = styled(Container)(({ theme }) => ({
 }));
 
 export const FooterBox = styled(Box)(({ theme }) => ({
-  borderTop: "1px solid #ddd",
+  borderTop: `1px solid ${theme.palette.divider}`,
   paddingTop: theme.spacing(2),
   paddingBottom: theme.spacing(2),
   textAlign: "center",
