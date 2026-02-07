@@ -1,3 +1,5 @@
+import time
+
 from flask import Blueprint
 from datetime import datetime, timezone
 from kernelboard.lib.db import get_db_connection
@@ -7,6 +9,13 @@ from kernelboard.lib.status_code import http_success
 leaderboard_summaries_bp = Blueprint(
     "leaderboard_summaries_bp", __name__, url_prefix="/leaderboard-summaries"
 )
+
+# Simple in-memory cache
+_cache = {
+    "data": None,
+    "timestamp": 0,
+}
+CACHE_TTL_SECONDS = 60
 
 
 @leaderboard_summaries_bp.route("", methods=["GET"])
@@ -28,6 +37,10 @@ def index():
     #     ],
     # }
 
+    now = time.time()
+    if _cache["data"] is not None and (now - _cache["timestamp"]) < CACHE_TTL_SECONDS:
+        return http_success(_cache["data"])
+
     conn = get_db_connection()
     query = _get_query()
     with conn.cursor() as cur:
@@ -38,9 +51,12 @@ def index():
         if lb["gpu_types"] is None:
             lb["gpu_types"] = []
 
-    return http_success(
-        {"leaderboards": leaderboards, "now": datetime.now(timezone.utc)}
-    )
+    result = {"leaderboards": leaderboards, "now": datetime.now(timezone.utc)}
+
+    _cache["data"] = result
+    _cache["timestamp"] = now
+
+    return http_success(result)
 
 
 def _get_query():
