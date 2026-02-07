@@ -3,6 +3,7 @@ import { Box, IconButton, Tooltip, useTheme } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface CodeBlockProps {
   code: string;
@@ -29,6 +30,7 @@ const styles = {
 export default function CodeBlock({ code }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const theme = useTheme();
+  const syntaxTheme = theme.palette.mode === "dark" ? oneDark : oneLight;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code).then(() => {
@@ -71,7 +73,7 @@ export default function CodeBlock({ code }: CodeBlockProps) {
       >
         <SyntaxHighlighter
           language="python"
-          style={oneLight}
+          style={syntaxTheme}
           customStyle={{
             margin: 0,
             padding: 12,
