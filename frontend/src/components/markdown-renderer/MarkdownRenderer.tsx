@@ -2,6 +2,7 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
+import { useTheme } from "@mui/material/styles";
 
 type MarkdownRendererProps = {
   content: string;
@@ -44,11 +45,18 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
 }) => {
   const mergedImageProps = { ...defaultImageProps, ...imageProps };
   const { align, ...styleProps } = mergedImageProps;
+  const theme = useTheme();
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       rehypePlugins={[rehypeRaw]}
       components={{
+        a: ({ node, ...props }) => (
+          <a
+            style={{ color: theme.palette.primary.main, textDecoration: "none" }}
+            {...props}
+          />
+        ),
         figure: ({ node, ...props }) => (
           <figure style={{ textAlign: align, margin: "1.5rem 0" }} {...props} />
         ),
