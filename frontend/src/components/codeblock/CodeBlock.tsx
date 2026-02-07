@@ -69,6 +69,9 @@ export default function CodeBlock({ code }: CodeBlockProps) {
             fontFamily: "monospace !important",
             background: "transparent !important",
           },
+          "& code": {
+            background: "transparent !important",
+          },
         }}
       >
         <SyntaxHighlighter
