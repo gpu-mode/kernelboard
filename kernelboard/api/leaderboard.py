@@ -1,4 +1,3 @@
-import time
 from typing import Any
 from flask import Blueprint
 from kernelboard.lib.db import get_db_connection
@@ -9,18 +8,9 @@ from http import HTTPStatus
 
 leaderboard_bp = Blueprint("leaderboard_bp", __name__, url_prefix="/leaderboard")
 
-# Simple in-memory cache keyed by leaderboard_id
-_cache: dict[int, dict] = {}
-CACHE_TTL_SECONDS = 60
-
 
 @leaderboard_bp.route("/<int:leaderboard_id>", methods=["GET"])
 def leaderboard(leaderboard_id: int):
-    now = time.time()
-    cached = _cache.get(leaderboard_id)
-    if cached is not None and (now - cached["timestamp"]) < CACHE_TTL_SECONDS:
-        return http_success(cached["data"])
-
     conn = get_db_connection()
     query = _get_query()
     with conn.cursor() as cur:
@@ -37,9 +27,6 @@ def leaderboard(leaderboard_id: int):
     data = result[0]
 
     res = to_api_leaderboard_item(data)
-
-    _cache[leaderboard_id] = {"data": res, "timestamp": now}
-
     return http_success(res)
 
 
