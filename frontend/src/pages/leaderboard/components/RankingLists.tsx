@@ -67,6 +67,10 @@ const styles: Record<string, SxProps<Theme>> = {
     color: "text.secondary",
     minWidth: "90px",
   },
+  loc: {
+    fontFamily: "monospace",
+    color: "text.secondary",
+  },
 };
 
 export default function RankingsList({
@@ -164,12 +168,12 @@ export default function RankingsList({
                       {item.user_name} {getMedalIcon(item.rank)}
                     </Typography>
                   </Grid>
-                  <Grid size={3}>
+                  <Grid size={2}>
                     <Typography sx={styles.score}>
                       {formatMicroseconds(item.score)}
                     </Typography>
                   </Grid>
-                  <Grid size={3}>
+                  <Grid size={2}>
                     <Typography sx={styles.delta}>
                       {item.prev_score > 0 &&
                         `+${formatMicroseconds(item.prev_score)}`}
@@ -181,6 +185,16 @@ export default function RankingsList({
                         code={codes.get(item?.submission_id)}
                         fileName={item.file_name}
                       />
+                    </Typography>
+                  </Grid>
+                  <Grid size={2}>
+                    <Typography sx={styles.loc}>
+                      {(() => {
+                        const code = codes.get(item?.submission_id);
+                        if (!code) return "";
+                        const lines = code.split("\n").length;
+                        return `${lines} LOC`;
+                      })()}
                     </Typography>
                   </Grid>
                 </Grid>
