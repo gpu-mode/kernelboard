@@ -1,4 +1,5 @@
 import { Box, Typography, Link } from "@mui/material";
+import type { Theme } from "@mui/material/styles";
 
 const styles = {
   container: {
@@ -13,15 +14,17 @@ const styles = {
     fontSize: "1.5rem",
     fontWeight: 600,
     marginBottom: "16px",
-    borderBottom: "2px solid #eee",
+    borderBottom: "2px solid",
+    borderColor: "divider",
     paddingBottom: "8px",
   },
   projectCard: {
     marginBottom: "24px",
     padding: "16px",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "action.hover",
     borderRadius: "8px",
-    border: "1px solid #eee",
+    border: "1px solid",
+    borderColor: "divider",
   },
   projectTitle: {
     fontSize: "1.1rem",
@@ -30,10 +33,10 @@ const styles = {
   },
   projectDescription: {
     marginBottom: "8px",
-    color: "#333",
+    color: "text.primary",
   },
   projectLink: {
-    color: "#1976d2",
+    color: "primary.main",
     textDecoration: "none",
     "&:hover": {
       textDecoration: "underline",
@@ -44,18 +47,24 @@ const styles = {
     lineHeight: 1.6,
   },
   highlight: {
-    backgroundColor: "#fff3cd",
+    backgroundColor: (theme: Theme) =>
+      theme.palette.mode === "dark" ? "rgba(255, 193, 7, 0.08)" : "#fff3cd",
     padding: "12px 16px",
     borderRadius: "6px",
     marginBottom: "24px",
-    border: "1px solid #ffc107",
+    border: "1px solid",
+    borderColor: (theme: Theme) =>
+      theme.palette.mode === "dark" ? "rgba(255, 193, 7, 0.3)" : "#ffc107",
   },
   governance: {
-    backgroundColor: "#e3f2fd",
+    backgroundColor: (theme: Theme) =>
+      theme.palette.mode === "dark" ? "rgba(33, 150, 243, 0.08)" : "#e3f2fd",
     padding: "16px",
     borderRadius: "8px",
     marginTop: "32px",
-    border: "1px solid #90caf9",
+    border: "1px solid",
+    borderColor: (theme: Theme) =>
+      theme.palette.mode === "dark" ? "rgba(144, 202, 249, 0.3)" : "#90caf9",
   },
 };
 
@@ -213,7 +222,7 @@ function ProjectCard({ project }: { project: Project }) {
       )}
       {project.note && (
         <Typography
-          sx={{ marginTop: "8px", fontStyle: "italic", color: "#666" }}
+          sx={{ marginTop: "8px", fontStyle: "italic", color: "text.secondary" }}
         >
           {project.note}
         </Typography>
@@ -267,7 +276,7 @@ export default function WorkingGroups() {
         <Typography sx={styles.sectionTitle}>
           Kernel DSL Customer Support Channels
         </Typography>
-        <Typography sx={{ marginBottom: "16px", color: "#666" }}>
+        <Typography sx={{ marginBottom: "16px", color: "text.secondary" }}>
           Get help and support for popular kernel development DSLs and
           libraries.
         </Typography>

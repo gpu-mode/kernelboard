@@ -4,7 +4,7 @@ import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AppLayout from "./components/app-layout/AppLayout";
 import { CssBaseline, ThemeProvider } from "@mui/material";
-import { appTheme } from "./components/common/styles/theme";
+import { createAppTheme } from "./components/common/styles/theme";
 import Leaderboard from "./pages/leaderboard/Leaderboard";
 import Home from "./pages/home/Home";
 import News from "./pages/news/News";
@@ -13,7 +13,8 @@ import Lectures from "./pages/lectures/Lectures";
 import ErrorPage from "./pages/Error";
 import Login from "./pages/login/login";
 import { useAuthStore } from "./lib/store/authStore";
-import { useEffect } from "react";
+import { useThemeStore } from "./lib/store/themeStore";
+import { useEffect, useMemo } from "react";
 
 const errorRoutes = [
   {
@@ -32,7 +33,7 @@ const errorRoutes = [
     path: "*",
     code: 404,
     title: "Page Not Found",
-    description: "The page you’re looking for doesn’t exist.",
+    description: "The page you're looking for doesn't exist.",
   },
 ];
 
@@ -43,8 +44,23 @@ function App() {
     fetchMe();
   }, [fetchMe]);
 
+  const resolvedMode = useThemeStore((s) => s.resolvedMode);
+  const mode = useThemeStore((s) => s.mode);
+  const setMode = useThemeStore((s) => s.setMode);
+
+  const theme = useMemo(() => createAppTheme(resolvedMode), [resolvedMode]);
+
+  // Listen for OS-level dark mode changes when mode is "system"
+  useEffect(() => {
+    if (mode !== "system") return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = () => setMode("system");
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [mode, setMode]);
+
   return (
-    <ThemeProvider theme={appTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <BrowserRouter basename="">
         <AppLayout>

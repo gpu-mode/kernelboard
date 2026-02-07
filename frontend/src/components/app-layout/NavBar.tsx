@@ -1,6 +1,10 @@
 // components/NavBar.tsx
-import { AppBar, Toolbar, Link, Box } from "@mui/material";
+import { AppBar, Toolbar, Link, Box, IconButton, Tooltip } from "@mui/material";
 import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
+import { useTheme } from "@mui/material/styles";
 import {
   flexRowCenter,
   flexRowCenterMediumGap,
@@ -9,6 +13,7 @@ import {
 import { appBarStyle, brandStyle } from "./styles";
 import { ConstrainedContainer } from "./ConstrainedContainer";
 import NavUserProfile from "./NavUserProfile";
+import { useThemeStore } from "../../lib/store/themeStore";
 
 export interface NavLink {
   label: string;
@@ -17,6 +22,37 @@ export interface NavLink {
 }
 
 export default function NavBar() {
+  const mode = useThemeStore((s) => s.mode);
+  const setMode = useThemeStore((s) => s.setMode);
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+
+  const logoSrc = isDark
+    ? "/gpu-mode-logo/white-cropped.svg"
+    : "/gpu-mode-logo/black-cropped.svg";
+
+  const cycleMode = () => {
+    const next =
+      mode === "light" ? "dark" : mode === "dark" ? "system" : "light";
+    setMode(next);
+  };
+
+  const modeIcon =
+    mode === "light" ? (
+      <LightModeIcon />
+    ) : mode === "dark" ? (
+      <DarkModeIcon />
+    ) : (
+      <SettingsBrightnessIcon />
+    );
+
+  const modeLabel =
+    mode === "light"
+      ? "Switch to dark mode"
+      : mode === "dark"
+        ? "Switch to system preference"
+        : "Switch to light mode";
+
   const links: NavLink[] = [
     { label: "News", href: "/news" },
     { label: "Lectures", href: "/lectures" },
@@ -34,7 +70,7 @@ export default function NavBar() {
         <Box sx={{ ...flexRowCenter }}>
           <Box
             component="img"
-            src="/gpu-mode-logo/black-cropped.svg"
+            src={logoSrc}
             alt="GPU MODE"
             sx={{
               height: { xs: 24, sm: 32 },
@@ -74,7 +110,13 @@ export default function NavBar() {
               </Link>
             ))}
           </Box>
-          <Box sx={{ ml: "auto", flexShrink: 0 }}>
+
+          <Box sx={{ ml: "auto", flexShrink: 0, display: "flex", alignItems: "center", gap: 1 }}>
+            <Tooltip title={modeLabel}>
+              <IconButton onClick={cycleMode} color="inherit" size="small">
+                {modeIcon}
+              </IconButton>
+            </Tooltip>
             <NavUserProfile />
           </Box>
         </Toolbar>
