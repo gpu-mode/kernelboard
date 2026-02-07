@@ -1,8 +1,11 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
+import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import { useTheme } from "@mui/material/styles";
+import "katex/dist/katex.min.css";
 
 type MarkdownRendererProps = {
   content: string;
@@ -48,8 +51,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   const theme = useTheme();
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
-      rehypePlugins={[rehypeRaw]}
+      remarkPlugins={[remarkGfm, remarkMath]}
+      rehypePlugins={[rehypeRaw, rehypeKatex]}
       components={{
         a: ({ node, ...props }) => (
           <a
