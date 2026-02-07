@@ -155,7 +155,7 @@ export default function Leaderboard() {
         <TabPanel value={tab} index={0}>
           <Box>
             {Object.entries(data.rankings).length > 0 ? (
-              <RankingsList rankings={data.rankings} leaderboardId={id} />
+              <RankingsList rankings={data.rankings} leaderboardId={id} deadline={data.deadline} />
             ) : (
               <Box display="flex" flexDirection="column" alignItems="center">
                 <Typography variant="h6" fontWeight="bold">
