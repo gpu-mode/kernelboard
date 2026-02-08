@@ -7,10 +7,16 @@ export function CodeDialog({
   code,
   fileName = "file",
   isActive = false,
+  rank,
+  userName,
+  problemName,
 }: {
   code: any;
   fileName?: string;
   isActive?: boolean;
+  rank?: number;
+  userName?: string;
+  problemName?: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -50,7 +56,11 @@ export function CodeDialog({
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>Report JSON</DialogTitle>
+        <DialogTitle>
+          {rank != null && userName && problemName
+            ? `Rank #${rank} by ${userName} on ${problemName}`
+            : fileName}
+        </DialogTitle>
         <DialogContent dividers>
           <Box>
             <CodeBlock code={code} />
