@@ -105,6 +105,7 @@ export default function RankingsList({
   }, [rankings]);
 
   useEffect(() => {
+    if (!showLoc) return;
     if (!submissionIds || submissionIds.length === 0 || !leaderboardId) return;
     fetchCodes(leaderboardId, submissionIds)
       .then((data) => {
@@ -118,7 +119,7 @@ export default function RankingsList({
         // soft error handle it since it's not critical
         console.warn("[RankingsList] Failed to fetch codes:", err);
       });
-  }, [leaderboardId, submissionIds]);
+  }, [leaderboardId, submissionIds, showLoc]);
 
   const toggleExpanded = (field: string) => {
     setExpanded((prev) => ({
@@ -184,14 +185,6 @@ export default function RankingsList({
                         `+${formatMicroseconds(item.prev_score)}`}
                     </Typography>
                   </Grid>
-                  <Grid size={3}>
-                    <Typography>
-                      <CodeDialog
-                        code={codes.get(item?.submission_id)}
-                        fileName={item.file_name}
-                      />
-                    </Typography>
-                  </Grid>
                   {showLoc && (
                     <Grid size={2}>
                       <Typography sx={styles.loc}>
@@ -204,6 +197,15 @@ export default function RankingsList({
                       </Typography>
                     </Grid>
                   )}
+                  <Grid size={3}>
+                    <Typography>
+                      <CodeDialog
+                        code={codes.get(item?.submission_id)}
+                        fileName={item.file_name}
+                        isActive={!showLoc}
+                      />
+                    </Typography>
+                  </Grid>
                 </Grid>
               ))}
             </Stack>
