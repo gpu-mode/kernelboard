@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, DialogContent, DialogTitle } from "@mui/material";
+import { Box, Button, Dialog, DialogContent, DialogTitle, Typography } from "@mui/material";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import CodeBlock from "../../../components/codeblock/CodeBlock";
@@ -6,11 +6,20 @@ import CodeBlock from "../../../components/codeblock/CodeBlock";
 export function CodeDialog({
   code,
   fileName = "file",
+  isActive = false,
 }: {
   code: any;
   fileName?: string;
+  isActive?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+
+  if (isActive)
+    return (
+      <Typography variant="body2" sx={{ fontSize: "0.8125rem" }}>
+        {fileName}
+      </Typography>
+    );
 
   if (!code)
     return (
