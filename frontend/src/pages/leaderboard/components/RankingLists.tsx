@@ -203,6 +203,9 @@ export default function RankingsList({
                         code={codes.get(item?.submission_id)}
                         fileName={item.file_name}
                         isActive={!showLoc}
+                        rank={item.rank}
+                        userName={item.user_name}
+                        problemName={field}
                       />
                     </Typography>
                   </Grid>
