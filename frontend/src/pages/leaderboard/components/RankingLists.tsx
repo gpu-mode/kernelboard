@@ -189,11 +189,6 @@ export default function RankingsList({
                         `+${formatMicroseconds(item.prev_score)}`}
                     </Typography>
                   </Grid>
-                  <Grid size={showLoc ? 1.5 : 2}>
-                    <Typography sx={styles.submissionId}>
-                      ID: {item.submission_id}
-                    </Typography>
-                  </Grid>
                   {showLoc && (
                     <Grid size={1.5}>
                       <Typography sx={styles.loc}>
@@ -206,6 +201,11 @@ export default function RankingsList({
                       </Typography>
                     </Grid>
                   )}
+                  <Grid size={showLoc ? 1.5 : 2}>
+                    <Typography sx={styles.submissionId}>
+                      ID: {item.submission_id}
+                    </Typography>
+                  </Grid>
                   <Grid size={showLoc ? 2.5 : 3}>
                     <Typography>
                       <CodeDialog
