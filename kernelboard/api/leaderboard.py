@@ -248,6 +248,10 @@ def get_ai_trend(leaderboard_id: int):
          score, passed, gpu_type, mode) = row
         model_name = parse_model_from_filename(file_name)
 
+        # Skip files that don't match the ka_submission.py pattern
+        if model_name is None:
+            continue
+
         items.append({
             "submission_id": submission_id,
             "file_name": file_name,
@@ -277,22 +281,23 @@ def get_ai_trend(leaderboard_id: int):
 
 def parse_model_from_filename(file_name: str) -> str:
     """
-    Extract model name from file names like:
-    - matmul_py_H100_claude-opus-4.5_ka_submission.py -> claude-opus-4.5
-    - matmul_py_H100_gpt-5-2_ka_submission.py -> gpt-5-2
-    - matmul_py_H100_gpt-5_ka_submission.py -> gpt-5
-    - 1.py -> 1.py (no match, return as-is)
+    Extract model name from file names ending with ka_submission.py:
+    - trimul_H100_claude-opus-4.5_ka_submission.py -> claude-opus-4.5
+    - trimul_H100_gpt-52_ka_submission.py -> gpt-52
+    - trimul_H100_gpt-5_ka_submission.py -> gpt-5
+    Returns None if file doesn't match pattern.
     """
-    if not file_name:
-        return "unknown"
+    if not file_name or not file_name.endswith("_ka_submission.py"):
+        return None
 
-    # Pattern: {problem}_py_{gpu}_{model}_ka_submission.py
-    pattern = r"^.+_py_[A-Za-z0-9]+_(.+?)_ka_submission\.py$"
+    # Extract model name: everything between last GPU type and _ka_submission
+    # Pattern: {anything}_{gpu}_{model}_ka_submission.py
+    pattern = r"^.+_[A-Za-z0-9]+_(.+?)_ka_submission\.py$"
     match = re.match(pattern, file_name)
     if match:
         return match.group(1)
 
-    return file_name
+    return None
 
 
 def group_by_model(items: List[dict]) -> dict:
