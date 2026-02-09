@@ -1,4 +1,5 @@
-from typing import Any
+import re
+from typing import Any, List
 from flask import Blueprint
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.time import to_time_left
@@ -9,7 +10,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-leaderboard_bp = Blueprint("leaderboard_bp", __name__, url_prefix="/leaderboard")
+leaderboard_bp = Blueprint(
+    "leaderboard_bp", __name__, url_prefix="/leaderboard"
+)
 
 
 @leaderboard_bp.route("/<int:leaderboard_id>", methods=["GET"])
@@ -188,3 +191,120 @@ def is_result_invalid(result):
         return True
 
     return False
+
+
+# ai generated code hardcoded user_id
+HARDCODED_USER_ID = "205851652572315658"
+
+
+@leaderboard_bp.route("/ai_trend/<int:leaderboard_id>", methods=["GET"])
+def get_ai_trend(leaderboard_id: int):
+    """
+    GET /leaderboard/timeseries/<leaderboard_id>
+
+    Returns time series data for submissions matching file name patterns like:
+    - H100_claude-opus-4.5_ka_submission
+    - H100_gpt-5-2_ka_submission
+    - H100_gpt-5_ka_submission
+    """
+    total_start = time.perf_counter()
+
+    conn = get_db_connection()
+    query_start = time.perf_counter()
+
+    with conn.cursor() as cur:
+        sql = """
+            SELECT
+                s.id AS submission_id,
+                s.file_name,
+                s.submission_time,
+                r.score,
+                r.passed,
+                r.runner AS gpu_type,
+                r.mode
+            FROM leaderboard.submission s
+            JOIN leaderboard.runs r ON r.submission_id = s.id
+            WHERE s.user_id = %s
+              AND s.leaderboard_id = %s
+              AND r.score IS NOT NULL
+              AND r.passed = true
+              AND NOT r.secret
+            ORDER BY s.submission_time ASC
+        """
+        cur.execute(sql, (HARDCODED_USER_ID, leaderboard_id))
+        rows = cur.fetchall()
+
+    query_time = (time.perf_counter() - query_start) * 1000
+
+    if not rows:
+        return http_success(data={
+            "leaderboard_id": leaderboard_id,
+            "time_series": {},
+        })
+
+    items = []
+    for row in rows:
+        (submission_id, file_name, submission_time,
+         score, passed, gpu_type, mode) = row
+        model_name = parse_model_from_filename(file_name)
+
+        items.append({
+            "submission_id": submission_id,
+            "file_name": file_name,
+            "submission_time": (
+                submission_time.isoformat() if submission_time else None
+            ),
+            "score": score,
+            "passed": passed,
+            "gpu_type": gpu_type,
+            "mode": mode,
+            "model": model_name,
+        })
+
+    series_by_model = group_by_model(items)
+
+    total_time = (time.perf_counter() - total_start) * 1000
+    logger.info(
+        "[Perf] timeseries leaderboard_id=%s | query=%.2fms | total=%.2fms",
+        leaderboard_id, query_time, total_time,
+    )
+
+    return http_success(data={
+        "leaderboard_id": leaderboard_id,
+        "time_series": series_by_model,
+    })
+
+
+def parse_model_from_filename(file_name: str) -> str:
+    """
+    Extract model name from file names like:
+    - H100_claude-opus-4.5_ka_submission -> claude-opus-4.5
+    - H100_gpt-5-2_ka_submission -> gpt-5-2
+    - H100_gpt-5_ka_submission -> gpt-5
+    """
+    if not file_name:
+        return "unknown"
+
+    pattern = r"^[A-Za-z0-9]+_(.+?)_ka_submission"
+    match = re.match(pattern, file_name)
+    if match:
+        return match.group(1)
+
+    return file_name
+
+
+def group_by_model(items: List[dict]) -> dict:
+    """
+    Group time series items by model name for easier charting.
+    """
+    series = {}
+    for item in items:
+        model = item.get("model", "unknown")
+        if model not in series:
+            series[model] = []
+        series[model].append({
+            "submission_time": item["submission_time"],
+            "score": item["score"],
+            "submission_id": item["submission_id"],
+        })
+    return series
