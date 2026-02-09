@@ -1,6 +1,7 @@
 import { Box, Button, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { fetchLeaderboardSummaries } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { ErrorAlert } from "../../components/alert/ErrorAlert";
@@ -30,14 +31,17 @@ interface LeaderboardSummaries {
 }
 
 export default function Home() {
+  const [searchParams] = useSearchParams();
+  const useV2 = searchParams.has("v2");
+
   const { data, loading, error, errorStatus, call } = fetcherApiCallback<
     LeaderboardSummaries,
-    any[]
+    [boolean]
   >(fetchLeaderboardSummaries);
 
   useEffect(() => {
-    call();
-  }, [call]);
+    call(useV2);
+  }, [call, useV2]);
 
   if (loading) {
     return <Loading />;

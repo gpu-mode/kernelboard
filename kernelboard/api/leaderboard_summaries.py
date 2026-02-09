@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, request
 from datetime import datetime, timezone
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.status_code import http_success
@@ -16,13 +16,16 @@ leaderboard_summaries_bp = Blueprint(
 def index():
     total_start = time.perf_counter()
 
+    # Check if v2 query is requested
+    use_v2 = request.args.get("v2") is not None
+
     # 1. Database connection
     db_conn_start = time.perf_counter()
     conn = get_db_connection()
     db_conn_time = (time.perf_counter() - db_conn_start) * 1000
 
-    # 2. Query execution
-    query = _get_query()
+    # 2. Query execution (use v2 if requested)
+    query = _get_query_v2() if use_v2 else _get_query()
     query_start = time.perf_counter()
     with conn.cursor() as cur:
         cur.execute(query)
@@ -39,9 +42,11 @@ def index():
     total_time = (time.perf_counter() - total_start) * 1000
 
     # Log timing breakdown
+    version = "v2" if use_v2 else "v1"
     logger.info(
-        "[Perf] leaderboard_summaries | "
+        "[Perf] leaderboard_summaries (%s) | "
         "db_conn=%.2fms | query=%.2fms | transform=%.2fms | total=%.2fms",
+        version,
         db_conn_time,
         query_time,
         transform_time,
@@ -51,6 +56,102 @@ def index():
     return http_success(
         {"leaderboards": leaderboards, "now": datetime.now(timezone.utc)}
     )
+
+
+def _get_query_v2():
+    """
+    Optimized query for leaderboard summaries.
+
+    Performance optimizations:
+    1. Use DISTINCT ON instead of ROW_NUMBER for priority GPU selection
+    2. Use a single window function pass for ranking
+    3. Pre-aggregate GPU types to avoid correlated subqueries
+    4. Limit top users early in the CTE chain
+    """
+    query = """
+        WITH
+        -- Pre-aggregate GPU types per leaderboard (avoids correlated subquery)
+        gpu_types_agg AS (
+            SELECT
+                leaderboard_id,
+                jsonb_agg(DISTINCT gpu_type) AS gpu_types
+            FROM leaderboard.gpu_type
+            GROUP BY leaderboard_id
+        ),
+
+        -- Get priority GPU type using DISTINCT ON (faster than ROW_NUMBER)
+        priority_gpu AS (
+            SELECT DISTINCT ON (leaderboard_id)
+                leaderboard_id,
+                gpu_type
+            FROM leaderboard.gpu_type
+            ORDER BY leaderboard_id,
+                CASE gpu_type
+                    WHEN 'B200' THEN 1
+                    WHEN 'H100' THEN 2
+                    WHEN 'MI300' THEN 3
+                    WHEN 'A100' THEN 4
+                    WHEN 'L4'   THEN 5
+                    WHEN 'T4'   THEN 6
+                    ELSE 7
+                END,
+                gpu_type
+        ),
+
+        -- Get top 3 users per leaderboard in one pass
+        top_users AS (
+            SELECT
+                s.leaderboard_id,
+                u.user_name,
+                r.score,
+                RANK() OVER (
+                    PARTITION BY s.leaderboard_id
+                    ORDER BY MIN(r.score)
+                ) AS user_rank
+            FROM leaderboard.runs r
+            JOIN leaderboard.submission s ON r.submission_id = s.id
+            JOIN priority_gpu p ON p.leaderboard_id = s.leaderboard_id
+                AND p.gpu_type = r.runner
+            LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
+            WHERE NOT r.secret
+                AND r.score IS NOT NULL
+                AND r.passed
+            GROUP BY s.leaderboard_id, s.user_id, u.user_name, r.score
+        ),
+
+        -- Pre-aggregate top users JSON
+        top_users_agg AS (
+            SELECT
+                leaderboard_id,
+                jsonb_agg(
+                    jsonb_build_object(
+                        'rank', user_rank,
+                        'score', score,
+                        'user_name', user_name
+                    )
+                    ORDER BY user_rank
+                ) AS top_users
+            FROM top_users
+            WHERE user_rank <= 3
+            GROUP BY leaderboard_id
+        )
+
+        -- Final SELECT with pre-aggregated data (no correlated subqueries)
+        SELECT jsonb_build_object(
+            'id', l.id,
+            'name', l.name,
+            'deadline', l.deadline,
+            'gpu_types', COALESCE(g.gpu_types, '[]'::jsonb),
+            'priority_gpu_type', p.gpu_type,
+            'top_users', t.top_users
+        )
+        FROM leaderboard.leaderboard l
+        LEFT JOIN gpu_types_agg g ON g.leaderboard_id = l.id
+        LEFT JOIN priority_gpu p ON p.leaderboard_id = l.id
+        LEFT JOIN top_users_agg t ON t.leaderboard_id = l.id
+        ORDER BY l.id DESC;
+        """
+    return query
 
 
 def _get_query():
