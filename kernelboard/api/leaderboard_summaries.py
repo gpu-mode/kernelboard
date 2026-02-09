@@ -16,16 +16,16 @@ leaderboard_summaries_bp = Blueprint(
 def index():
     total_start = time.perf_counter()
 
-    # Check if v2 query is requested
-    use_v2 = request.args.get("v2") is not None
+    # Check if legacy v1 query is requested (v2 is now default)
+    use_v1 = request.args.get("v1_query") is not None
 
     # 1. Database connection
     db_conn_start = time.perf_counter()
     conn = get_db_connection()
     db_conn_time = (time.perf_counter() - db_conn_start) * 1000
 
-    # 2. Query execution (use v2 if requested)
-    query = _get_query_v2() if use_v2 else _get_query()
+    # 2. Query execution (v2 is default, v1 for legacy)
+    query = _get_query_v1() if use_v1 else _get_query()
     query_start = time.perf_counter()
     with conn.cursor() as cur:
         cur.execute(query)
@@ -42,7 +42,7 @@ def index():
     total_time = (time.perf_counter() - total_start) * 1000
 
     # Log timing breakdown
-    version = "v2" if use_v2 else "v1"
+    version = "v1" if use_v1 else "v2"
     logger.info(
         "[Perf] leaderboard_summaries (%s) | "
         "db_conn=%.2fms | query=%.2fms | transform=%.2fms | total=%.2fms",
@@ -58,14 +58,14 @@ def index():
     )
 
 
-def _get_query_v2():
+def _get_query():
     """
-    Optimized query for leaderboard summaries.
+    Optimized query for leaderboard summaries (default).
 
     Performance optimizations:
     1. Use DISTINCT ON instead of ROW_NUMBER for priority GPU selection
     2. Pre-aggregate GPU types to avoid correlated subqueries
-    3. Two-step ranking matching v1 logic exactly
+    3. Pre-aggregate top users JSON to avoid correlated subqueries
     """
     query = """
         WITH
@@ -174,7 +174,8 @@ def _get_query_v2():
     return query
 
 
-def _get_query():
+def _get_query_v1():
+    """Legacy query (use ?v1 to enable)."""
     query = """
         WITH
 
