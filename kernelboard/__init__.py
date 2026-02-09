@@ -115,6 +115,13 @@ def create_app(test_config=None):
         api = create_api_blueprint()
         app.register_blueprint(api)
 
+    # Redirect /v2/* routes to /* for SEO (v2 was removed but Google still indexes it)
+    @app.route("/v2/")
+    @app.route("/v2/<path:path>")
+    def redirect_v2(path=""):
+
+        return redirect(f"/{path}", code=301)
+
     @app.errorhandler(401)
     def unauthorized(_error):
         return redirect("/401")
