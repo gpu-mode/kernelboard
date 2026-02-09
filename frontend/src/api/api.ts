@@ -17,13 +17,24 @@ export async function fetchAboutInfo(): Promise<string> {
 }
 
 export async function fetchLeaderBoard(id: string): Promise<any> {
+  const start = performance.now();
   const res = await fetch(`/api/leaderboard/${id}`);
+  const fetchTime = performance.now() - start;
+
+  const parseStart = performance.now();
   if (!res.ok) {
     const json = await res.json();
     const message = json?.message || "Unknown error";
     throw new APIError(`Failed to fetch leaderboard: ${message}`, res.status);
   }
   const r = await res.json();
+  const parseTime = performance.now() - parseStart;
+
+  const totalTime = performance.now() - start;
+  console.log(
+    `[Perf] fetchLeaderBoard id=${id} | fetch=${fetchTime.toFixed(2)}ms | parse=${parseTime.toFixed(2)}ms | total=${totalTime.toFixed(2)}ms`,
+  );
+
   return r.data;
 }
 
@@ -63,7 +74,11 @@ export async function fetchAllNews(): Promise<any> {
 }
 
 export async function fetchLeaderboardSummaries(): Promise<any> {
+  const start = performance.now();
   const res = await fetch("/api/leaderboard-summaries");
+  const fetchTime = performance.now() - start;
+
+  const parseStart = performance.now();
   if (!res.ok) {
     const json = await res.json();
     const message = json?.message || "Unknown error";
@@ -73,6 +88,13 @@ export async function fetchLeaderboardSummaries(): Promise<any> {
     );
   }
   const r = await res.json();
+  const parseTime = performance.now() - parseStart;
+
+  const totalTime = performance.now() - start;
+  console.log(
+    `[Perf] fetchLeaderboardSummaries | fetch=${fetchTime.toFixed(2)}ms | parse=${parseTime.toFixed(2)}ms | total=${totalTime.toFixed(2)}ms`,
+  );
+
   return r.data;
 }
 

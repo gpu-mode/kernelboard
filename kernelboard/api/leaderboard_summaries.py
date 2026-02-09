@@ -2,7 +2,10 @@ from flask import Blueprint
 from datetime import datetime, timezone
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.status_code import http_success
+import time
+import logging
 
+logger = logging.getLogger(__name__)
 
 leaderboard_summaries_bp = Blueprint(
     "leaderboard_summaries_bp", __name__, url_prefix="/leaderboard-summaries"
@@ -11,32 +14,39 @@ leaderboard_summaries_bp = Blueprint(
 
 @leaderboard_summaries_bp.route("", methods=["GET"])
 def index():
-    # Get a list of JSON objects like the following
-    # to build the active leaderboard tiles:
-    # {
-    #     "id": 339,
-    #     "name": "conv2d",
-    #     "deadline": "2025-04-29T17:00:00-07:00",
-    #     "gpu_types": ["L4", "T4"],
-    #     "priority_gpu_type": "L4",
-    #     "top_users": [
-    #         {
-    #             "rank": 1,
-    #             "score": 0.123
-    #             "user_name": "alice"
-    #         }, ...
-    #     ],
-    # }
+    total_start = time.perf_counter()
 
+    # 1. Database connection
+    db_conn_start = time.perf_counter()
     conn = get_db_connection()
+    db_conn_time = (time.perf_counter() - db_conn_start) * 1000
+
+    # 2. Query execution
     query = _get_query()
+    query_start = time.perf_counter()
     with conn.cursor() as cur:
         cur.execute(query)
         leaderboards = [row[0] for row in cur.fetchall()]
+    query_time = (time.perf_counter() - query_start) * 1000
 
+    # 3. Data transformation
+    transform_start = time.perf_counter()
     for lb in leaderboards:
         if lb["gpu_types"] is None:
             lb["gpu_types"] = []
+    transform_time = (time.perf_counter() - transform_start) * 1000
+
+    total_time = (time.perf_counter() - total_start) * 1000
+
+    # Log timing breakdown
+    logger.info(
+        "[Perf] leaderboard_summaries | "
+        "db_conn=%.2fms | query=%.2fms | transform=%.2fms | total=%.2fms",
+        db_conn_time,
+        query_time,
+        transform_time,
+        total_time,
+    )
 
     return http_success(
         {"leaderboards": leaderboards, "now": datetime.now(timezone.utc)}
