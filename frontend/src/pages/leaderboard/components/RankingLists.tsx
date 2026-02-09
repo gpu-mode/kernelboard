@@ -15,6 +15,7 @@ import { getMedalIcon } from "../../../components/common/medal.tsx";
 import { fetchCodes } from "../../../api/api.ts";
 import { CodeDialog } from "./CodeDialog.tsx";
 import { isExpired } from "../../../lib/date/utils.ts";
+import { useAuthStore } from "../../../lib/store/authStore.ts";
 
 interface RankingItem {
   file_name: string;
@@ -86,6 +87,8 @@ export default function RankingsList({
   deadline,
 }: RankingsListProps) {
   const showLoc = !!deadline && isExpired(deadline);
+  const me = useAuthStore((s) => s.me);
+  const isAdmin = !!(me?.user?.is_admin);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [colorHash, _] = useState<string>(
     Math.random().toString(36).slice(2, 8),
@@ -178,19 +181,19 @@ export default function RankingsList({
                       {item.user_name} {getMedalIcon(item.rank)}
                     </Typography>
                   </Grid>
-                  <Grid size={2}>
+                  <Grid size={showLoc ? 2 : (isAdmin ? 2 : 3)}>
                     <Typography sx={styles.score}>
                       {formatMicroseconds(item.score)}
                     </Typography>
                   </Grid>
-                  <Grid size={showLoc ? 1.5 : 2}>
+                  <Grid size={showLoc ? (isAdmin ? 1.5 : 2) : (isAdmin ? 2 : 3)}>
                     <Typography sx={styles.delta}>
                       {item.prev_score > 0 &&
                         `+${formatMicroseconds(item.prev_score)}`}
                     </Typography>
                   </Grid>
                   {showLoc && (
-                    <Grid size={1.5}>
+                    <Grid size={isAdmin ? 1.5 : 2}>
                       <Typography sx={styles.loc}>
                         {(() => {
                           const code = codes.get(item?.submission_id);
@@ -201,7 +204,7 @@ export default function RankingsList({
                       </Typography>
                     </Grid>
                   )}
-                  <Grid size={showLoc ? 2.5 : 3}>
+                  <Grid size={showLoc ? (isAdmin ? 2.5 : 3) : 3}>
                     <Typography>
                       <CodeDialog
                         code={codes.get(item?.submission_id)}
@@ -213,11 +216,13 @@ export default function RankingsList({
                       />
                     </Typography>
                   </Grid>
-                  <Grid size={showLoc ? 1.5 : 2}>
-                    <Typography sx={styles.submissionId}>
-                      ID: {item.submission_id}
-                    </Typography>
-                  </Grid>
+                  {isAdmin && (
+                    <Grid size={showLoc ? 1.5 : 2}>
+                      <Typography sx={styles.submissionId}>
+                        ID: {item.submission_id}
+                      </Typography>
+                    </Grid>
+                  )}
                 </Grid>
               ))}
             </Stack>
