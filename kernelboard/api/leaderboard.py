@@ -4,18 +4,30 @@ from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.time import to_time_left
 from kernelboard.lib.status_code import http_error, http_success
 from http import HTTPStatus
+import time
+import logging
 
+logger = logging.getLogger(__name__)
 
 leaderboard_bp = Blueprint("leaderboard_bp", __name__, url_prefix="/leaderboard")
 
 
 @leaderboard_bp.route("/<int:leaderboard_id>", methods=["GET"])
 def leaderboard(leaderboard_id: int):
+    total_start = time.perf_counter()
+
+    # 1. Database connection
+    db_conn_start = time.perf_counter()
     conn = get_db_connection()
+    db_conn_time = (time.perf_counter() - db_conn_start) * 1000
+
+    # 2. Query execution
     query = _get_query()
+    query_start = time.perf_counter()
     with conn.cursor() as cur:
         cur.execute(query, {"leaderboard_id": leaderboard_id})
         result = cur.fetchone()
+    query_time = (time.perf_counter() - query_start) * 1000
 
     if is_result_invalid(result):
         return http_error(
@@ -26,7 +38,24 @@ def leaderboard(leaderboard_id: int):
 
     data = result[0]
 
+    # 3. Data transformation
+    transform_start = time.perf_counter()
     res = to_api_leaderboard_item(data)
+    transform_time = (time.perf_counter() - transform_start) * 1000
+
+    total_time = (time.perf_counter() - total_start) * 1000
+
+    # Log timing breakdown
+    logger.info(
+        "[Perf] leaderboard_id=%s | "
+        "db_conn=%.2fms | query=%.2fms | transform=%.2fms | total=%.2fms",
+        leaderboard_id,
+        db_conn_time,
+        query_time,
+        transform_time,
+        total_time,
+    )
+
     return http_success(res)
 
 
