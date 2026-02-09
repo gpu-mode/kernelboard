@@ -201,11 +201,6 @@ export default function RankingsList({
                       </Typography>
                     </Grid>
                   )}
-                  <Grid size={showLoc ? 1.5 : 2}>
-                    <Typography sx={styles.submissionId}>
-                      ID: {item.submission_id}
-                    </Typography>
-                  </Grid>
                   <Grid size={showLoc ? 2.5 : 3}>
                     <Typography>
                       <CodeDialog
@@ -216,6 +211,11 @@ export default function RankingsList({
                         userName={item.user_name}
                         problemName={field}
                       />
+                    </Typography>
+                  </Grid>
+                  <Grid size={showLoc ? 1.5 : 2}>
+                    <Typography sx={styles.submissionId}>
+                      ID: {item.submission_id}
                     </Typography>
                   </Grid>
                 </Grid>
