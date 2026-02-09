@@ -198,11 +198,11 @@ HARDCODED_USER_ID = "205851652572315658"
 
 
 @leaderboard_bp.route("/<int:leaderboard_id>/ai_trend", methods=["GET"])
-def get_submission_timeseries(leaderboard_id: int):
+def get_ai_trend(leaderboard_id: int):
     """
     GET /leaderboard/<leaderboard_id>/ai_trend
 
-    Returns time series data for submissions matching file name patterns like:
+    Returns time series data for ai_trend matching file name patterns like:
     - H100_claude-opus-4.5_ka_submission
     - H100_gpt-5-2_ka_submission
     - H100_gpt-5_ka_submission
