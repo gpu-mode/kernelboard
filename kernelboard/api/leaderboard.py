@@ -304,12 +304,19 @@ def parse_model_from_filename(file_name: str) -> str:
 def group_by_model(items: List[dict]) -> dict:
     """
     Group time series items by gpu_type first, then by model name.
+    Skips items where model or gpu_type is unknown.
     Returns: { "H100": { "claude-opus-4.5": [...], "gpt-5": [...] } }
     """
     series = {}
     for item in items:
-        gpu_type = item.get("gpu_type", "unknown")
-        model = item.get("model", "unknown")
+        gpu_type = item.get("gpu_type")
+        model = item.get("model")
+
+        # Skip if model or gpu_type is unknown or missing
+        if not gpu_type or gpu_type == "unknown":
+            continue
+        if not model or model == "unknown":
+            continue
 
         if gpu_type not in series:
             series[gpu_type] = {}
