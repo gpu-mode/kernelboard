@@ -73,9 +73,12 @@ export async function fetchAllNews(): Promise<any> {
   return r.data;
 }
 
-export async function fetchLeaderboardSummaries(): Promise<any> {
+export async function fetchLeaderboardSummaries(useV2: boolean = false): Promise<any> {
   const start = performance.now();
-  const res = await fetch("/api/leaderboard-summaries");
+  const url = useV2
+    ? "/api/leaderboard-summaries?v2"
+    : "/api/leaderboard-summaries";
+  const res = await fetch(url);
   const fetchTime = performance.now() - start;
 
   const parseStart = performance.now();
@@ -91,8 +94,9 @@ export async function fetchLeaderboardSummaries(): Promise<any> {
   const parseTime = performance.now() - parseStart;
 
   const totalTime = performance.now() - start;
+  const version = useV2 ? "v2" : "v1";
   console.log(
-    `[Perf] fetchLeaderboardSummaries | fetch=${fetchTime.toFixed(2)}ms | parse=${parseTime.toFixed(2)}ms | total=${totalTime.toFixed(2)}ms`,
+    `[Perf] fetchLeaderboardSummaries (${version}) | fetch=${fetchTime.toFixed(2)}ms | parse=${parseTime.toFixed(2)}ms | total=${totalTime.toFixed(2)}ms`,
   );
 
   return r.data;
