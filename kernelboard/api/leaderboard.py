@@ -281,21 +281,22 @@ def get_ai_trend(leaderboard_id: int):
 
 def parse_model_from_filename(file_name: str) -> str:
     """
-    Extract model name from file names ending with ka_submission.py:
-    - trimul_H100_claude-opus-4.5_ka_submission.py -> claude-opus-4.5
+    Extract model name - the segment right before _ka_submission.py
+    Examples:
+    - matmul_py_H100_claude-opus-4.5_ka_submission.py -> claude-opus-4.5
     - trimul_H100_gpt-52_ka_submission.py -> gpt-52
-    - trimul_H100_gpt-5_ka_submission.py -> gpt-5
     Returns None if file doesn't match pattern.
     """
-    if not file_name or not file_name.endswith("_ka_submission.py"):
+    suffix = "_ka_submission.py"
+    if not file_name or not file_name.endswith(suffix):
         return None
 
-    # Extract model name: everything between last GPU type and _ka_submission
-    # Pattern: {anything}_{gpu}_{model}_ka_submission.py
-    pattern = r"^.+_[A-Za-z0-9]+_(.+?)_ka_submission\.py$"
-    match = re.match(pattern, file_name)
-    if match:
-        return match.group(1)
+    # Remove the suffix and get everything before it
+    base = file_name[:-len(suffix)]
+    # Split by underscore and get the last segment
+    parts = base.rsplit("_", 1)
+    if len(parts) == 2:
+        return parts[1]
 
     return None
 
