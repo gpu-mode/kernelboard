@@ -35,7 +35,7 @@ def test_callback_already_logged_in(client):
 
     response = client.get("/api/auth/discord/callback")
     assert response.status_code == 302
-    assert response.headers.get("Location") == "/v2/"
+    assert response.headers.get("Location") == "/"
 
 
 def test_callback_unknown_provider(client):
@@ -153,7 +153,7 @@ def test_callback_happy_path(client):
                 "api/auth/discord/callback?state=123&code=456"
             )
             assert response.status_code == 302
-            assert response.headers.get("Location") == "/v2/"
+            assert response.headers.get("Location") == "/"
 
 
 def test_logout(client):
