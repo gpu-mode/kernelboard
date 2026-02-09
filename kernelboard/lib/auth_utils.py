@@ -35,6 +35,7 @@ def get_user_info_from_session() -> Any:
             "identity": identity,
             "display_name": session.get("display_name") if is_auth else None,
             "avatar_url": session.get("avatar_url") if is_auth else None,
+            "is_admin": identity in get_whitelist() if is_auth and identity else False,
         },
     }
     return res
