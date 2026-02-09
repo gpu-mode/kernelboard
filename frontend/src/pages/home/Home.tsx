@@ -32,7 +32,7 @@ interface LeaderboardSummaries {
 
 export default function Home() {
   const [searchParams] = useSearchParams();
-  const useV2 = searchParams.has("v2");
+  const useV1 = searchParams.has("v1_query");
 
   const { data, loading, error, errorStatus, call } = fetcherApiCallback<
     LeaderboardSummaries,
@@ -40,8 +40,8 @@ export default function Home() {
   >(fetchLeaderboardSummaries);
 
   useEffect(() => {
-    call(useV2);
-  }, [call, useV2]);
+    call(useV1);
+  }, [call, useV1]);
 
   if (loading) {
     return <Loading />;
