@@ -64,9 +64,8 @@ def _get_query_v2():
 
     Performance optimizations:
     1. Use DISTINCT ON instead of ROW_NUMBER for priority GPU selection
-    2. Use a single window function pass for ranking
-    3. Pre-aggregate GPU types to avoid correlated subqueries
-    4. Limit top users early in the CTE chain
+    2. Pre-aggregate GPU types to avoid correlated subqueries
+    3. Two-step ranking matching v1 logic exactly
     """
     query = """
         WITH
@@ -98,16 +97,18 @@ def _get_query_v2():
                 gpu_type
         ),
 
-        -- Get top 3 users per leaderboard in one pass
-        top_users AS (
+        -- Step 1: Get each user's best run per leaderboard+runner (same as v1)
+        personal_best_candidates AS (
             SELECT
+                r.runner,
                 s.leaderboard_id,
+                s.user_id,
                 u.user_name,
                 r.score,
                 RANK() OVER (
-                    PARTITION BY s.leaderboard_id
-                    ORDER BY MIN(r.score)
-                ) AS user_rank
+                    PARTITION BY s.leaderboard_id, r.runner, s.user_id
+                    ORDER BY r.score ASC
+                ) AS personal_submission_rank
             FROM leaderboard.runs r
             JOIN leaderboard.submission s ON r.submission_id = s.id
             JOIN priority_gpu p ON p.leaderboard_id = s.leaderboard_id
@@ -116,10 +117,29 @@ def _get_query_v2():
             WHERE NOT r.secret
                 AND r.score IS NOT NULL
                 AND r.passed
-            GROUP BY s.leaderboard_id, s.user_id, u.user_name, r.score
         ),
 
-        -- Pre-aggregate top users JSON
+        -- Step 2: Select only the best run for each user
+        personal_best_runs AS (
+            SELECT * FROM personal_best_candidates
+            WHERE personal_submission_rank = 1
+        ),
+
+        -- Step 3: Rank users by score (same as v1)
+        ranked_users AS (
+            SELECT
+                leaderboard_id,
+                runner,
+                user_name,
+                score,
+                RANK() OVER (
+                    PARTITION BY leaderboard_id, runner
+                    ORDER BY score ASC
+                ) AS user_rank
+            FROM personal_best_runs
+        ),
+
+        -- Pre-aggregate top 3 users JSON (optimization over v1)
         top_users_agg AS (
             SELECT
                 leaderboard_id,
@@ -131,7 +151,7 @@ def _get_query_v2():
                     )
                     ORDER BY user_rank
                 ) AS top_users
-            FROM top_users
+            FROM ranked_users
             WHERE user_rank <= 3
             GROUP BY leaderboard_id
         )
