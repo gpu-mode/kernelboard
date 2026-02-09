@@ -197,10 +197,10 @@ def is_result_invalid(result):
 HARDCODED_USER_ID = "205851652572315658"
 
 
-@leaderboard_bp.route("/ai_trend/<int:leaderboard_id>", methods=["GET"])
-def get_ai_trend(leaderboard_id: int):
+@leaderboard_bp.route("/<int:leaderboard_id>/ai_trend", methods=["GET"])
+def get_submission_timeseries(leaderboard_id: int):
     """
-    GET /leaderboard/timeseries/<leaderboard_id>
+    GET /leaderboard/<leaderboard_id>/ai_trend
 
     Returns time series data for submissions matching file name patterns like:
     - H100_claude-opus-4.5_ka_submission
