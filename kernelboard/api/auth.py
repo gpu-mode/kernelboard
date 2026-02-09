@@ -188,7 +188,7 @@ def callback(provider: str):
     stores display fields in session, logs the user in, and redirects to the SPA.
     """
     if not current_user.is_anonymous:
-        return redirect("/v2/")
+        return redirect("/")
 
 
     provider_data = app.config["OAUTH2_PROVIDERS"].get(provider)
