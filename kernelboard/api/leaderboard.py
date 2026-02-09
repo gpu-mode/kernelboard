@@ -278,14 +278,16 @@ def get_ai_trend(leaderboard_id: int):
 def parse_model_from_filename(file_name: str) -> str:
     """
     Extract model name from file names like:
-    - H100_claude-opus-4.5_ka_submission -> claude-opus-4.5
-    - H100_gpt-5-2_ka_submission -> gpt-5-2
-    - H100_gpt-5_ka_submission -> gpt-5
+    - matmul_py_H100_claude-opus-4.5_ka_submission.py -> claude-opus-4.5
+    - matmul_py_H100_gpt-5-2_ka_submission.py -> gpt-5-2
+    - matmul_py_H100_gpt-5_ka_submission.py -> gpt-5
+    - 1.py -> 1.py (no match, return as-is)
     """
     if not file_name:
         return "unknown"
 
-    pattern = r"^[A-Za-z0-9]+_(.+?)_ka_submission"
+    # Pattern: {problem}_py_{gpu}_{model}_ka_submission.py
+    pattern = r"^.+_py_[A-Za-z0-9]+_(.+?)_ka_submission\.py$"
     match = re.match(pattern, file_name)
     if match:
         return match.group(1)
