@@ -45,37 +45,9 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
   const [data, setData] = useState<AiTrendResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userInput, setUserInput] = useState("");
-  const [searchedUser, setSearchedUser] = useState<string | null>(null);
   const resolvedMode = useThemeStore((state) => state.resolvedMode);
   const isDark = resolvedMode === "dark";
   const textColor = isDark ? "#e0e0e0" : "#333";
-
-  const loadData = async (userIdInput?: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      let result: AiTrendResponse;
-      if (userIdInput) {
-        // Parse comma-separated user IDs
-        const userIds = userIdInput.split(",").map((s) => s.trim()).filter(Boolean);
-        result = await fetchUserTrend(leaderboardId, userIds);
-        setSearchedUser(userIdInput);
-      } else {
-        // Use default ai_trend API
-        result = await fetchAiTrend(leaderboardId);
-        setSearchedUser(null);
-      }
-      setData(result);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to load trend data",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     loadData();
