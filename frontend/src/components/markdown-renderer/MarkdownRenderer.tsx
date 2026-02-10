@@ -56,7 +56,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       components={{
         a: ({ node, ...props }) => (
           <a
-            style={{ color: theme.palette.primary.main, textDecoration: "none" }}
+            style={{
+              color: theme.palette.primary.main,
+              textDecoration: "none",
+            }}
             {...props}
           />
         ),

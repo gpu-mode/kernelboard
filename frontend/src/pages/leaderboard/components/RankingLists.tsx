@@ -88,7 +88,7 @@ export default function RankingsList({
 }: RankingsListProps) {
   const showLoc = !!deadline && isExpired(deadline);
   const me = useAuthStore((s) => s.me);
-  const isAdmin = !!(me?.user?.is_admin);
+  const isAdmin = !!me?.user?.is_admin;
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [colorHash, _] = useState<string>(
     Math.random().toString(36).slice(2, 8),
@@ -181,12 +181,12 @@ export default function RankingsList({
                       {item.user_name} {getMedalIcon(item.rank)}
                     </Typography>
                   </Grid>
-                  <Grid size={showLoc ? 2 : (isAdmin ? 2 : 3)}>
+                  <Grid size={showLoc ? 2 : isAdmin ? 2 : 3}>
                     <Typography sx={styles.score}>
                       {formatMicroseconds(item.score)}
                     </Typography>
                   </Grid>
-                  <Grid size={showLoc ? (isAdmin ? 1.5 : 2) : (isAdmin ? 2 : 3)}>
+                  <Grid size={showLoc ? (isAdmin ? 1.5 : 2) : isAdmin ? 2 : 3}>
                     <Typography sx={styles.delta}>
                       {item.prev_score > 0 &&
                         `+${formatMicroseconds(item.prev_score)}`}
