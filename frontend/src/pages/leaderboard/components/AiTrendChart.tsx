@@ -33,7 +33,7 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const resolvedMode = useThemeStore((state) => state.resolvedMode);
-  const isDark = resolvedMode === "dark";
+  const isDark = true;
   const textColor = isDark ? "#e0e0e0" : "#333";
 
   useEffect(() => {
