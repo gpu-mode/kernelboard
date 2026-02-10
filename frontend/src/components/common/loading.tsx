@@ -30,7 +30,7 @@ type LoadingProps = {
 export default function Loading({ message }: LoadingProps) {
   const displayMessage = useMemo(
     () => message ?? getRandomGpuJoke(),
-    [message]
+    [message],
   );
 
   return (
