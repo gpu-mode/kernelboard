@@ -114,16 +114,20 @@ function formatDate(dateString: string): string {
 
 function formatEventDateTime(isoString: string): string {
   const date = new Date(isoString);
-  return date.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }) + " at " + date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZoneName: "short",
-  });
+  return (
+    date.toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }) +
+    " at " +
+    date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
+    })
+  );
 }
 
 function getDurationDays(startDate: string, endDate: string): number {
@@ -160,16 +164,17 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
           size="small"
           color={hackathon.type === "in-person" ? "primary" : "secondary"}
         />
-        {ongoing && (
-          <Chip label="Ongoing" size="small" color="success" />
-        )}
+        {ongoing && <Chip label="Ongoing" size="small" color="success" />}
       </Box>
       <Typography sx={styles.cardTitle}>{hackathon.title}</Typography>
       <Typography sx={styles.cardMeta}>
-        {formatDate(hackathon.startDate)} - {formatDate(hackathon.endDate)} ({duration} days) · {hackathon.location}
+        {formatDate(hackathon.startDate)} - {formatDate(hackathon.endDate)} (
+        {duration} days) · {hackathon.location}
       </Typography>
       {hackathon.description && (
-        <Typography sx={styles.cardDescription}>{hackathon.description}</Typography>
+        <Typography sx={styles.cardDescription}>
+          {hackathon.description}
+        </Typography>
       )}
       <Link
         href={hackathon.lumaUrl}
@@ -226,7 +231,7 @@ export default function Lectures() {
   }, []);
 
   const activeHackathons = hackathons.filter((h) =>
-    isOngoing(h.startDate, h.endDate)
+    isOngoing(h.startDate, h.endDate),
   );
 
   return (
@@ -257,9 +262,15 @@ export default function Lectures() {
       {/* Upcoming Lectures Section */}
       <Box sx={styles.section}>
         <Typography sx={styles.sectionTitle}>Upcoming Lectures</Typography>
-        <Typography sx={{ color: "text.secondary", fontSize: "0.875rem", marginBottom: "16px" }}>
-          Lectures are pulled live from our Discord server. For the most up-to-date schedule,
-          join the{" "}
+        <Typography
+          sx={{
+            color: "text.secondary",
+            fontSize: "0.875rem",
+            marginBottom: "16px",
+          }}
+        >
+          Lectures are pulled live from our Discord server. For the most
+          up-to-date schedule, join the{" "}
           <Link
             href="https://discord.gg/gpumode"
             target="_blank"
@@ -276,8 +287,8 @@ export default function Lectures() {
           <Typography sx={styles.noEvents}>{error}</Typography>
         ) : events.length === 0 ? (
           <Typography sx={styles.noEvents}>
-            No upcoming lectures scheduled. Check back soon or join our Discord to
-            stay updated!
+            No upcoming lectures scheduled. Check back soon or join our Discord
+            to stay updated!
           </Typography>
         ) : (
           events.map((event) => <LectureCard key={event.id} event={event} />)

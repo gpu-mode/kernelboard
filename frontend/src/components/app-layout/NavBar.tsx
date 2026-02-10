@@ -111,7 +111,15 @@ export default function NavBar() {
             ))}
           </Box>
 
-          <Box sx={{ ml: "auto", flexShrink: 0, display: "flex", alignItems: "center", gap: 1 }}>
+          <Box
+            sx={{
+              ml: "auto",
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
             <Tooltip title={modeLabel}>
               <IconButton onClick={cycleMode} color="inherit" size="small">
                 {modeIcon}

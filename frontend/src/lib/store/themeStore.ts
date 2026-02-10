@@ -22,7 +22,8 @@ function resolveMode(mode: ThemeMode): "light" | "dark" {
 function loadSavedMode(): ThemeMode {
   try {
     const saved = localStorage.getItem("theme-mode");
-    if (saved === "light" || saved === "dark" || saved === "system") return saved;
+    if (saved === "light" || saved === "dark" || saved === "system")
+      return saved;
   } catch {
     // localStorage unavailable
   }
