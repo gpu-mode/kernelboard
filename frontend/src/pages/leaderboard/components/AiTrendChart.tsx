@@ -6,6 +6,7 @@ import {
   formatMicrosecondsNum,
   formatMicroseconds,
 } from "../../../lib/utils/ranking";
+import { useThemeStore } from "../../../lib/store/themeStore";
 
 interface AiTrendChartProps {
   leaderboardId: string;
@@ -16,13 +17,12 @@ function hashStringToColor(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash;
   }
 
-  // Generate HSL color with good saturation and lightness for visibility
   const hue = Math.abs(hash) % 360;
-  const saturation = 65 + (Math.abs(hash >> 8) % 20); // 65-85%
-  const lightness = 45 + (Math.abs(hash >> 16) % 15); // 45-60%
+  const saturation = 65 + (Math.abs(hash >> 8) % 20);
+  const lightness = 45 + (Math.abs(hash >> 16) % 15);
 
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
@@ -31,23 +31,23 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
   const [data, setData] = useState<AiTrendResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const resolvedMode = useThemeStore((state) => state.resolvedMode);
+  const isDark = resolvedMode === "dark";
+  const textColor = isDark ? "#e0e0e0" : "#333";
 
   useEffect(() => {
     const loadData = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
-        setError(null);
         const result = await fetchAiTrend(leaderboardId);
         setData(result);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load AI trend data",
-        );
+      } catch (err: any) {
+        setError(err.message || "Failed to load data");
       } finally {
         setLoading(false);
       }
     };
-
     loadData();
   }, [leaderboardId]);
 
@@ -104,9 +104,7 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
         alignItems="center"
         minHeight={400}
       >
-        <Typography color="text.secondary">
-          No H100 AI data available
-        </Typography>
+        <Typography color="text.secondary">No H100 AI data available</Typography>
       </Box>
     );
   }
@@ -120,7 +118,7 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
     const sortedData = [...dataPoints].sort(
       (a, b) =>
         new Date(a.submission_time).getTime() -
-        new Date(b.submission_time).getTime(),
+        new Date(b.submission_time).getTime()
     );
 
     series.push({
@@ -153,6 +151,7 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
       textStyle: {
         fontSize: 16,
         fontWeight: "bold",
+        color: textColor,
       },
     },
     tooltip: {
@@ -172,6 +171,9 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
     legend: {
       data: Object.keys(h100Data),
       bottom: 0,
+      textStyle: {
+        color: textColor,
+      },
     },
     grid: {
       left: "3%",
@@ -185,10 +187,19 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
       name: "Submission Time",
       nameLocation: "middle",
       nameGap: 30,
+      nameTextStyle: {
+        color: textColor,
+      },
       axisLabel: {
+        color: textColor,
         formatter: (value: number) => {
           const date = new Date(value);
           return `${date.getMonth() + 1}/${date.getDate()}`;
+        },
+      },
+      axisLine: {
+        lineStyle: {
+          color: textColor,
         },
       },
     },
@@ -197,16 +208,26 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
       name: "Score (lower is better)",
       nameLocation: "middle",
       nameGap: 70,
+      nameTextStyle: {
+        color: textColor,
+      },
       axisLabel: {
+        color: textColor,
         formatter: (value: number) => `${formatMicrosecondsNum(value)}μs`,
+      },
+      axisLine: {
+        lineStyle: {
+          color: textColor,
+        },
+      },
+      splitLine: {
+        lineStyle: {
+          color: isDark ? "#444" : "#ccc",
+        },
       },
     },
     series,
   };
 
-  return (
-    <Box>
-      <ReactECharts option={option} style={{ height: 500 }} />
-    </Box>
-  );
+  return <ReactECharts option={option} style={{ height: 500 }} />;
 }
