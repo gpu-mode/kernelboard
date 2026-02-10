@@ -189,3 +189,32 @@ export async function fetchEvents(): Promise<DiscordEvent[]> {
   const r = await res.json();
   return r.data;
 }
+
+export interface AiTrendDataPoint {
+  score: string;
+  submission_id: number;
+  submission_time: string;
+  gpu_type: string;
+}
+
+export interface AiTrendTimeSeries {
+  [gpuType: string]: {
+    [model: string]: AiTrendDataPoint[];
+  };
+}
+
+export interface AiTrendResponse {
+  leaderboard_id: number;
+  time_series: AiTrendTimeSeries;
+}
+
+export async function fetchAiTrend(leaderboardId: string): Promise<AiTrendResponse> {
+  const res = await fetch(`/api/leaderboard/${leaderboardId}/ai_trend`);
+  if (!res.ok) {
+    const json = await res.json();
+    const message = json?.message || "Unknown error";
+    throw new APIError(`Failed to fetch AI trend: ${message}`, res.status);
+  }
+  const r = await res.json();
+  return r.data;
+}

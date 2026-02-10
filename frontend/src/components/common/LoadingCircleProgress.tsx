@@ -9,7 +9,7 @@ export default function LoadingCircleProgress({
 }) {
   const displayMessage = useMemo(
     () => message ?? getRandomGpuJoke(),
-    [message]
+    [message],
   );
 
   return (

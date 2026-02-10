@@ -222,7 +222,11 @@ function ProjectCard({ project }: { project: Project }) {
       )}
       {project.note && (
         <Typography
-          sx={{ marginTop: "8px", fontStyle: "italic", color: "text.secondary" }}
+          sx={{
+            marginTop: "8px",
+            fontStyle: "italic",
+            color: "text.secondary",
+          }}
         >
           {project.note}
         </Typography>

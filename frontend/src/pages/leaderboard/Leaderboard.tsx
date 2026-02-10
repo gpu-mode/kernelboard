@@ -9,8 +9,8 @@ import {
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { useEffect, useState } from "react";
-import { fetchCodes, fetchLeaderBoard } from "../../api/api";
+import { useEffect, useState, useMemo } from "react";
+import { fetchLeaderBoard } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { isExpired, toDateUtc } from "../../lib/date/utils";
 import RankingsList from "./components/RankingLists";
@@ -24,13 +24,13 @@ import { SubmissionMode } from "../../lib/types/mode";
 import { useAuthStore } from "../../lib/store/authStore";
 import SubmissionHistorySection from "./components/submission-history/SubmissionHistorySection";
 import LeaderboardSubmit from "./components/LeaderboardSubmit";
+import AiTrendChart from "./components/AiTrendChart";
 export const CardTitle = styled(Typography)(() => ({
   fontSize: "1.5rem",
   fontWeight: "bold",
 }));
 
-const TAB_KEYS = ["rankings", "reference", "submission"] as const;
-type TabKey = (typeof TAB_KEYS)[number];
+type TabKey = "rankings" | "reference" | "submission" | "ai_trend";
 
 // Tab accessibility props
 function a11yProps(index: number) {
@@ -44,18 +44,18 @@ function a11yProps(index: number) {
 function TabPanel(props: {
   children?: React.ReactNode;
   value: string;
-  index: number;
+  tabKey: string;
 }) {
-  const { children, value, index, ...other } = props;
+  const { children, value, tabKey, ...other } = props;
   return (
     <div
       role="tabpanel"
-      hidden={value !== TAB_KEYS[index]}
-      id={`leaderboard-tabpanel-${index}`}
-      aria-labelledby={`leaderboard-tab-${index}`}
+      hidden={value !== tabKey}
+      id={`leaderboard-tabpanel-${tabKey}`}
+      aria-labelledby={`leaderboard-tab-${tabKey}`}
       {...other}
     >
-      {value === TAB_KEYS[index] && <Box sx={{ pt: 2 }}>{children}</Box>}
+      {value === tabKey && <Box sx={{ pt: 2 }}>{children}</Box>}
     </div>
   );
 }
@@ -71,6 +71,19 @@ export default function Leaderboard() {
 
   // Sync tab state with query parameter
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Check if AI Trend should be shown
+  const showAiTrend = searchParams.get("showAiTrend") === "true";
+
+  // Build tab keys dynamically based on showAiTrend
+  const TAB_KEYS: TabKey[] = useMemo(() => {
+    const keys: TabKey[] = ["rankings", "reference", "submission"];
+    if (showAiTrend) {
+      keys.push("ai_trend");
+    }
+    return keys;
+  }, [showAiTrend]);
+
   const initialTabFromUrl = ((): TabKey => {
     const t = (searchParams.get("tab") || "").toLowerCase();
     return (TAB_KEYS as readonly string[]).includes(t)
@@ -147,14 +160,21 @@ export default function Leaderboard() {
             <Tab label="Rankings" value="rankings" {...a11yProps(0)} />
             <Tab label="Reference" value="reference" {...a11yProps(1)} />
             <Tab label="Submission" value="submission" {...a11yProps(2)} />
+            {showAiTrend && (
+              <Tab label="AI Trend" value="ai_trend" {...a11yProps(3)} />
+            )}
           </Tabs>
         </Box>
 
         {/* Ranking Tab */}
-        <TabPanel value={tab} index={0}>
+        <TabPanel value={tab} tabKey="rankings">
           <Box>
             {Object.entries(data.rankings).length > 0 ? (
-              <RankingsList rankings={data.rankings} leaderboardId={id} deadline={data.deadline} />
+              <RankingsList
+                rankings={data.rankings}
+                leaderboardId={id}
+                deadline={data.deadline}
+              />
             ) : (
               <Box display="flex" flexDirection="column" alignItems="center">
                 <Typography variant="h6" fontWeight="bold">
@@ -169,7 +189,7 @@ export default function Leaderboard() {
         </TabPanel>
 
         {/* Reference Implementation Tab */}
-        <TabPanel value={tab} index={1}>
+        <TabPanel value={tab} tabKey="reference">
           <Card>
             <CardContent>
               <CardTitle fontWeight="bold">Reference Implementation</CardTitle>
@@ -181,7 +201,7 @@ export default function Leaderboard() {
         </TabPanel>
 
         {/* Submission Tab */}
-        <TabPanel value={tab} index={2}>
+        <TabPanel value={tab} tabKey="submission">
           {!isAuthed ? (
             <div> please login to submit</div>
           ) : (
@@ -231,6 +251,20 @@ export default function Leaderboard() {
             </Card>
           )}
         </TabPanel>
+
+        {/* AI Trend Tab - only shown when showAiTrend=true */}
+        {showAiTrend && (
+          <TabPanel value={tab} tabKey="ai_trend">
+            <Card>
+              <CardContent>
+                <CardTitle fontWeight="bold">
+                  AI Model Performance Trend
+                </CardTitle>
+                <AiTrendChart leaderboardId={id!!} />
+              </CardContent>
+            </Card>
+          </TabPanel>
+        )}
       </Box>
     </ConstrainedContainer>
   );
