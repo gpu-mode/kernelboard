@@ -1,4 +1,8 @@
-import { createTheme, type Components, type PaletteMode } from "@mui/material/styles";
+import {
+  createTheme,
+  type Components,
+  type PaletteMode,
+} from "@mui/material/styles";
 
 const colorPalette = {
   primary: "#5865F2", // Blurple, Discord's brand color

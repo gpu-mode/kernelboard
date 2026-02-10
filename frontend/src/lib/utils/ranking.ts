@@ -5,3 +5,7 @@
 export const formatMicroseconds = (score: number): string => {
   return `${(score * 1_000_000).toFixed(3)}μs`;
 };
+
+export const formatMicrosecondsNum = (score: number): number => {
+  return parseFloat((score * 1_000_000).toFixed(3));
+};

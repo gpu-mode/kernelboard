@@ -327,6 +327,7 @@ def group_by_model(items: List[dict]) -> dict:
         series[gpu_type][model].append({
             "submission_time": item["submission_time"],
             "score": item["score"],
+            "gpu_type": gpu_type,
             "submission_id": item["submission_id"],
         })
     return series

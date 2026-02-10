@@ -73,7 +73,9 @@ export async function fetchAllNews(): Promise<any> {
   return r.data;
 }
 
-export async function fetchLeaderboardSummaries(useV1: boolean = false): Promise<any> {
+export async function fetchLeaderboardSummaries(
+  useV1: boolean = false,
+): Promise<any> {
   const start = performance.now();
   const url = useV1
     ? "/api/leaderboard-summaries?v1_query"
