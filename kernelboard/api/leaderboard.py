@@ -314,7 +314,7 @@ def get_user_trend(leaderboard_id: int):
         # Fetch display names for all user_ids in batch
         placeholders = ",".join(["%s"] * len(user_ids))
         cur.execute(
-            f"SELECT id, username FROM leaderboard.user "
+            f"SELECT id, user_name FROM leaderboard.user_info "
             f"WHERE id IN ({placeholders})",
             tuple(user_ids)
         )
@@ -427,22 +427,22 @@ def search_users(leaderboard_id: int):
     with conn.cursor() as cur:
         if query:
             sql = """
-                SELECT DISTINCT u.id, u.username
-                FROM leaderboard.user u
+                SELECT DISTINCT u.id, u.user_name
+                FROM leaderboard.user_info u
                 JOIN leaderboard.submission s ON s.user_id = u.id
                 WHERE s.leaderboard_id = %s
-                  AND u.username ILIKE %s
-                ORDER BY u.username
+                  AND u.user_name ILIKE %s
+                ORDER BY u.user_name
                 LIMIT %s
             """
             cur.execute(sql, (leaderboard_id, f"%{query}%", limit))
         else:
             sql = """
-                SELECT DISTINCT u.id, u.username
-                FROM leaderboard.user u
+                SELECT DISTINCT u.id, u.user_name
+                FROM leaderboard.user_info u
                 JOIN leaderboard.submission s ON s.user_id = u.id
                 WHERE s.leaderboard_id = %s
-                ORDER BY u.username
+                ORDER BY u.user_name
                 LIMIT %s
             """
             cur.execute(sql, (leaderboard_id, limit))
