@@ -17,13 +17,12 @@ function hashStringToColor(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash;
   }
 
-  // Generate HSL color with good saturation and lightness for visibility
   const hue = Math.abs(hash) % 360;
-  const saturation = 65 + (Math.abs(hash >> 8) % 20); // 65-85%
-  const lightness = 45 + (Math.abs(hash >> 16) % 15); // 45-60%
+  const saturation = 65 + (Math.abs(hash >> 8) % 20);
+  const lightness = 45 + (Math.abs(hash >> 16) % 15);
 
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
@@ -38,20 +37,17 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
 
   useEffect(() => {
     const loadData = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
-        setError(null);
         const result = await fetchAiTrend(leaderboardId);
         setData(result);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to load AI trend data",
-        );
+      } catch (err: any) {
+        setError(err.message || "Failed to load data");
       } finally {
         setLoading(false);
       }
     };
-
     loadData();
   }, [leaderboardId]);
 
@@ -108,9 +104,7 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
         alignItems="center"
         minHeight={400}
       >
-        <Typography color="text.secondary">
-          No H100 AI data available
-        </Typography>
+        <Typography color="text.secondary">No H100 AI data available</Typography>
       </Box>
     );
   }
@@ -124,7 +118,7 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
     const sortedData = [...dataPoints].sort(
       (a, b) =>
         new Date(a.submission_time).getTime() -
-        new Date(b.submission_time).getTime(),
+        new Date(b.submission_time).getTime()
     );
 
     series.push({
@@ -235,9 +229,5 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
     series,
   };
 
-  return (
-    <Box>
-      <ReactECharts option={option} style={{ height: 500 }} />
-    </Box>
-  );
+  return <ReactECharts option={option} style={{ height: 500 }} />;
 }
