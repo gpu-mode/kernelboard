@@ -265,7 +265,7 @@ export async function searchUsers(
   if (query) params.set("q", query);
   if (limit) params.set("limit", limit.toString());
 
-  const url = `/api/leaderboard/${leaderboardId}/search_users?${params.toString()}`;
+  const url = `/api/leaderboard/${leaderboardId}/users?${params.toString()}`;
   const res = await fetch(url);
   if (!res.ok) {
     const json = await res.json();
