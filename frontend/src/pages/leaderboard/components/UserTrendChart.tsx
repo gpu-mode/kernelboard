@@ -100,12 +100,11 @@ export default function UserTrendChart({ leaderboardId }: UserTrendChartProps) {
 
   // Search users when input changes
   useEffect(() => {
-    if (inputValue === "") return; // Skip if empty, initial load handles it
-
     const searchTimeout = setTimeout(async () => {
       setSearchLoading(true);
       try {
-        const result = await searchUsers(leaderboardId, inputValue, 20);
+        const limit = inputValue === "" ? 5 : 20;
+        const result = await searchUsers(leaderboardId, inputValue, limit);
         setUserOptions(result.users);
       } catch (err) {
         console.error("Failed to search users:", err);
@@ -131,8 +130,9 @@ export default function UserTrendChart({ leaderboardId }: UserTrendChartProps) {
   const renderSearchInput = () => (
     <Box sx={{ mb: 2, display: "flex", gap: 2, alignItems: "flex-start" }}>
       <Autocomplete
-        multiple
-        options={userOptions}
+          multiple
+          openOnFocus
+          options={userOptions}
         value={selectedUsers}
         onChange={handleUserSelectionChange}
         inputValue={inputValue}
@@ -180,12 +180,7 @@ export default function UserTrendChart({ leaderboardId }: UserTrendChartProps) {
           const { key, ...restProps } = props;
           return (
             <li key={key} {...restProps}>
-              <Box>
-                <Typography variant="body2">{option.username}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  ID: {option.user_id}
-                </Typography>
-              </Box>
+              <Typography variant="body2">{option.username}</Typography>
             </li>
           );
         }}
