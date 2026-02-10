@@ -25,6 +25,7 @@ import { useAuthStore } from "../../lib/store/authStore";
 import SubmissionHistorySection from "./components/submission-history/SubmissionHistorySection";
 import LeaderboardSubmit from "./components/LeaderboardSubmit";
 import AiTrendChart from "./components/AiTrendChart";
+import UserTrendChart from "./components/UserTrendChart";
 export const CardTitle = styled(Typography)(() => ({
   fontSize: "1.5rem",
   fontWeight: "bold",
@@ -261,6 +262,12 @@ export default function Leaderboard() {
                   AI Model Performance Trend
                 </CardTitle>
                 <AiTrendChart leaderboardId={id!!} />
+              </CardContent>
+            </Card>
+            <Card sx={{ mt: 2 }}>
+              <CardContent>
+                <CardTitle fontWeight="bold">User Performance Trend</CardTitle>
+                <UserTrendChart leaderboardId={id!!} />
               </CardContent>
             </Card>
           </TabPanel>
