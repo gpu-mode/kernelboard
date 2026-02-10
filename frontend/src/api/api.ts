@@ -218,3 +218,27 @@ export async function fetchAiTrend(leaderboardId: string): Promise<AiTrendRespon
   const r = await res.json();
   return r.data;
 }
+
+export interface UserTrendResponse {
+  leaderboard_id: number;
+  user_ids: string[];
+  time_series: AiTrendTimeSeries;
+}
+
+export async function fetchUserTrend(
+  leaderboardId: string,
+  userIds: string[]
+): Promise<UserTrendResponse> {
+  if (!userIds || userIds.length === 0) {
+    throw new Error("At least one user ID is required");
+  }
+  const url = `/api/leaderboard/${leaderboardId}/user_trend?user_id=${userIds.join(",")}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    const json = await res.json();
+    const message = json?.message || "Unknown error";
+    throw new APIError(`Failed to fetch user trend: ${message}`, res.status);
+  }
+  const r = await res.json();
+  return r.data;
+}
