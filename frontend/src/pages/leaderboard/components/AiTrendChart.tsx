@@ -6,6 +6,7 @@ import {
   formatMicrosecondsNum,
   formatMicroseconds,
 } from "../../../lib/utils/ranking";
+import { useThemeStore } from "../../../lib/store/themeStore";
 
 interface AiTrendChartProps {
   leaderboardId: string;
@@ -31,6 +32,9 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
   const [data, setData] = useState<AiTrendResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const resolvedMode = useThemeStore((state) => state.resolvedMode);
+  const isDark = resolvedMode === "dark";
+  const textColor = isDark ? "#e0e0e0" : "#333";
 
   useEffect(() => {
     const loadData = async () => {
@@ -153,6 +157,7 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
       textStyle: {
         fontSize: 16,
         fontWeight: "bold",
+        color: textColor,
       },
     },
     tooltip: {
@@ -172,6 +177,9 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
     legend: {
       data: Object.keys(h100Data),
       bottom: 0,
+      textStyle: {
+        color: textColor,
+      },
     },
     grid: {
       left: "3%",
@@ -185,10 +193,19 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
       name: "Submission Time",
       nameLocation: "middle",
       nameGap: 30,
+      nameTextStyle: {
+        color: textColor,
+      },
       axisLabel: {
+        color: textColor,
         formatter: (value: number) => {
           const date = new Date(value);
           return `${date.getMonth() + 1}/${date.getDate()}`;
+        },
+      },
+      axisLine: {
+        lineStyle: {
+          color: textColor,
         },
       },
     },
@@ -197,8 +214,22 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
       name: "Score (lower is better)",
       nameLocation: "middle",
       nameGap: 70,
+      nameTextStyle: {
+        color: textColor,
+      },
       axisLabel: {
+        color: textColor,
         formatter: (value: number) => `${formatMicrosecondsNum(value)}μs`,
+      },
+      axisLine: {
+        lineStyle: {
+          color: textColor,
+        },
+      },
+      splitLine: {
+        lineStyle: {
+          color: isDark ? "#444" : "#ccc",
+        },
       },
     },
     series,
