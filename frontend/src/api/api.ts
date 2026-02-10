@@ -259,7 +259,7 @@ export interface SearchUsersResponse {
 export async function searchUsers(
   leaderboardId: string,
   query: string = "",
-  limit: number = 20
+  limit?: number
 ): Promise<SearchUsersResponse> {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
