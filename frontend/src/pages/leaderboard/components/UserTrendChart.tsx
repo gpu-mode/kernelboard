@@ -103,8 +103,7 @@ export default function UserTrendChart({ leaderboardId }: UserTrendChartProps) {
     const searchTimeout = setTimeout(async () => {
       setSearchLoading(true);
       try {
-        const limit = inputValue === "" ? 5 : 20;
-        const result = await searchUsers(leaderboardId, inputValue, limit);
+        const result = await searchUsers(leaderboardId, inputValue);
         setUserOptions(result.users);
       } catch (err) {
         console.error("Failed to search users:", err);
@@ -185,6 +184,9 @@ export default function UserTrendChart({ leaderboardId }: UserTrendChartProps) {
           );
         }}
         noOptionsText="No users found"
+        slotProps={{
+          listbox: { style: { maxHeight: 300 } },
+        }}
         sx={{ minWidth: 350, flexGrow: 1, maxWidth: 500 }}
       />
       {gpuTypes.length > 0 && (
