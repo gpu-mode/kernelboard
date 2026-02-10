@@ -1,20 +1,7 @@
 import { useEffect, useState } from "react";
 import ReactECharts from "echarts-for-react";
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  TextField,
-  InputAdornment,
-  IconButton,
-} from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import ClearIcon from "@mui/icons-material/Clear";
-import {
-  fetchAiTrend,
-  fetchUserTrend,
-  type AiTrendResponse,
-} from "../../../api/api";
+import { Box, Typography, CircularProgress } from "@mui/material";
+import { fetchAiTrend, type AiTrendResponse } from "../../../api/api";
 import {
   formatMicrosecondsNum,
   formatMicroseconds,
@@ -30,13 +17,12 @@ function hashStringToColor(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash;
   }
 
-  // Generate HSL color with good saturation and lightness for visibility
   const hue = Math.abs(hash) % 360;
-  const saturation = 65 + (Math.abs(hash >> 8) % 20); // 65-85%
-  const lightness = 45 + (Math.abs(hash >> 16) % 15); // 45-60%
+  const saturation = 65 + (Math.abs(hash >> 8) % 20);
+  const lightness = 45 + (Math.abs(hash >> 16) % 15);
 
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
@@ -50,86 +36,43 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
   const textColor = isDark ? "#e0e0e0" : "#333";
 
   useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await fetchAiTrend(leaderboardId);
+        setData(result);
+      } catch (err: any) {
+        setError(err.message || "Failed to load data");
+      } finally {
+        setLoading(false);
+      }
+    };
     loadData();
   }, [leaderboardId]);
 
-  const handleSearch = () => {
-    if (userInput.trim()) {
-      loadData(userInput.trim());
-    }
-  };
-
-  const handleClear = () => {
-    setUserInput("");
-    loadData();
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
-  };
-
-  const renderSearchInput = () => (
-    <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 2 }}>
-      <TextField
-        size="small"
-        placeholder="User IDs (comma-separated)"
-        value={userInput}
-        onChange={(e) => setUserInput(e.target.value)}
-        onKeyPress={handleKeyPress}
-        sx={{ width: 280 }}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              {userInput && (
-                <IconButton size="small" onClick={handleClear}>
-                  <ClearIcon fontSize="small" />
-                </IconButton>
-              )}
-              <IconButton size="small" onClick={handleSearch}>
-                <SearchIcon fontSize="small" />
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-      />
-      {searchedUser && (
-        <Typography variant="body2" color="text.secondary">
-          Showing: {searchedUser}
-        </Typography>
-      )}
-    </Box>
-  );
-
   if (loading) {
     return (
-      <Box>
-        {renderSearchInput()}
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight={400}
-        >
-          <CircularProgress />
-        </Box>
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight={400}
+      >
+        <CircularProgress />
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Box>
-        {renderSearchInput()}
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight={400}
-        >
-          <Typography color="error">{error}</Typography>
-        </Box>
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight={400}
+      >
+        <Typography color="error">{error}</Typography>
       </Box>
     );
   }
@@ -140,18 +83,13 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
     Object.keys(data.time_series).length === 0
   ) {
     return (
-      <Box>
-        {renderSearchInput()}
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight={400}
-        >
-          <Typography color="text.secondary">
-            {searchedUser ? "No data available for this user" : "No AI data available"}
-          </Typography>
-        </Box>
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight={400}
+      >
+        <Typography color="text.secondary">No AI data available</Typography>
       </Box>
     );
   }
@@ -160,18 +98,13 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
   const h100Data = data.time_series["H100"];
   if (!h100Data || Object.keys(h100Data).length === 0) {
     return (
-      <Box>
-        {renderSearchInput()}
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight={400}
-        >
-          <Typography color="text.secondary">
-            {searchedUser ? "No H100 data available for this user" : "No H100 AI data available"}
-          </Typography>
-        </Box>
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight={400}
+      >
+        <Typography color="text.secondary">No H100 AI data available</Typography>
       </Box>
     );
   }
@@ -185,7 +118,7 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
     const sortedData = [...dataPoints].sort(
       (a, b) =>
         new Date(a.submission_time).getTime() -
-        new Date(b.submission_time).getTime(),
+        new Date(b.submission_time).getTime()
     );
 
     series.push({
@@ -211,13 +144,9 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
     });
   });
 
-  const chartTitle = searchedUser
-    ? `Performance Trend (H100) - ${searchedUser}`
-    : "AI Model Performance Trend (H100)";
-
   const option = {
     title: {
-      text: chartTitle,
+      text: "AI Model Performance Trend (H100)",
       left: "center",
       textStyle: {
         fontSize: 16,
@@ -300,10 +229,5 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
     series,
   };
 
-  return (
-    <Box>
-      {renderSearchInput()}
-      <ReactECharts option={option} style={{ height: 500 }} />
-    </Box>
-  );
+  return <ReactECharts option={option} style={{ height: 500 }} />;
 }

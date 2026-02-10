@@ -405,6 +405,61 @@ def get_user_trend(leaderboard_id: int):
     })
 
 
+@leaderboard_bp.route("/<int:leaderboard_id>/users", methods=["GET"])
+def search_users(leaderboard_id: int):
+    """
+    GET /leaderboard/<leaderboard_id>/users?q=...
+    Search for users who have submissions on this leaderboard.
+
+    Query parameters:
+    - q: Search query for username (partial match, case-insensitive)
+    - limit: Maximum number of results to return (default 20)
+
+    Returns list of users with their user_id and username.
+    """
+    from flask import request
+
+    query = request.args.get("q", "").strip()
+    limit = min(int(request.args.get("limit", 20)), 100)
+
+    conn = get_db_connection()
+
+    with conn.cursor() as cur:
+        if query:
+            sql = """
+                SELECT DISTINCT u.id, u.username
+                FROM leaderboard.user u
+                JOIN leaderboard.submission s ON s.user_id = u.id
+                WHERE s.leaderboard_id = %s
+                  AND u.username ILIKE %s
+                ORDER BY u.username
+                LIMIT %s
+            """
+            cur.execute(sql, (leaderboard_id, f"%{query}%", limit))
+        else:
+            sql = """
+                SELECT DISTINCT u.id, u.username
+                FROM leaderboard.user u
+                JOIN leaderboard.submission s ON s.user_id = u.id
+                WHERE s.leaderboard_id = %s
+                ORDER BY u.username
+                LIMIT %s
+            """
+            cur.execute(sql, (leaderboard_id, limit))
+
+        rows = cur.fetchall()
+
+    users = [
+        {"user_id": str(row[0]), "username": row[1] or str(row[0])}
+        for row in rows
+    ]
+
+    return http_success(data={
+        "leaderboard_id": leaderboard_id,
+        "users": users,
+    })
+
+
 def group_multi_user_submissions(
     items_by_user: dict,
     user_map: dict
