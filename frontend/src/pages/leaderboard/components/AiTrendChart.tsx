@@ -18,6 +18,7 @@ import { useThemeStore } from "../../../lib/store/themeStore";
 
 interface AiTrendChartProps {
   leaderboardId: string;
+  rankings?: Record<string, Array<{ user_name: string }>>;
 }
 
 // Generate a consistent color from a string using hash
@@ -35,7 +36,7 @@ function hashStringToColor(str: string): string {
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
-export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
+export default function AiTrendChart({ leaderboardId, rankings }: AiTrendChartProps) {
   const [data, setData] = useState<AiTrendResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,34 +49,64 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
 
   useEffect(() => {
     if (gpuTypes.length > 0 && !selectedGpuType && data?.time_series) {
-      // Find the GPU type with the most unique users with successful submissions
+      // Find the GPU type with the most unique users (from overall rankings)
+      // that also has actual AI data entries
       let maxUniqueUsers = 0;
-      let defaultGpuType = gpuTypes[0];
+      let defaultGpuType = "";
 
       for (const gpuType of gpuTypes) {
         const gpuData = data.time_series[gpuType];
-        if (gpuData) {
-          // Collect unique user IDs across all models for this GPU type
-          const uniqueUserIds = new Set<string>();
-          for (const model of Object.keys(gpuData)) {
-            const dataPoints = gpuData[model];
-            dataPoints.forEach((point) => {
-              if (point.user_id) {
-                uniqueUserIds.add(point.user_id);
-              }
-            });
-          }
+        // Check if this GPU type has actual AI data entries
+        if (!gpuData || Object.keys(gpuData).length === 0) {
+          continue;
+        }
 
-          if (uniqueUserIds.size > maxUniqueUsers) {
-            maxUniqueUsers = uniqueUserIds.size;
-            defaultGpuType = gpuType;
+        let hasEntries = false;
+        for (const model of Object.keys(gpuData)) {
+          if (gpuData[model].length > 0) {
+            hasEntries = true;
+            break;
+          }
+        }
+
+        if (!hasEntries) {
+          continue;
+        }
+
+        // Count unique users from overall rankings (not just AI submissions)
+        const rankingsForGpu = rankings?.[gpuType];
+        const uniqueUserCount = rankingsForGpu?.length ?? 0;
+
+        if (uniqueUserCount > maxUniqueUsers) {
+          maxUniqueUsers = uniqueUserCount;
+          defaultGpuType = gpuType;
+        }
+      }
+
+      // Fallback to first GPU type with AI data if no rankings match
+      if (!defaultGpuType) {
+        for (const gpuType of gpuTypes) {
+          const gpuData = data.time_series[gpuType];
+          if (gpuData && Object.keys(gpuData).length > 0) {
+            for (const model of Object.keys(gpuData)) {
+              if (gpuData[model].length > 0) {
+                defaultGpuType = gpuType;
+                break;
+              }
+            }
+            if (defaultGpuType) break;
           }
         }
       }
 
+      // Final fallback to first GPU type
+      if (!defaultGpuType && gpuTypes.length > 0) {
+        defaultGpuType = gpuTypes[0];
+      }
+
       setSelectedGpuType(defaultGpuType);
     }
-  }, [gpuTypes, selectedGpuType, data?.time_series]);
+  }, [gpuTypes, selectedGpuType, data?.time_series, rankings]);
 
   useEffect(() => {
     const loadData = async () => {

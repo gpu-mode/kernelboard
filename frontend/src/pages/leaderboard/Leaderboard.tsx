@@ -261,7 +261,7 @@ export default function Leaderboard() {
                 <CardTitle fontWeight="bold">
                   AI Model Performance Trend
                 </CardTitle>
-                <AiTrendChart leaderboardId={id!!} />
+                <AiTrendChart leaderboardId={id!!} rankings={data.rankings} />
               </CardContent>
             </Card>
             <Card sx={{ mt: 2 }}>
