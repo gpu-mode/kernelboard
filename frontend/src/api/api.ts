@@ -38,6 +38,30 @@ export async function fetchLeaderBoard(id: string): Promise<any> {
   return r.data;
 }
 
+export async function fetchCodes(
+  leaderboardId: number | string,
+  submissionIds: (number | string)[],
+): Promise<any> {
+  const res = await fetch("/api/codes", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      leaderboard_id: leaderboardId,
+      submission_ids: submissionIds,
+    }),
+  });
+
+  if (!res.ok) {
+    const json = await res.json();
+    const message = json?.message || "Unknown error";
+    throw new APIError(`Failed to fetch news contents: ${message}`, res.status);
+  }
+  const r = await res.json();
+  return r.data;
+}
+
 export async function fetchAllNews(): Promise<any> {
   const res = await fetch("/api/news");
   if (!res.ok) {
