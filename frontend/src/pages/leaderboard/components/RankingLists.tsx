@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -12,7 +12,9 @@ import RankingTitleBadge from "./RankingTitleBadge";
 
 import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
 import { getMedalIcon } from "../../../components/common/medal.tsx";
+import { fetchCodes } from "../../../api/api.ts";
 import { CodeDialog } from "./CodeDialog.tsx";
+import { isExpired } from "../../../lib/date/utils.ts";
 import { useAuthStore } from "../../../lib/store/authStore.ts";
 
 interface RankingItem {
@@ -27,6 +29,7 @@ interface RankingItem {
 interface RankingsListProps {
   rankings: Record<string, RankingItem[]>;
   leaderboardId?: string;
+  deadline?: string;
 }
 
 const styles: Record<string, SxProps<Theme>> = {
@@ -67,6 +70,11 @@ const styles: Record<string, SxProps<Theme>> = {
     color: "text.secondary",
     minWidth: "90px",
   },
+  loc: {
+    fontFamily: "monospace",
+    color: "text.secondary",
+    textAlign: "right",
+  },
   submissionId: {
     fontFamily: "monospace",
     color: "text.secondary",
@@ -76,13 +84,49 @@ const styles: Record<string, SxProps<Theme>> = {
 export default function RankingsList({
   rankings,
   leaderboardId,
+  deadline,
 }: RankingsListProps) {
+  const showLoc = !!deadline && isExpired(deadline);
   const me = useAuthStore((s) => s.me);
   const isAdmin = !!me?.user?.is_admin;
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [colorHash, _] = useState<string>(
     Math.random().toString(36).slice(2, 8),
   );
+  const [codes, setCodes] = useState<Map<number, string>>(new Map());
+
+  const submissionIds = useMemo(() => {
+    if (!rankings) return [];
+    const ids: number[] = [];
+    Object.entries(rankings).forEach(([key, value]) => {
+      const li = value as any[];
+      if (Array.isArray(li) && li.length > 0) {
+        li.forEach((item) => {
+          if (item?.submission_id) {
+            ids.push(item.submission_id);
+          }
+        });
+      }
+    });
+    return ids;
+  }, [rankings]);
+
+  useEffect(() => {
+    if (!showLoc) return;
+    if (!submissionIds || submissionIds.length === 0 || !leaderboardId) return;
+    fetchCodes(leaderboardId, submissionIds)
+      .then((data) => {
+        const map = new Map<number, string>();
+        for (const item of data?.results ?? []) {
+          map.set(item.submission_id, item.code);
+        }
+        setCodes(map);
+      })
+      .catch((err) => {
+        // soft error handle it since it's not critical
+        console.warn("[RankingsList] Failed to fetch codes:", err);
+      });
+  }, [leaderboardId, submissionIds, showLoc]);
 
   const toggleExpanded = (field: string) => {
     setExpanded((prev) => ({
@@ -137,21 +181,35 @@ export default function RankingsList({
                       {item.user_name} {getMedalIcon(item.rank)}
                     </Typography>
                   </Grid>
-                  <Grid size={isAdmin ? 2 : 3}>
+                  <Grid size={showLoc ? 2 : isAdmin ? 2 : 3}>
                     <Typography sx={styles.score}>
                       {formatMicroseconds(item.score)}
                     </Typography>
                   </Grid>
-                  <Grid size={isAdmin ? 2 : 3}>
+                  <Grid size={showLoc ? (isAdmin ? 1.5 : 2) : isAdmin ? 2 : 3}>
                     <Typography sx={styles.delta}>
                       {item.prev_score > 0 &&
                         `+${formatMicroseconds(item.prev_score)}`}
                     </Typography>
                   </Grid>
-                  <Grid size={3}>
+                  {showLoc && (
+                    <Grid size={isAdmin ? 1.5 : 2}>
+                      <Typography sx={styles.loc}>
+                        {(() => {
+                          const code = codes.get(item?.submission_id);
+                          if (!code) return "";
+                          const lines = code.split("\n").length;
+                          return `${lines} LOC`;
+                        })()}
+                      </Typography>
+                    </Grid>
+                  )}
+                  <Grid size={showLoc ? (isAdmin ? 2.5 : 3) : 3}>
                     <Typography>
                       <CodeDialog
+                        code={codes.get(item?.submission_id)}
                         fileName={item.file_name}
+                        isActive={!showLoc}
                         rank={item.rank}
                         userName={item.user_name}
                         problemName={field}
@@ -159,7 +217,7 @@ export default function RankingsList({
                     </Typography>
                   </Grid>
                   {isAdmin && (
-                    <Grid size={2}>
+                    <Grid size={showLoc ? 1.5 : 2}>
                       <Typography sx={styles.submissionId}>
                         ID: {item.submission_id}
                       </Typography>
