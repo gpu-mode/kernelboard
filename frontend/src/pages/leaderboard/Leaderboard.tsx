@@ -174,7 +174,6 @@ export default function Leaderboard() {
               <RankingsList
                 rankings={data.rankings}
                 leaderboardId={id}
-                deadline={data.deadline}
               />
             ) : (
               <Box display="flex" flexDirection="column" alignItems="center">
