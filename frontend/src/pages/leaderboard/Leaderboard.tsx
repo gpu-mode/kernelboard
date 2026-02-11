@@ -71,7 +71,7 @@ export default function Leaderboard() {
   const userId = me?.user?.identity ?? null;
 
   // State for top user (strongest submission) and default GPU type
-  const [topUser, setTopUser] = useState<{
+  const [defaultUser, setDefaultUser] = useState<{
     userId: string;
     username: string;
   } | null>(null);
@@ -126,25 +126,21 @@ export default function Leaderboard() {
       if (gpuTypes.length === 0) return;
 
       // Find the GPU type with the most unique users
-      let maxUsers = 0;
-      let bestGpu = gpuTypes[0];
-      for (const gpuType of gpuTypes) {
+      const mostActiveGpu = gpuTypes.reduce((currentMax, gpuType) => {
         const rankings = data.rankings[gpuType];
         const userCount = rankings ? rankings.length : 0;
-        if (userCount > maxUsers) {
-          maxUsers = userCount;
-          bestGpu = gpuType;
-        }
-      }
+        const maxCount = data.rankings[currentMax]?.length ?? 0;
+        return userCount > maxCount ? gpuType : currentMax;
+      }, gpuTypes[0]);
 
       // Set the default GPU type to the one with most users
-      setDefaultGpuType(bestGpu);
+      setDefaultGpuType(mostActiveGpu);
 
-      const bestGpuRankings = data.rankings[bestGpu];
-      if (!bestGpuRankings || bestGpuRankings.length === 0) return;
+      const mostActiveGpuRankings = data.rankings[mostActiveGpu];
+      if (!mostActiveGpuRankings || mostActiveGpuRankings.length === 0) return;
 
       // The first item is the top user (sorted by score ascending)
-      const topUserName = bestGpuRankings[0].user_name;
+      const topUserName = mostActiveGpuRankings[0].user_name;
       if (!topUserName) return;
 
       try {
@@ -152,7 +148,7 @@ export default function Leaderboard() {
         const result = await searchUsers(id, topUserName, 1);
         if (result.users && result.users.length > 0) {
           const foundUser = result.users[0];
-          setTopUser({
+          setDefaultUser({
             userId: foundUser.user_id,
             username: foundUser.username,
           });
@@ -323,7 +319,7 @@ export default function Leaderboard() {
             <Card sx={{ mt: 2 }}>
               <CardContent>
                 <CardTitle fontWeight="bold">User Performance Trend</CardTitle>
-                <UserTrendChart leaderboardId={id!!} topUser={topUser} defaultGpuType={defaultGpuType} />
+                <UserTrendChart leaderboardId={id!!} defaultUser={defaultUser} defaultGpuType={defaultGpuType} />
               </CardContent>
             </Card>
           </TabPanel>

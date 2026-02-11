@@ -26,7 +26,7 @@ import { useThemeStore } from "../../../lib/store/themeStore";
 
 interface UserTrendChartProps {
   leaderboardId: string;
-  topUser?: { userId: string; username: string } | null;
+  defaultUser?: { userId: string; username: string } | null;
   defaultGpuType?: string | null;
 }
 
@@ -44,7 +44,7 @@ function hashStringToColor(str: string): string {
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
-export default function UserTrendChart({ leaderboardId, topUser, defaultGpuType }: UserTrendChartProps) {
+export default function UserTrendChart({ leaderboardId, defaultUser, defaultGpuType }: UserTrendChartProps) {
   const [data, setData] = useState<UserTrendResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +57,6 @@ export default function UserTrendChart({ leaderboardId, topUser, defaultGpuType 
   const [userOptions, setUserOptions] = useState<UserSearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
-  const [initializedWithTopUser, setInitializedWithTopUser] = useState(false);
 
   const loadData = useCallback(
     async (userIds: string[]) => {
@@ -112,20 +111,18 @@ export default function UserTrendChart({ leaderboardId, topUser, defaultGpuType 
     loadInitialUsers();
   }, [leaderboardId]);
 
-  // Pre-select the top user if provided
+  // Pre-select the default user if provided
   useEffect(() => {
-    if (initializedWithTopUser) return;
-    if (!topUser?.userId) return;
+    if (!defaultUser?.userId) return;
 
-    const topUserAsSearchResult: UserSearchResult = {
-      user_id: topUser.userId,
-      username: topUser.username,
+    const defaultUserAsSearchResult: UserSearchResult = {
+      user_id: defaultUser.userId,
+      username: defaultUser.username,
     };
 
-    setSelectedUsers([topUserAsSearchResult]);
-    loadData([topUser.userId]);
-    setInitializedWithTopUser(true);
-  }, [topUser, initializedWithTopUser, loadData]);
+    setSelectedUsers([defaultUserAsSearchResult]);
+    loadData([defaultUser.userId]);
+  }, [defaultUser, loadData]);
 
   // Search users when input changes
   useEffect(() => {
