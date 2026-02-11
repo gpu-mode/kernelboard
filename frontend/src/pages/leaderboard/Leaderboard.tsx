@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { useEffect, useState, useMemo } from "react";
-import { fetchLeaderBoard } from "../../api/api";
+import { fetchLeaderBoard, searchUsers } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { isExpired, toDateUtc } from "../../lib/date/utils";
 import RankingsList from "./components/RankingLists";
@@ -70,6 +70,13 @@ export default function Leaderboard() {
   const isAuthed = !!(me && me.authenticated);
   const userId = me?.user?.identity ?? null;
 
+  // State for top user (strongest submission) and default GPU type
+  const [topUser, setTopUser] = useState<{
+    userId: string;
+    username: string;
+  } | null>(null);
+  const [defaultGpuType, setDefaultGpuType] = useState<string | null>(null);
+
   // Sync tab state with query parameter
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -108,6 +115,55 @@ export default function Leaderboard() {
   useEffect(() => {
     if (id) call(id);
   }, [id]);
+
+  // Fetch top user (strongest submission) when rankings are available
+  // Select from the GPU with the most unique users
+  useEffect(() => {
+    const findTopUser = async () => {
+      if (!id || !data?.rankings) return;
+
+      const gpuTypes = Object.keys(data.rankings);
+      if (gpuTypes.length === 0) return;
+
+      // Find the GPU type with the most unique users
+      let maxUsers = 0;
+      let bestGpu = gpuTypes[0];
+      for (const gpuType of gpuTypes) {
+        const rankings = data.rankings[gpuType];
+        const userCount = rankings ? rankings.length : 0;
+        if (userCount > maxUsers) {
+          maxUsers = userCount;
+          bestGpu = gpuType;
+        }
+      }
+
+      // Set the default GPU type to the one with most users
+      setDefaultGpuType(bestGpu);
+
+      const bestGpuRankings = data.rankings[bestGpu];
+      if (!bestGpuRankings || bestGpuRankings.length === 0) return;
+
+      // The first item is the top user (sorted by score ascending)
+      const topUserName = bestGpuRankings[0].user_name;
+      if (!topUserName) return;
+
+      try {
+        // Search for the user by username to get their user_id
+        const result = await searchUsers(id, topUserName, 1);
+        if (result.users && result.users.length > 0) {
+          const foundUser = result.users[0];
+          setTopUser({
+            userId: foundUser.user_id,
+            username: foundUser.username,
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch top user:", err);
+      }
+    };
+
+    findTopUser();
+  }, [id, data?.rankings]);
 
   if (loading) return <Loading />;
   if (error) return <ErrorAlert status={errorStatus} message={error} />;
@@ -267,7 +323,7 @@ export default function Leaderboard() {
             <Card sx={{ mt: 2 }}>
               <CardContent>
                 <CardTitle fontWeight="bold">User Performance Trend</CardTitle>
-                <UserTrendChart leaderboardId={id!!} />
+                <UserTrendChart leaderboardId={id!!} topUser={topUser} defaultGpuType={defaultGpuType} />
               </CardContent>
             </Card>
           </TabPanel>

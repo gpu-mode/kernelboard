@@ -23,10 +23,11 @@ import {
   formatMicroseconds,
 } from "../../../lib/utils/ranking";
 import { useThemeStore } from "../../../lib/store/themeStore";
-import { useAuthStore } from "../../../lib/store/authStore";
 
 interface UserTrendChartProps {
   leaderboardId: string;
+  topUser?: { userId: string; username: string } | null;
+  defaultGpuType?: string | null;
 }
 
 function hashStringToColor(str: string): string {
@@ -43,21 +44,20 @@ function hashStringToColor(str: string): string {
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
-export default function UserTrendChart({ leaderboardId }: UserTrendChartProps) {
+export default function UserTrendChart({ leaderboardId, topUser, defaultGpuType }: UserTrendChartProps) {
   const [data, setData] = useState<UserTrendResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedGpuType, setSelectedGpuType] = useState<string>("");
+  const [selectedGpuType, setSelectedGpuType] = useState<string>(defaultGpuType || "");
   const resolvedMode = useThemeStore((state) => state.resolvedMode);
   const isDark = resolvedMode === "dark";
   const textColor = isDark ? "#e0e0e0" : "#333";
-  const me = useAuthStore((s) => s.me);
 
   const [selectedUsers, setSelectedUsers] = useState<UserSearchResult[]>([]);
   const [userOptions, setUserOptions] = useState<UserSearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
-  const [initializedWithMe, setInitializedWithMe] = useState(false);
+  const [initializedWithTopUser, setInitializedWithTopUser] = useState(false);
 
   const loadData = useCallback(
     async (userIds: string[]) => {
@@ -71,10 +71,21 @@ export default function UserTrendChart({ leaderboardId }: UserTrendChartProps) {
       try {
         const result = await fetchUserTrend(leaderboardId, userIds);
         setData(result);
-        // Set default GPU type to the first available
+        // Set default GPU type to the one with the most unique users
         const gpuTypes = Object.keys(result.time_series || {});
         if (gpuTypes.length > 0 && !gpuTypes.includes(selectedGpuType)) {
-          setSelectedGpuType(gpuTypes[0]);
+          // Count unique users per GPU type
+          let maxUsers = 0;
+          let defaultGpu = gpuTypes[0];
+          for (const gpuType of gpuTypes) {
+            const gpuData = result.time_series[gpuType];
+            const userCount = gpuData ? Object.keys(gpuData).length : 0;
+            if (userCount > maxUsers) {
+              maxUsers = userCount;
+              defaultGpu = gpuType;
+            }
+          }
+          setSelectedGpuType(defaultGpu);
         }
       } catch (err: any) {
         setError(err.message || "Failed to load data");
@@ -101,20 +112,20 @@ export default function UserTrendChart({ leaderboardId }: UserTrendChartProps) {
     loadInitialUsers();
   }, [leaderboardId]);
 
-  // Pre-select the logged-in user if authenticated
+  // Pre-select the top user if provided
   useEffect(() => {
-    if (initializedWithMe) return;
-    if (!me?.authenticated || !me?.user?.id) return;
+    if (initializedWithTopUser) return;
+    if (!topUser?.userId) return;
 
-    const meAsUser: UserSearchResult = {
-      user_id: me.user.id,
-      username: me.user.display_name || me.user.id,
+    const topUserAsSearchResult: UserSearchResult = {
+      user_id: topUser.userId,
+      username: topUser.username,
     };
 
-    setSelectedUsers([meAsUser]);
-    loadData([me.user.id]);
-    setInitializedWithMe(true);
-  }, [me, initializedWithMe, loadData]);
+    setSelectedUsers([topUserAsSearchResult]);
+    loadData([topUser.userId]);
+    setInitializedWithTopUser(true);
+  }, [topUser, initializedWithTopUser, loadData]);
 
   // Search users when input changes
   useEffect(() => {
