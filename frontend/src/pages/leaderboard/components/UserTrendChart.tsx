@@ -23,6 +23,7 @@ import {
   formatMicroseconds,
 } from "../../../lib/utils/ranking";
 import { useThemeStore } from "../../../lib/store/themeStore";
+import { useAuthStore } from "../../../lib/store/authStore";
 
 interface UserTrendChartProps {
   leaderboardId: string;
@@ -50,11 +51,13 @@ export default function UserTrendChart({ leaderboardId }: UserTrendChartProps) {
   const resolvedMode = useThemeStore((state) => state.resolvedMode);
   const isDark = resolvedMode === "dark";
   const textColor = isDark ? "#e0e0e0" : "#333";
+  const me = useAuthStore((s) => s.me);
 
   const [selectedUsers, setSelectedUsers] = useState<UserSearchResult[]>([]);
   const [userOptions, setUserOptions] = useState<UserSearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [initializedWithMe, setInitializedWithMe] = useState(false);
 
   const loadData = useCallback(
     async (userIds: string[]) => {
@@ -97,6 +100,21 @@ export default function UserTrendChart({ leaderboardId }: UserTrendChartProps) {
     };
     loadInitialUsers();
   }, [leaderboardId]);
+
+  // Pre-select the logged-in user if authenticated
+  useEffect(() => {
+    if (initializedWithMe) return;
+    if (!me?.authenticated || !me?.user?.id) return;
+
+    const meAsUser: UserSearchResult = {
+      user_id: me.user.id,
+      username: me.user.display_name || me.user.id,
+    };
+
+    setSelectedUsers([meAsUser]);
+    loadData([me.user.id]);
+    setInitializedWithMe(true);
+  }, [me, initializedWithMe, loadData]);
 
   // Search users when input changes
   useEffect(() => {
