@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import ReactECharts from "echarts-for-react";
-import { Box, Typography, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Typography,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
 import { fetchAiTrend, type AiTrendResponse } from "../../../api/api";
 import {
   formatMicrosecondsNum,
@@ -10,6 +18,7 @@ import { useThemeStore } from "../../../lib/store/themeStore";
 
 interface AiTrendChartProps {
   leaderboardId: string;
+  rankings?: Record<string, Array<{ user_name: string }>>;
 }
 
 // Generate a consistent color from a string using hash
@@ -27,13 +36,77 @@ function hashStringToColor(str: string): string {
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
-export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
+export default function AiTrendChart({ leaderboardId, rankings }: AiTrendChartProps) {
   const [data, setData] = useState<AiTrendResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedGpuType, setSelectedGpuType] = useState<string>("");
   const resolvedMode = useThemeStore((state) => state.resolvedMode);
   const isDark = resolvedMode === "dark";
   const textColor = isDark ? "#e0e0e0" : "#333";
+
+  const gpuTypes = data?.time_series ? Object.keys(data.time_series) : [];
+
+  useEffect(() => {
+    if (gpuTypes.length > 0 && !selectedGpuType && data?.time_series) {
+      // Find the GPU type with the most unique users (from overall rankings)
+      // that also has actual AI data entries
+      let maxUniqueUsers = 0;
+      let defaultGpuType = "";
+
+      for (const gpuType of gpuTypes) {
+        const gpuData = data.time_series[gpuType];
+        // Check if this GPU type has actual AI data entries
+        if (!gpuData || Object.keys(gpuData).length === 0) {
+          continue;
+        }
+
+        let hasEntries = false;
+        for (const model of Object.keys(gpuData)) {
+          if (gpuData[model].length > 0) {
+            hasEntries = true;
+            break;
+          }
+        }
+
+        if (!hasEntries) {
+          continue;
+        }
+
+        // Count unique users from overall rankings (not just AI submissions)
+        const rankingsForGpu = rankings?.[gpuType];
+        const uniqueUserCount = rankingsForGpu?.length ?? 0;
+
+        if (uniqueUserCount > maxUniqueUsers) {
+          maxUniqueUsers = uniqueUserCount;
+          defaultGpuType = gpuType;
+        }
+      }
+
+      // Fallback to first GPU type with AI data if no rankings match
+      if (!defaultGpuType) {
+        for (const gpuType of gpuTypes) {
+          const gpuData = data.time_series[gpuType];
+          if (gpuData && Object.keys(gpuData).length > 0) {
+            for (const model of Object.keys(gpuData)) {
+              if (gpuData[model].length > 0) {
+                defaultGpuType = gpuType;
+                break;
+              }
+            }
+            if (defaultGpuType) break;
+          }
+        }
+      }
+
+      // Final fallback to first GPU type
+      if (!defaultGpuType && gpuTypes.length > 0) {
+        defaultGpuType = gpuTypes[0];
+      }
+
+      setSelectedGpuType(defaultGpuType);
+    }
+  }, [gpuTypes, selectedGpuType, data?.time_series, rankings]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -94,17 +167,37 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
     );
   }
 
-  // For now, only render H100 data
-  const h100Data = data.time_series["H100"];
-  if (!h100Data || Object.keys(h100Data).length === 0) {
+  const selectedData = selectedGpuType ? data.time_series[selectedGpuType] : null;
+  if (!selectedData || Object.keys(selectedData).length === 0) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight={400}
-      >
-        <Typography color="text.secondary">No H100 AI data available</Typography>
+      <Box>
+        <Box sx={{ mb: 2, display: "flex", justifyContent: "flex-end" }}>
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel id="gpu-type-select-label">GPU Type</InputLabel>
+            <Select
+              labelId="gpu-type-select-label"
+              value={selectedGpuType}
+              label="GPU Type"
+              onChange={(e) => setSelectedGpuType(e.target.value)}
+            >
+              {gpuTypes.map((gpuType) => (
+                <MenuItem key={gpuType} value={gpuType}>
+                  {gpuType}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minHeight={400}
+        >
+          <Typography color="text.secondary">
+            No {selectedGpuType || "AI"} data available
+          </Typography>
+        </Box>
       </Box>
     );
   }
@@ -112,7 +205,7 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
   // Build series for ECharts
   const series: any[] = [];
 
-  Object.entries(h100Data).forEach(([model, dataPoints]) => {
+  Object.entries(selectedData).forEach(([model, dataPoints]) => {
     const color = hashStringToColor(model);
 
     const sortedData = [...dataPoints].sort(
@@ -146,7 +239,7 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
 
   const option = {
     title: {
-      text: "AI Model Performance Trend (H100)",
+      text: `AI Model Performance Trend (${selectedGpuType})`,
       left: "center",
       textStyle: {
         fontSize: 16,
@@ -169,7 +262,7 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
       },
     },
     legend: {
-      data: Object.keys(h100Data),
+      data: Object.keys(selectedData),
       bottom: 0,
       textStyle: {
         color: textColor,
@@ -229,5 +322,26 @@ export default function AiTrendChart({ leaderboardId }: AiTrendChartProps) {
     series,
   };
 
-  return <ReactECharts option={option} style={{ height: 500 }} />;
+  return (
+    <Box>
+      <Box sx={{ mb: 2, display: "flex", justifyContent: "flex-end" }}>
+        <FormControl size="small" sx={{ minWidth: 150 }}>
+          <InputLabel id="gpu-type-select-label">GPU Type</InputLabel>
+          <Select
+            labelId="gpu-type-select-label"
+            value={selectedGpuType}
+            label="GPU Type"
+            onChange={(e) => setSelectedGpuType(e.target.value)}
+          >
+            {gpuTypes.map((gpuType) => (
+              <MenuItem key={gpuType} value={gpuType}>
+                {gpuType}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+      <ReactECharts option={option} style={{ height: 500 }} />
+    </Box>
+  );
 }
