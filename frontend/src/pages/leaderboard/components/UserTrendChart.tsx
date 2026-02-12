@@ -26,6 +26,8 @@ import { useThemeStore } from "../../../lib/store/themeStore";
 
 interface UserTrendChartProps {
   leaderboardId: string;
+  defaultUser?: { userId: string; username: string } | null;
+  defaultGpuType?: string | null;
 }
 
 function hashStringToColor(str: string): string {
@@ -42,11 +44,11 @@ function hashStringToColor(str: string): string {
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
-export default function UserTrendChart({ leaderboardId }: UserTrendChartProps) {
+export default function UserTrendChart({ leaderboardId, defaultUser, defaultGpuType }: UserTrendChartProps) {
   const [data, setData] = useState<UserTrendResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedGpuType, setSelectedGpuType] = useState<string>("");
+  const [selectedGpuType, setSelectedGpuType] = useState<string>(defaultGpuType || "");
   const resolvedMode = useThemeStore((state) => state.resolvedMode);
   const isDark = resolvedMode === "dark";
   const textColor = isDark ? "#e0e0e0" : "#333";
@@ -68,10 +70,21 @@ export default function UserTrendChart({ leaderboardId }: UserTrendChartProps) {
       try {
         const result = await fetchUserTrend(leaderboardId, userIds);
         setData(result);
-        // Set default GPU type to the first available
+        // Set default GPU type to the one with the most unique users
         const gpuTypes = Object.keys(result.time_series || {});
         if (gpuTypes.length > 0 && !gpuTypes.includes(selectedGpuType)) {
-          setSelectedGpuType(gpuTypes[0]);
+          // Count unique users per GPU type
+          let maxUsers = 0;
+          let defaultGpu = gpuTypes[0];
+          for (const gpuType of gpuTypes) {
+            const gpuData = result.time_series[gpuType];
+            const userCount = gpuData ? Object.keys(gpuData).length : 0;
+            if (userCount > maxUsers) {
+              maxUsers = userCount;
+              defaultGpu = gpuType;
+            }
+          }
+          setSelectedGpuType(defaultGpu);
         }
       } catch (err: any) {
         setError(err.message || "Failed to load data");
@@ -97,6 +110,19 @@ export default function UserTrendChart({ leaderboardId }: UserTrendChartProps) {
     };
     loadInitialUsers();
   }, [leaderboardId]);
+
+  // Pre-select the default user if provided
+  useEffect(() => {
+    if (!defaultUser?.userId) return;
+
+    const defaultUserAsSearchResult: UserSearchResult = {
+      user_id: defaultUser.userId,
+      username: defaultUser.username,
+    };
+
+    setSelectedUsers([defaultUserAsSearchResult]);
+    loadData([defaultUser.userId]);
+  }, [defaultUser, loadData]);
 
   // Search users when input changes
   useEffect(() => {
