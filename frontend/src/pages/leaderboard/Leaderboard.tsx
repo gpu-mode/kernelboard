@@ -130,7 +130,7 @@ export default function Leaderboard() {
       // Get top 5 users (sorted by score ascending)
       const topUserNames = mostActiveGpuRankings
         .slice(0, 5)
-        .map((r: any) => r.user_name)
+        .map((r) => r.user_name)
         .filter(Boolean);
 
       if (topUserNames.length === 0) return;
@@ -227,7 +227,7 @@ export default function Leaderboard() {
                 <Card>
                   <CardContent>
                     <CardTitle fontWeight="bold">Performance Trend</CardTitle>
-                    <UserTrendChart leaderboardId={id!!} defaultUsers={defaultUsers} defaultGpuType={defaultGpuType} rankings={data.rankings} />
+                    <UserTrendChart leaderboardId={id!} defaultUsers={defaultUsers} defaultGpuType={defaultGpuType} rankings={data.rankings} />
                   </CardContent>
                 </Card>
               </>
