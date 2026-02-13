@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { fetchLeaderBoard, searchUsers } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { isExpired, toDateUtc } from "../../lib/date/utils";
@@ -24,14 +24,13 @@ import { SubmissionMode } from "../../lib/types/mode";
 import { useAuthStore } from "../../lib/store/authStore";
 import SubmissionHistorySection from "./components/submission-history/SubmissionHistorySection";
 import LeaderboardSubmit from "./components/LeaderboardSubmit";
-import AiTrendChart from "./components/AiTrendChart";
 import UserTrendChart from "./components/UserTrendChart";
 export const CardTitle = styled(Typography)(() => ({
   fontSize: "1.5rem",
   fontWeight: "bold",
 }));
 
-type TabKey = "rankings" | "reference" | "submission" | "ai_trend";
+type TabKey = "rankings" | "reference" | "submission";
 
 // Tab accessibility props
 function a11yProps(index: number) {
@@ -70,27 +69,16 @@ export default function Leaderboard() {
   const isAuthed = !!(me && me.authenticated);
   const userId = me?.user?.identity ?? null;
 
-  // State for top user (strongest submission) and default GPU type
-  const [defaultUser, setDefaultUser] = useState<{
-    userId: string;
-    username: string;
-  } | null>(null);
+  // State for top users (strongest submissions) and default GPU type
+  const [defaultUsers, setDefaultUsers] = useState<
+    Array<{ userId: string; username: string }>
+  >([]);
   const [defaultGpuType, setDefaultGpuType] = useState<string | null>(null);
 
   // Sync tab state with query parameter
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Check if AI Trend should be shown
-  const showAiTrend = searchParams.get("showAiTrend") === "true";
-
-  // Build tab keys dynamically based on showAiTrend
-  const TAB_KEYS: TabKey[] = useMemo(() => {
-    const keys: TabKey[] = ["rankings", "reference", "submission"];
-    if (showAiTrend) {
-      keys.push("ai_trend");
-    }
-    return keys;
-  }, [showAiTrend]);
+  const TAB_KEYS: TabKey[] = ["rankings", "reference", "submission"];
 
   const initialTabFromUrl = ((): TabKey => {
     const t = (searchParams.get("tab") || "").toLowerCase();
@@ -116,10 +104,10 @@ export default function Leaderboard() {
     if (id) call(id);
   }, [id]);
 
-  // Fetch top user (strongest submission) when rankings are available
+  // Fetch top users (strongest submissions) when rankings are available
   // Select from the GPU with the most unique users
   useEffect(() => {
-    const findTopUser = async () => {
+    const findTopUsers = async () => {
       if (!id || !data?.rankings) return;
 
       const gpuTypes = Object.keys(data.rankings);
@@ -139,26 +127,35 @@ export default function Leaderboard() {
       const mostActiveGpuRankings = data.rankings[mostActiveGpu];
       if (!mostActiveGpuRankings || mostActiveGpuRankings.length === 0) return;
 
-      // The first item is the top user (sorted by score ascending)
-      const topUserName = mostActiveGpuRankings[0].user_name;
-      if (!topUserName) return;
+      // Get top 5 users (sorted by score ascending)
+      const topUserNames = mostActiveGpuRankings
+        .slice(0, 5)
+        .map((r: any) => r.user_name)
+        .filter(Boolean);
+
+      if (topUserNames.length === 0) return;
 
       try {
-        // Search for the user by username to get their user_id
-        const result = await searchUsers(id, topUserName, 1);
-        if (result.users && result.users.length > 0) {
-          const foundUser = result.users[0];
-          setDefaultUser({
-            userId: foundUser.user_id,
-            username: foundUser.username,
-          });
-        }
+        // Search for each user by username to get their user_id
+        const userPromises = topUserNames.map((userName: string) =>
+          searchUsers(id, userName, 1)
+        );
+        const results = await Promise.all(userPromises);
+
+        const foundUsers = results
+          .filter((result) => result.users && result.users.length > 0)
+          .map((result) => ({
+            userId: result.users[0].user_id,
+            username: result.users[0].username,
+          }));
+
+        setDefaultUsers(foundUsers);
       } catch (err) {
-        console.error("Failed to fetch top user:", err);
+        console.error("Failed to fetch top users:", err);
       }
     };
 
-    findTopUser();
+    findTopUsers();
   }, [id, data?.rankings]);
 
   if (loading) return <Loading />;
@@ -213,9 +210,6 @@ export default function Leaderboard() {
             <Tab label="Rankings" value="rankings" {...a11yProps(0)} />
             <Tab label="Reference" value="reference" {...a11yProps(1)} />
             <Tab label="Submission" value="submission" {...a11yProps(2)} />
-            {showAiTrend && (
-              <Tab label="AI Trend" value="ai_trend" {...a11yProps(3)} />
-            )}
           </Tabs>
         </Box>
 
@@ -223,11 +217,20 @@ export default function Leaderboard() {
         <TabPanel value={tab} tabKey="rankings">
           <Box>
             {Object.entries(data.rankings).length > 0 ? (
-              <RankingsList
-                rankings={data.rankings}
-                leaderboardId={id}
-                deadline={data.deadline}
-              />
+              <>
+                <RankingsList
+                  rankings={data.rankings}
+                  leaderboardId={id}
+                  deadline={data.deadline}
+                />
+                <Box sx={{ my: 4, borderTop: 1, borderColor: "divider" }} />
+                <Card>
+                  <CardContent>
+                    <CardTitle fontWeight="bold">Performance Trend</CardTitle>
+                    <UserTrendChart leaderboardId={id!!} defaultUsers={defaultUsers} defaultGpuType={defaultGpuType} rankings={data.rankings} />
+                  </CardContent>
+                </Card>
+              </>
             ) : (
               <Box display="flex" flexDirection="column" alignItems="center">
                 <Typography variant="h6" fontWeight="bold">
@@ -305,25 +308,6 @@ export default function Leaderboard() {
           )}
         </TabPanel>
 
-        {/* AI Trend Tab - only shown when showAiTrend=true */}
-        {showAiTrend && (
-          <TabPanel value={tab} tabKey="ai_trend">
-            <Card>
-              <CardContent>
-                <CardTitle fontWeight="bold">
-                  AI Model Performance Trend
-                </CardTitle>
-                <AiTrendChart leaderboardId={id!!} rankings={data.rankings} />
-              </CardContent>
-            </Card>
-            <Card sx={{ mt: 2 }}>
-              <CardContent>
-                <CardTitle fontWeight="bold">User Performance Trend</CardTitle>
-                <UserTrendChart leaderboardId={id!!} defaultUser={defaultUser} defaultGpuType={defaultGpuType} />
-              </CardContent>
-            </Card>
-          </TabPanel>
-        )}
       </Box>
     </ConstrainedContainer>
   );
