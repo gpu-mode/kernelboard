@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from unittest.mock import patch, mock_open
+from unittest.mock import mock_open, patch
 
 
 def test_news(client):
@@ -19,7 +19,6 @@ def test_skip_invalid_yaml_with_mock(client):
     ), patch("builtins.open", mock_open(read_data=fake_file_content)):
         res = client.get("/api/news")
         assert res.status_code == HTTPStatus.NOT_FOUND
-        data = res.get_json()
 
 
 def test_only_return_valid_content_with_mock(client):

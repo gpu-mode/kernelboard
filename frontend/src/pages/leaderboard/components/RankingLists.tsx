@@ -85,7 +85,7 @@ export default function RankingsList({
   const me = useAuthStore((s) => s.me);
   const isAdmin = !!me?.user?.is_admin;
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [colorHash, _] = useState<string>(
+  const [colorHash] = useState<string>(
     Math.random().toString(36).slice(2, 8),
   );
   const [codes, setCodes] = useState<Map<number, string>>(new Map());
@@ -93,7 +93,7 @@ export default function RankingsList({
   const submissionIds = useMemo(() => {
     if (!rankings) return [];
     const ids: number[] = [];
-    Object.entries(rankings).forEach(([key, value]) => {
+    Object.entries(rankings).forEach(([_key, value]) => {
       const li = value as any[];
       if (Array.isArray(li) && li.length > 0) {
         li.forEach((item) => {

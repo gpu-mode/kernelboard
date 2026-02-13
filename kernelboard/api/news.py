@@ -1,11 +1,12 @@
-from http import HTTPStatus
+import logging
 import os
+from datetime import datetime
+from http import HTTPStatus
+
 import yaml
 from flask import Blueprint, current_app
-from kernelboard.lib.status_code import HttpError, http_error, http_success
-from datetime import datetime
-import logging
 
+from kernelboard.lib.status_code import HttpError, http_error, http_success
 
 # logger for blueprint news_bp
 logger = logging.getLogger(__name__)

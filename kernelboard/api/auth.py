@@ -7,15 +7,17 @@ from urllib.parse import urlencode
 import requests
 from flask import (
     Blueprint,
-    current_app as app,
     redirect,
     request,
     session,
     url_for,
 )
+from flask import (
+    current_app as app,
+)
 from flask_login import UserMixin, current_user, login_user, logout_user
-from kernelboard.lib.auth_utils import ensure_user_info_with_token, get_user_info_from_session
 
+from kernelboard.lib.auth_utils import ensure_user_info_with_token, get_user_info_from_session
 from kernelboard.lib.status_code import http_success
 
 auth_bp = Blueprint("auth", __name__)

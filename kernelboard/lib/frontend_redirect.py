@@ -1,3 +1,7 @@
+import os
+from urllib.parse import urlparse
+
+from flask import redirect
 
 FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "/v2/")  # e.g. "/", "/v2/", or "https://app.example.com"
 

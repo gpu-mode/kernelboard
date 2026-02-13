@@ -1,15 +1,13 @@
-from requests import auth
 from flask import Blueprint
 from werkzeug.exceptions import HTTPException
-from kernelboard.api.submission import submission
-from kernelboard.lib.status_code import http_error, http_success
+
+from kernelboard.api.auth import auth_bp
+from kernelboard.api.events import events_bp
 from kernelboard.api.leaderboard import leaderboard_bp
 from kernelboard.api.leaderboard_summaries import leaderboard_summaries_bp
 from kernelboard.api.news import news_bp
-from kernelboard.api.auth import auth_bp
 from kernelboard.api.submission import submission_bp
-from kernelboard.api.events import events_bp
-
+from kernelboard.lib.status_code import http_error, http_success
 
 
 def create_api_blueprint():
