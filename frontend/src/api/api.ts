@@ -1,3 +1,5 @@
+import type { User } from "../lib/types/user";
+
 export class APIError extends Error {
   status: number;
   constructor(message: string, status: number) {
@@ -16,7 +18,75 @@ export async function fetchAboutInfo(): Promise<string> {
   return r.data.message;
 }
 
-export async function fetchLeaderBoard(id: string): Promise<any> {
+export interface LeaderboardDetail {
+  deadline: string;
+  description: string;
+  name: string;
+  reference: string;
+  gpu_types: string[];
+  rankings: Record<
+    string,
+    Array<{
+      file_name: string;
+      prev_score: number;
+      rank: number;
+      score: number;
+      user_name: string;
+      submission_id: number;
+    }>
+  >;
+}
+
+export interface CodesResponse {
+  results: Array<{
+    submission_id: number;
+    code: string;
+  }>;
+}
+
+export interface NewsPost {
+  id: string;
+  title: string;
+  content: string;
+  [key: string]: unknown;
+}
+
+export interface LeaderboardSummary {
+  id: number;
+  name: string;
+  deadline: string;
+  gpu_types: string[];
+  priority_gpu_type: string;
+  top_users: Array<{ rank: number; score: number; user_name: string }> | null;
+}
+
+export interface LeaderboardSummariesResponse {
+  leaderboards: LeaderboardSummary[];
+  now: string;
+}
+
+export interface UserSubmissionsResponse {
+  items: Array<{
+    submission_id: number;
+    file_name?: string | null;
+    submitted_at: string;
+    status?: string | null;
+    submission_done: boolean;
+    runs?: Array<{
+      start_time: string;
+      end_time: string | null;
+      mode: string;
+      passed: boolean;
+      score: number | null;
+      meta: Record<string, unknown> | null;
+      report: Record<string, unknown> | null;
+    }>;
+  }>;
+  total: number;
+  limit: number;
+}
+
+export async function fetchLeaderBoard(id: string): Promise<LeaderboardDetail> {
   const start = performance.now();
   const res = await fetch(`/api/leaderboard/${id}`);
   const fetchTime = performance.now() - start;
@@ -41,7 +111,7 @@ export async function fetchLeaderBoard(id: string): Promise<any> {
 export async function fetchCodes(
   leaderboardId: number | string,
   submissionIds: (number | string)[],
-): Promise<any> {
+): Promise<CodesResponse> {
   const res = await fetch("/api/codes", {
     method: "POST",
     headers: {
@@ -62,7 +132,7 @@ export async function fetchCodes(
   return r.data;
 }
 
-export async function fetchAllNews(): Promise<any> {
+export async function fetchAllNews(): Promise<NewsPost[]> {
   const res = await fetch("/api/news");
   if (!res.ok) {
     const json = await res.json();
@@ -73,7 +143,7 @@ export async function fetchAllNews(): Promise<any> {
   return r.data;
 }
 
-export async function fetchLeaderboardSummaries(useV1: boolean = false): Promise<any> {
+export async function fetchLeaderboardSummaries(useV1: boolean = false): Promise<LeaderboardSummariesResponse> {
   const start = performance.now();
   const url = useV1
     ? "/api/leaderboard-summaries?v1_query"
@@ -102,7 +172,7 @@ export async function fetchLeaderboardSummaries(useV1: boolean = false): Promise
   return r.data;
 }
 
-export async function getMe(): Promise<any> {
+export async function getMe(): Promise<User> {
   const res = await fetch("/api/me");
   if (!res.ok) {
     const json = await res.json();
@@ -113,15 +183,14 @@ export async function getMe(): Promise<any> {
   return r.data;
 }
 
-export async function logout(): Promise<any> {
+export async function logout(): Promise<void> {
   const res = await fetch("/api/logout");
   if (!res.ok) {
     const json = await res.json();
     const message = json?.message || "Unknown error";
     throw new APIError(`Failed to fetch news contents: ${message}`, res.status);
   }
-  const r = await res.json();
-  return r.data;
+  await res.json();
 }
 
 export async function submitFile(form: FormData) {
@@ -131,7 +200,7 @@ export async function submitFile(form: FormData) {
   });
 
   const text = await resp.text();
-  let data: any;
+  let data: Record<string, unknown>;
   try {
     data = JSON.parse(text);
   } catch {
@@ -139,7 +208,7 @@ export async function submitFile(form: FormData) {
   }
 
   if (!resp.ok) {
-    const msg = data?.detail || data?.message || "Submission failed";
+    const msg = (data?.detail as string) || (data?.message as string) || "Submission failed";
     throw new Error(msg);
   }
 
@@ -151,7 +220,7 @@ export async function fetchUserSubmissions(
   userId: number | string,
   page: number = 1,
   pageSize: number = 10,
-): Promise<any> {
+): Promise<UserSubmissionsResponse> {
   const offset = (page - 1) * pageSize;
   const res = await fetch(
     `/api/submissions?leaderboard_id=${leaderboardId}&offset=${offset}&limit=${pageSize}`,

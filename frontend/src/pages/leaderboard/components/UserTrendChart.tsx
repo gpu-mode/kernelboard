@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import ReactECharts from "echarts-for-react";
 import {
   Box,
@@ -86,8 +86,8 @@ export default function UserTrendChart({ leaderboardId, defaultUser, defaultGpuT
           }
           setSelectedGpuType(defaultGpu);
         }
-      } catch (err: any) {
-        setError(err.message || "Failed to load data");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
         setLoading(false);
       }
@@ -142,7 +142,7 @@ export default function UserTrendChart({ leaderboardId, defaultUser, defaultGpuT
   }, [inputValue, leaderboardId]);
 
   const handleUserSelectionChange = (
-    _event: any,
+    _event: React.SyntheticEvent,
     newValue: UserSearchResult[]
   ) => {
     setSelectedUsers(newValue);
@@ -325,7 +325,7 @@ export default function UserTrendChart({ leaderboardId, defaultUser, defaultGpuT
     );
   }
 
-  const series: any[] = [];
+  const series: Array<Record<string, unknown>> = [];
 
   Object.entries(gpuData).forEach(([userId, dataPoints]) => {
     const sortedData = [...dataPoints].sort(
@@ -375,7 +375,7 @@ export default function UserTrendChart({ leaderboardId, defaultUser, defaultGpuT
     },
     tooltip: {
       trigger: "item",
-      formatter: (params: any) => {
+      formatter: (params: { value: [number, number]; data: { gpu_type?: string; user_name?: string }; seriesName: string }) => {
         const date = new Date(params.value[0]);
         const score = formatMicroseconds(params.value[1]);
         const gpuType = params.data.gpu_type || "Unknown";

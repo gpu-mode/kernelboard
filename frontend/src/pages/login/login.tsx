@@ -48,7 +48,7 @@ export default function Login() {
       const msg =
         typeof message === "string"
           ? message
-          : ((message as any)?.message ?? "Unknown error");
+          : (message instanceof Error ? message.message : "Unknown error");
       const t = title ?? "Error";
       setErr({ open: true, message: msg, status, title: t });
     },
@@ -61,7 +61,7 @@ export default function Login() {
       const errorMsg = msg ? error + ": " + msg : error;
       showError("Failed to login", errorMsg, 401);
     }
-  }, [error, showError]);
+  }, [error, showError, params]);
 
   return (
     <>

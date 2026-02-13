@@ -4,7 +4,7 @@ import Login from "./login";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../../components/alert/AlertBar", () => ({
-  default: ({ notice }: { notice: any }) => (
+  default: ({ notice }: { notice: { open: boolean; title?: string; message?: string; status?: number | null } }) => (
     <div
       data-testid="alert"
       data-open={String(!!notice.open)}

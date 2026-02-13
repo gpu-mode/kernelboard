@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ReactECharts from "echarts-for-react";
 import {
   Box,
@@ -45,7 +45,10 @@ export default function AiTrendChart({ leaderboardId, rankings }: AiTrendChartPr
   const isDark = resolvedMode === "dark";
   const textColor = isDark ? "#e0e0e0" : "#333";
 
-  const gpuTypes = data?.time_series ? Object.keys(data.time_series) : [];
+  const gpuTypes = useMemo(
+    () => (data?.time_series ? Object.keys(data.time_series) : []),
+    [data?.time_series],
+  );
 
   useEffect(() => {
     if (gpuTypes.length > 0 && !selectedGpuType && data?.time_series) {
@@ -115,8 +118,8 @@ export default function AiTrendChart({ leaderboardId, rankings }: AiTrendChartPr
       try {
         const result = await fetchAiTrend(leaderboardId);
         setData(result);
-      } catch (err: any) {
-        setError(err.message || "Failed to load data");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
         setLoading(false);
       }
@@ -203,7 +206,7 @@ export default function AiTrendChart({ leaderboardId, rankings }: AiTrendChartPr
   }
 
   // Build series for ECharts
-  const series: any[] = [];
+  const series: Array<Record<string, unknown>> = [];
 
   Object.entries(selectedData).forEach(([model, dataPoints]) => {
     const color = hashStringToColor(model);
@@ -249,7 +252,7 @@ export default function AiTrendChart({ leaderboardId, rankings }: AiTrendChartPr
     },
     tooltip: {
       trigger: "item",
-      formatter: (params: any) => {
+      formatter: (params: { value: [number, number]; data: { gpu_type?: string }; seriesName: string }) => {
         const date = new Date(params.value[0]);
         const score = formatMicroseconds(params.value[1]);
         const gpuType = params.data.gpu_type || "Unknown";

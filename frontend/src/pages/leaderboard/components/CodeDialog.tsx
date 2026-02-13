@@ -18,7 +18,7 @@ export function CodeDialog({
   userName,
   problemName,
 }: {
-  code: any;
+  code: string | null | undefined;
   fileName?: string;
   isActive?: boolean;
   rank?: number;

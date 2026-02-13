@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-type Fetcher<T, Args extends any[]> = (...args: Args) => Promise<T>;
+type Fetcher<T, Args extends unknown[]> = (...args: Args) => Promise<T>;
 
 export const defaultRedirectMap: Record<number, string> = {
   401: "/401",
@@ -49,7 +49,7 @@ export const defaultRedirectMap: Record<number, string> = {
  * ```
  * @returns An object with `data`, `loading`, `error`, `errorStatus`, and `call`
  */
-export function fetcherApiCallback<T, Args extends any[]>(
+export function fetcherApiCallback<T, Args extends unknown[]>(
   fetcher: Fetcher<T, Args>,
   redirectMap: Record<number, string> = defaultRedirectMap,
 ) {
@@ -71,9 +71,10 @@ export function fetcherApiCallback<T, Args extends any[]>(
         const result = await fetcher(...params);
         setData(result);
         return result;
-      } catch (e: any) {
-        const status = e.status ? e.status : 0;
-        const msg = e.message ? e.message : "";
+      } catch (e: unknown) {
+        const err = e as { status?: number; message?: string };
+        const status = err.status ? err.status : 0;
+        const msg = err.message ? err.message : "";
 
         // set and logging the error if any
         setError(status);
@@ -84,7 +85,7 @@ export function fetcherApiCallback<T, Args extends any[]>(
 
         // navigate to config page if the status is found
         // otherwise passes
-        const redirectPath = redirectMap[e.status];
+        const redirectPath = redirectMap[err.status ?? 0];
         if (redirectPath) {
           navigate(redirectPath);
         }
