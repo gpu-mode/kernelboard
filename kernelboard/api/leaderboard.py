@@ -270,7 +270,7 @@ def get_custom_trend(leaderboard_id: int):
 
     total_time = (time.perf_counter() - total_start) * 1000
     logger.info(
-        "[Perf] timeseries leaderboard_id=%s | query=%.2fms | total=%.2fms",
+        "[Perf] custom_trend leaderboard_id=%s | query=%.2fms | total=%.2fms",
         leaderboard_id, query_time, total_time,
     )
 

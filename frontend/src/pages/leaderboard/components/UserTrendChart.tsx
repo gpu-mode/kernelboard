@@ -22,6 +22,9 @@ import {
   type UserSearchResult,
 } from "../../../api/api";
 
+// Display name prefix for custom (KernelAgent) entries
+const CUSTOM_ENTRY_PREFIX = "KernelAgent";
+
 // Simple option type - custom entries are identified by id starting with "custom_" to avoid collisions
 interface TrendOption {
   id: string;
@@ -109,7 +112,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     ...(customData?.time_series?.[selectedGpuType]
       ? Object.keys(customData.time_series[selectedGpuType]).map((model) => ({
           id: `custom_${model}`,
-          label: `KernelAgent - ${model}`,
+          label: `${CUSTOM_ENTRY_PREFIX} - ${model}`,
         }))
       : []),
   ].sort((a, b) => a.label.localeCompare(b.label));
@@ -414,7 +417,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     );
   }
 
-  // When only AI models are selected, we don't need user data
+  // When only custom entries are selected, we don't need user data
   const hasUserData = data?.time_series && Object.keys(data.time_series).length > 0;
   const hasCustomSelection = selectedCustomEntries.length > 0;
 
@@ -509,7 +512,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
           new Date(b.submission_time).getTime()
       );
 
-      const displayName = `KernelAgent - ${model}`;
+      const displayName = `${CUSTOM_ENTRY_PREFIX} - ${model}`;
       const color = hashStringToColor(`custom_${model}`);
 
       series.push({
