@@ -1,3 +1,4 @@
+import type { NewsPost } from "../../api/api";
 import { ErrorAlert } from "../../components/alert/ErrorAlert";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { fetchAllNews } from "../../api/api";
@@ -14,14 +15,14 @@ export default function News() {
 
   useEffect(() => {
     call();
-  }, []);
+  }, [call]);
 
   if (loading) return <Loading />;
   if (error) return <ErrorAlert status={errorStatus} message={error} />;
 
   // If slug is provided, find and show that specific post
   if (slug) {
-    const post = data?.find((item: any) => item.id === slug);
+    const post = data?.find((item: NewsPost) => item.id === slug);
     if (!post) {
       return <ErrorAlert status={404} message="Post not found" />;
     }

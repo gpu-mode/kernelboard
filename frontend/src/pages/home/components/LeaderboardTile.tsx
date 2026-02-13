@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, Chip, Typography } from "@mui/material";
+import { Box, Card, CardContent, Chip, type Theme, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 import { getMedalIcon } from "../../../components/common/medal.tsx";
 import { getTimeLeft } from "../../../lib/date/utils.ts";
@@ -17,7 +17,7 @@ const styles = {
     "&:hover": {
       transform: "translateY(-2px)",
       boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-      borderColor: (theme: any) => theme.palette.custom.secondary,
+      borderColor: (theme: Theme) => theme.palette.custom.secondary,
     },
     padding: 1,
     "& .MuiCardContent-root:last-child": {
