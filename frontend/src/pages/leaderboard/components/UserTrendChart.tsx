@@ -39,15 +39,15 @@ import { useThemeStore } from "../../../lib/store/themeStore";
 interface RankingEntry {
   user_name: string;
   score: number;
-  file_name?: string;
-  submission_id?: number;
+  file_name?: string | null;
+  submission_id?: number | null;
 }
 
 interface UserTrendChartProps {
   leaderboardId: string;
-  defaultUsers?: Array<{ userId: string; username: string }>;
+  defaultUsers?: Array<{ userId: string; username: string }> | null;
   defaultGpuType?: string | null;
-  rankings?: Record<string, RankingEntry[]>;
+  rankings?: Record<string, RankingEntry[]> | null;
 }
 
 function hashStringToColor(str: string): string {
@@ -554,7 +554,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     },
     tooltip: {
       trigger: "item",
-      formatter: (params: { value: [number, number]; data: { gpu_type?: string; user_name?: string }; seriesName: string }) => {
+      formatter: (params: { value: [number, number]; data: { gpu_type?: string | null; user_name?: string | null}; seriesName: string }) => {
         const date = new Date(params.value[0]);
         const score = formatMicroseconds(params.value[1]);
         const gpuType = params.data.gpu_type || "Unknown";
