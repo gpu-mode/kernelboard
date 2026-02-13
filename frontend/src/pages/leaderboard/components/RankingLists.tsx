@@ -94,7 +94,7 @@ export default function RankingsList({
     if (!rankings) return [];
     const ids: number[] = [];
     Object.entries(rankings).forEach(([_key, value]) => {
-      const li = value as any[];
+      const li = value as RankingItem[];
       if (Array.isArray(li) && li.length > 0) {
         li.forEach((item) => {
           if (item?.submission_id) {

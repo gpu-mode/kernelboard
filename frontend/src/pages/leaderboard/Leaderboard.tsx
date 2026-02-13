@@ -109,12 +109,12 @@ export default function Leaderboard() {
       next.set("tab", tab);
       setSearchParams(next, { replace: true });
     }
-  }, [tab]);
+  }, [tab, searchParams, setSearchParams]);
 
   // Fetch leaderboard data
   useEffect(() => {
     if (id) call(id);
-  }, [id]);
+  }, [id, call]);
 
   // Fetch top user (strongest submission) when rankings are available
   // Select from the GPU with the most unique users

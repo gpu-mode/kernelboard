@@ -8,7 +8,7 @@ import {
   TableCell,
 } from "@mui/material";
 
-export function ReportCell({ report }: { report: any }) {
+export function ReportCell({ report }: { report: string | null | undefined }) {
   const [open, setOpen] = useState(false);
 
   return (

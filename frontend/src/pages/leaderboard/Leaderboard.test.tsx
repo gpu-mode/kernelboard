@@ -18,7 +18,7 @@ let currentAuth: AuthState = { me: null };
 vi.mock("../../lib/store/authStore", () => {
   return {
     // Simulate Zustand's selector pattern
-    useAuthStore: (selector: any) =>
+    useAuthStore: (selector: (state: { me: AuthState["me"] }) => unknown) =>
       selector({
         me: currentAuth.me,
       }),
