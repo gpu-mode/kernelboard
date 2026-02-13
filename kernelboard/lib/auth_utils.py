@@ -1,12 +1,11 @@
+import logging
 import secrets
-import os
 from typing import Any, Optional
 
 from flask import session
 from flask_login import current_user
 
 from kernelboard.lib.db import get_db_connection
-import logging
 
 logger = logging.getLogger(__name__)
 

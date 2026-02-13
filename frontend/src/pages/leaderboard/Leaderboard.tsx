@@ -269,7 +269,7 @@ export default function Leaderboard() {
                 >
                   <CardTitle fontWeight="bold">Submission</CardTitle>
                   <LeaderboardSubmit
-                    leaderboardId={id!!}
+                    leaderboardId={id!}
                     leaderboardName={data.name}
                     gpuTypes={data.gpu_types}
                     disabled={isExpired(data.deadline)}
@@ -295,9 +295,9 @@ export default function Leaderboard() {
                 )}
                 {/* History List */}
                 <SubmissionHistorySection
-                  leaderboardId={id!!}
+                  leaderboardId={id!}
                   leaderboardName={data.name}
-                  userId={userId!!}
+                  userId={userId!}
                   refreshFlag={refreshFlag}
                 />
               </CardContent>
@@ -313,13 +313,13 @@ export default function Leaderboard() {
                 <CardTitle fontWeight="bold">
                   AI Model Performance Trend
                 </CardTitle>
-                <AiTrendChart leaderboardId={id!!} rankings={data.rankings} />
+                <AiTrendChart leaderboardId={id!} rankings={data.rankings} />
               </CardContent>
             </Card>
             <Card sx={{ mt: 2 }}>
               <CardContent>
                 <CardTitle fontWeight="bold">User Performance Trend</CardTitle>
-                <UserTrendChart leaderboardId={id!!} defaultUser={defaultUser} defaultGpuType={defaultGpuType} />
+                <UserTrendChart leaderboardId={id!} defaultUser={defaultUser} defaultGpuType={defaultGpuType} />
               </CardContent>
             </Card>
           </TabPanel>

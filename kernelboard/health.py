@@ -1,12 +1,15 @@
 import os
-from flask import Blueprint, current_app as app
-from kernelboard.lib.db import get_db_connection
-from kernelboard.lib.status_code import (
-    http_success,
-    http_error,
-)
 from http import HTTPStatus
+
+from flask import Blueprint
+from flask import current_app as app
+
+from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.redis_connection import create_redis_connection
+from kernelboard.lib.status_code import (
+    http_error,
+    http_success,
+)
 
 blueprint = Blueprint("health", __name__, url_prefix="/health")
 
@@ -25,7 +28,7 @@ def health():
 
     cert_reqs = os.getenv("REDIS_SSL_CERT_REQS")
     redis_conn = create_redis_connection(cert_reqs=cert_reqs)
-    if redis_conn == None:
+    if redis_conn is None:
         app.logger.error("redis_conn is None. Is REDIS_URL set?")
         all_checks_passed = False
     else:

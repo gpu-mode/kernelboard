@@ -53,13 +53,13 @@ export function fetcherApiCallback<T, Args extends any[]>(
   fetcher: Fetcher<T, Args>,
   redirectMap: Record<number, string> = defaultRedirectMap,
 ) {
-  const navigate = useNavigate();
-  const [data, setData] = useState<T | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [errorStatus, setErrorStatus] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // eslint-disable-line react-hooks/rules-of-hooks
+  const [data, setData] = useState<T | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
+  const [error, setError] = useState<string | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
+  const [errorStatus, setErrorStatus] = useState<number | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
+  const [loading, setLoading] = useState(true); // eslint-disable-line react-hooks/rules-of-hooks
 
-  const call = useCallback(
+  const call = useCallback( // eslint-disable-line react-hooks/rules-of-hooks
     async (...params: Args) => {
       setLoading(true);
 
@@ -72,8 +72,8 @@ export function fetcherApiCallback<T, Args extends any[]>(
         setData(result);
         return result;
       } catch (e: any) {
-        let status = e.status ? e.status : 0;
-        let msg = e.message ? e.message : "";
+        const status = e.status ? e.status : 0;
+        const msg = e.message ? e.message : "";
 
         // set and logging the error if any
         setError(status);

@@ -1,22 +1,26 @@
 import http
 import os
-from re import L
+
 from dotenv import load_dotenv
-from flask import Flask, jsonify, redirect, session, g
-from flask_login import LoginManager, current_user
+from flask import Flask, make_response, redirect, send_from_directory
+from flask_login import LoginManager
 from flask_session import Session
 from flask_talisman import Talisman
-from kernelboard.api.auth import User, providers
-from kernelboard.lib import db, env, time, score
-from kernelboard import color, error, health, index, leaderboard, news
+
+from kernelboard import color, health
+from kernelboard import error as error
+from kernelboard import index as index
+from kernelboard import leaderboard as leaderboard
+from kernelboard import news as news
 from kernelboard.api import create_api_blueprint
-from kernelboard.lib.redis_connection import create_redis_connection
-from flask import send_from_directory, make_response
+from kernelboard.api.auth import User, providers
+from kernelboard.lib import db, env, score, time
 from kernelboard.lib.logging import configure_logging
-from kernelboard.og_tags import is_social_crawler, get_og_tags_for_path, inject_og_tags
-from flask_limiter import Limiter
 from kernelboard.lib.rate_limiter import limiter
+from kernelboard.lib.redis_connection import create_redis_connection
 from kernelboard.lib.status_code import http_error
+from kernelboard.og_tags import get_og_tags_for_path, inject_og_tags, is_social_crawler
+
 
 def create_app(test_config=None):
     # Check if we're in development mode:
@@ -123,7 +127,7 @@ def create_app(test_config=None):
         return redirect(f"/{path}", code=301)
 
     @app.errorhandler(401)
-    def unauthorized(_error):
+    def handle_401(_error):
         return redirect("/401")
 
     @app.errorhandler(404)
