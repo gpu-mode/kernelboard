@@ -54,7 +54,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       remarkPlugins={[remarkGfm, remarkMath]}
       rehypePlugins={[rehypeRaw, rehypeKatex]}
       components={{
-        a: ({ node, ...props }) => (
+        a: ({ node: _node, ...props }) => (
           <a
             style={{
               color: theme.palette.primary.main,
@@ -63,10 +63,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             {...props}
           />
         ),
-        figure: ({ node, ...props }) => (
+        figure: ({ node: _node, ...props }) => (
           <figure style={{ textAlign: align, margin: "1.5rem 0" }} {...props} />
         ),
-        figcaption: ({ node, ...props }) => (
+        figcaption: ({ node: _node, ...props }) => (
           <figcaption
             style={{
               fontStyle: "italic",
@@ -76,7 +76,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             {...props}
           />
         ),
-        img: ({ node, ...props }) => {
+        img: ({ node: _node, ...props }) => {
           return (
             <div style={{ textAlign: align, margin: "0" }}>
               <img style={styleProps} {...props} alt={props.alt} />

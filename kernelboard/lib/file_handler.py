@@ -1,8 +1,15 @@
 import ast
-import re
 import mimetypes
+import re
+
 from werkzeug.utils import secure_filename
-from kernelboard.lib.error import InvalidMimeError, InvalidSyntaxError,InvalidPythonExtensionError,MissingRequiredFieldError
+
+from kernelboard.lib.error import (
+    InvalidMimeError,
+    InvalidPythonExtensionError,
+    InvalidSyntaxError,
+    MissingRequiredFieldError,
+)
 
 ALLOWED_EXTS = {".py"}
 ALLOWED_PYTHON_MIMES = {"text/x-python", "text/x-script.python", "text/plain"}
@@ -11,7 +18,10 @@ _TEXT_CTRL_RE = re.compile(rb"[\x00-\x08\x0B\x0C\x0E-\x1F]")
 
 def get_submission_file_info(request):
     if "file" not in request.files:
-        raise MissingRequiredFieldError("missing required submission python file in requests.files, if this is unexpected, please contact the gpumode administrator")
+        raise MissingRequiredFieldError(
+            "missing required submission python file in requests.files,"
+            " if this is unexpected, please contact the gpumode administrator"
+        )
 
     f = request.files["file"]
     filename = secure_filename(f.filename or "")

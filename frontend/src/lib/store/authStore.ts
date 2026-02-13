@@ -27,14 +27,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     );
     try {
       const res = await getMe();
-      set((s) => ({
+      set((_s) => ({
         me: res,
         loading: false,
         inFlight: false,
         error: null,
       }));
     } catch (e: any) {
-      set((s) => ({
+      set((_s) => ({
         error: e?.message ?? "Failed to fetch user",
         loading: false,
         inFlight: false,

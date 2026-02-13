@@ -1,5 +1,7 @@
-from flask import Blueprint, render_template
 from datetime import datetime, timezone
+
+from flask import Blueprint, render_template
+
 from kernelboard.lib.db import get_db_connection
 
 blueprint = Blueprint("index", __name__, url_prefix="/")
@@ -127,9 +129,9 @@ def index():
         cur.execute(query)
         leaderboards = [row[0] for row in cur.fetchall()]
 
-    for l in leaderboards:
-        if l["gpu_types"] is None:
-            l["gpu_types"] = []
+    for lb in leaderboards:
+        if lb["gpu_types"] is None:
+            lb["gpu_types"] = []
 
     return render_template(
         "index.html", leaderboards=leaderboards, now=datetime.now(timezone.utc)

@@ -1,8 +1,9 @@
+import logging
 import os
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
+
 from flask_limiter import Limiter
 from flask_login import current_user
-from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
-import logging
 
 logger = logging.getLogger(__name__)
 

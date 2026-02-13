@@ -90,7 +90,7 @@ const styles = {
 
 export default function SubmissionHistorySection({
   leaderboardId,
-  leaderboardName,
+  leaderboardName: _leaderboardName,
   userId,
   pageSize = 10,
   refreshFlag,
@@ -128,10 +128,10 @@ export default function SubmissionHistorySection({
     setLastRefresh(new Date());
   }, [leaderboardId, userId, page, pageSize, call]);
 
-  let totalPages =
+  const totalPages =
     data?.limit && data?.total ? Math.ceil(data?.total / data?.limit) : 1;
-  let items: Submission[] = data?.items ?? [];
-  let total: number = data?.total ?? 0;
+  const items: Submission[] = data?.items ?? [];
+  const total: number = data?.total ?? 0;
 
   const tooOld = lastRefresh && now - lastRefresh.getTime() > 10 * 60 * 1000;
 

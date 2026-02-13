@@ -1,4 +1,4 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
 
@@ -71,7 +71,7 @@ def test_callback_token_request_fails(client):
 
     with patch(
         "kernelboard.api.auth.requests.post", return_value=mock_response
-    ) as post:
+    ):
         response = client.get("/api/auth/discord/callback?state=123&code=456")
         assert_redirect_with_error(response, "token_error")
 
@@ -118,7 +118,7 @@ def test_callback_userinfo_response_fails(client):
 
         with patch(
             "kernelboard.api.auth.requests.get", return_value=userinfo_response
-        ) as get:
+        ):
             response = client.get(
                 "/api/auth/discord/callback?state=123&code=456"
             )

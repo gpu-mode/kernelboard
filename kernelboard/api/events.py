@@ -1,11 +1,12 @@
-from http import HTTPStatus
+import logging
 import os
 import time
+from http import HTTPStatus
+
 import requests
 from flask import Blueprint
-from kernelboard.lib.status_code import http_error, http_success
-import logging
 
+from kernelboard.lib.status_code import http_error, http_success
 
 logger = logging.getLogger(__name__)
 

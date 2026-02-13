@@ -5,6 +5,7 @@ so we need to inject the right meta tags server-side.
 """
 
 import re
+
 from flask import request
 
 # Common social media crawler User-Agent patterns
