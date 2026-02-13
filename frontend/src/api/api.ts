@@ -190,7 +190,7 @@ export async function fetchEvents(): Promise<DiscordEvent[]> {
   return r.data;
 }
 
-export interface AiTrendDataPoint {
+export interface CustomTrendDataPoint {
   score: string;
   submission_id: number;
   submission_time: string;
@@ -200,23 +200,23 @@ export interface AiTrendDataPoint {
   model?: string;
 }
 
-export interface AiTrendTimeSeries {
+export interface CustomTrendTimeSeries {
   [gpuType: string]: {
-    [model: string]: AiTrendDataPoint[];
+    [model: string]: CustomTrendDataPoint[];
   };
 }
 
-export interface AiTrendResponse {
+export interface CustomTrendResponse {
   leaderboard_id: number;
-  time_series: AiTrendTimeSeries;
+  time_series: CustomTrendTimeSeries;
 }
 
-export async function fetchAiTrend(leaderboardId: string): Promise<AiTrendResponse> {
-  const res = await fetch(`/api/leaderboard/${leaderboardId}/ai_trend`);
+export async function fetchCustomTrend(leaderboardId: string): Promise<CustomTrendResponse> {
+  const res = await fetch(`/api/leaderboard/${leaderboardId}/custom_trend`);
   if (!res.ok) {
     const json = await res.json();
     const message = json?.message || "Unknown error";
-    throw new APIError(`Failed to fetch AI trend: ${message}`, res.status);
+    throw new APIError(`Failed to fetch custom trend: ${message}`, res.status);
   }
   const r = await res.json();
   return r.data;
@@ -225,7 +225,7 @@ export async function fetchAiTrend(leaderboardId: string): Promise<AiTrendRespon
 export interface UserTrendResponse {
   leaderboard_id: number;
   user_ids: string[];
-  time_series: AiTrendTimeSeries;
+  time_series: CustomTrendTimeSeries;
 }
 
 export async function fetchUserTrend(

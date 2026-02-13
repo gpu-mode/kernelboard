@@ -197,12 +197,12 @@ def is_result_invalid(result):
 HARDCODED_USER_ID = "205851652572315658"
 
 
-@leaderboard_bp.route("/<int:leaderboard_id>/ai_trend", methods=["GET"])
-def get_ai_trend(leaderboard_id: int):
+@leaderboard_bp.route("/<int:leaderboard_id>/custom_trend", methods=["GET"])
+def get_custom_trend(leaderboard_id: int):
     """
-    GET /leaderboard/<leaderboard_id>/ai_trend
+    GET /leaderboard/<leaderboard_id>/custom_trend
 
-    Returns time series data for ai_trend matching file name patterns like:
+    Returns time series data for custom submissions matching file name patterns like:
     - H100_claude-opus-4.5_ka_submission
     - H100_gpt-5-2_ka_submission
     - H100_gpt-5_ka_submission
@@ -466,7 +466,7 @@ def group_multi_user_submissions(
 ) -> dict:
     """
     Group submissions from multiple users by gpu_type with username as series.
-    Same format as ai_trend: { "H100": { "user1": [...], "user2": [...] } }
+    Same format as custom_trend: { "H100": { "user1": [...], "user2": [...] } }
     """
     series = {}
     for user_id, items in items_by_user.items():

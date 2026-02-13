@@ -15,14 +15,14 @@ import {
 } from "@mui/material";
 import {
   fetchUserTrend,
-  fetchAiTrend,
+  fetchCustomTrend,
   searchUsers,
   type UserTrendResponse,
-  type AiTrendResponse,
+  type CustomTrendResponse,
   type UserSearchResult,
 } from "../../../api/api";
 
-// Simple option type - AI models are identified by id starting with "ai_" to avoid collisions
+// Simple option type - custom entries are identified by id starting with "custom_" to avoid collisions
 interface TrendOption {
   id: string;
   label: string;
@@ -63,7 +63,7 @@ function hashStringToColor(str: string): string {
 
 export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpuType, rankings }: UserTrendChartProps) {
   const [data, setData] = useState<UserTrendResponse | null>(null);
-  const [aiData, setAiData] = useState<AiTrendResponse | null>(null);
+  const [customData, setCustomData] = useState<CustomTrendResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedGpuType, setSelectedGpuType] = useState<string>(defaultGpuType || "");
@@ -85,31 +85,31 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   const [searchLoading, setSearchLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
 
-  // Fetch AI trend data on mount
+  // Fetch custom trend data on mount
   useEffect(() => {
-    const loadAiData = async () => {
+    const loadCustomData = async () => {
       try {
-        const result = await fetchAiTrend(leaderboardId);
-        setAiData(result);
+        const result = await fetchCustomTrend(leaderboardId);
+        setCustomData(result);
       } catch (err) {
-        console.error("Failed to load AI trend data:", err);
+        console.error("Failed to load custom trend data:", err);
       }
     };
-    loadAiData();
+    loadCustomData();
   }, [leaderboardId]);
 
-  // Build combined options: users + AI models
-  // AI models are identified by id starting with "ai_"
+  // Build combined options: users + custom entries
+  // Custom entries are identified by id starting with "custom_"
   // Sort all options alphabetically by label
   const combinedOptions: TrendOption[] = [
     ...userOptions.map((u) => ({
       id: u.user_id,
       label: u.username,
     })),
-    ...(aiData?.time_series?.[selectedGpuType]
-      ? Object.keys(aiData.time_series[selectedGpuType]).map((model) => ({
-          id: `ai_${model}`,
-          label: `KernelAgent: ${model}`,
+    ...(customData?.time_series?.[selectedGpuType]
+      ? Object.keys(customData.time_series[selectedGpuType]).map((model) => ({
+          id: `custom_${model}`,
+          label: `KernelAgent - ${model}`,
         }))
       : []),
   ].sort((a, b) => a.label.localeCompare(b.label));
@@ -167,13 +167,30 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     loadInitialUsers();
   }, [leaderboardId]);
 
-  // Load data for default users on mount
+  // Load data for default users when they arrive (only when defaultUsers changes)
   useEffect(() => {
     if (defaultUsers && defaultUsers.length > 0) {
+      // Update selected options when defaults arrive
+      setSelectedOptions(defaultUsers.map((user) => ({
+        id: user.userId,
+        label: user.username,
+      })));
+      // Fetch data for the default users
       const userIds = defaultUsers.map((u) => u.userId);
-      loadData(userIds);
+      fetchUserTrend(leaderboardId, userIds).then((result) => {
+        setData(result);
+      }).catch((err) => {
+        console.error("Failed to load default users data:", err);
+      });
     }
-  }, [defaultUsers, loadData]);
+  }, [defaultUsers, leaderboardId]);
+
+  // Update GPU type when defaultGpuType changes
+  useEffect(() => {
+    if (defaultGpuType) {
+      setSelectedGpuType(defaultGpuType);
+    }
+  }, [defaultGpuType]);
 
   // Search users when input changes
   useEffect(() => {
@@ -192,8 +209,8 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     return () => clearTimeout(searchTimeout);
   }, [inputValue, leaderboardId]);
 
-  // Helper to check if option is an AI model (id starts with "ai_")
-  const isAiModel = (opt: TrendOption) => opt.id.startsWith("ai_");
+  // Helper to check if option is a custom entry (id starts with "custom_")
+  const isCustomEntry = (opt: TrendOption) => opt.id.startsWith("custom_");
 
   const handleOptionSelectionChange = (
     _event: any,
@@ -201,7 +218,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   ) => {
     setSelectedOptions(newValue);
     const userIds = newValue
-      .filter((opt) => !isAiModel(opt))
+      .filter((opt) => !isCustomEntry(opt))
       .map((opt) => opt.id);
     loadData(userIds);
   };
@@ -246,14 +263,14 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     }
   };
 
-  // Get selected users and AI models separately
-  const selectedUsers = selectedOptions.filter((opt) => !isAiModel(opt));
-  const selectedAiModels = selectedOptions.filter((opt) => isAiModel(opt));
+  // Get selected users and custom entries separately
+  const selectedUsers = selectedOptions.filter((opt) => !isCustomEntry(opt));
+  const selectedCustomEntries = selectedOptions.filter((opt) => isCustomEntry(opt));
 
-  // GPU types from user data or AI data
+  // GPU types from user data or custom data
   const gpuTypesFromUsers = data?.time_series ? Object.keys(data.time_series) : [];
-  const gpuTypesFromAi = aiData?.time_series ? Object.keys(aiData.time_series) : [];
-  const gpuTypes = [...new Set([...gpuTypesFromUsers, ...gpuTypesFromAi])];
+  const gpuTypesFromCustom = customData?.time_series ? Object.keys(customData.time_series) : [];
+  const gpuTypes = [...new Set([...gpuTypesFromUsers, ...gpuTypesFromCustom])];
 
   const renderSearchInput = () => (
     <Box sx={{ mb: 2, display: "flex", gap: 2, alignItems: "flex-start" }}>
@@ -272,8 +289,8 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
         renderInput={(params) => (
           <TextField
             {...params}
-            label="Search users"
-            placeholder="Type to search..."
+            label="Contestant Search"
+            placeholder="Type to search for contestants"
             size="small"
             slotProps={{
               input: {
@@ -311,7 +328,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
             </li>
           );
         }}
-        noOptionsText="No users or AI models found"
+        noOptionsText="No contestants found"
         slotProps={{
           listbox: { style: { maxHeight: 300 } },
         }}
@@ -341,13 +358,13 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
           disabled={resetting}
           sx={{ height: 40 }}
         >
-          {resetting ? "Resetting..." : "Load Top 5"}
+          {resetting ? "Loading..." : " Load Top 5 "}
         </Button>
       )}
     </Box>
   );
 
-  if (selectedUsers.length === 0 && selectedAiModels.length === 0) {
+  if (selectedUsers.length === 0 && selectedCustomEntries.length === 0) {
     return (
       <Box>
         {renderSearchInput()}
@@ -399,9 +416,9 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
 
   // When only AI models are selected, we don't need user data
   const hasUserData = data?.time_series && Object.keys(data.time_series).length > 0;
-  const hasAiSelection = selectedAiModels.length > 0;
+  const hasCustomSelection = selectedCustomEntries.length > 0;
 
-  if (!hasUserData && !hasAiSelection) {
+  if (!hasUserData && !hasCustomSelection) {
     return (
       <Box>
         {renderSearchInput()}
@@ -423,7 +440,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   const effectiveGpuType = selectedGpuType || gpuTypes[0] || "";
   const gpuData = data?.time_series?.[effectiveGpuType] || {};
 
-  if (Object.keys(gpuData).length === 0 && !hasAiSelection) {
+  if (Object.keys(gpuData).length === 0 && !hasCustomSelection) {
     return (
       <Box>
         {renderSearchInput()}
@@ -477,28 +494,28 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     });
   });
 
-  // Add AI model series if selected
-  if (selectedAiModels.length > 0 && aiData?.time_series?.[effectiveGpuType]) {
-    const aiGpuData = aiData.time_series[effectiveGpuType];
+  // Add custom entry series if selected
+  if (selectedCustomEntries.length > 0 && customData?.time_series?.[effectiveGpuType]) {
+    const customGpuData = customData.time_series[effectiveGpuType];
 
-    selectedAiModels.forEach((opt) => {
-      const model = opt.id.replace("ai_", "");
-      const aiDataPoints = aiGpuData[model];
-      if (!aiDataPoints || aiDataPoints.length === 0) return;
+    selectedCustomEntries.forEach((opt) => {
+      const model = opt.id.replace("custom_", "");
+      const customDataPoints = customGpuData[model];
+      if (!customDataPoints || customDataPoints.length === 0) return;
 
-      const sortedAiData = [...aiDataPoints].sort(
+      const sortedCustomData = [...customDataPoints].sort(
         (a, b) =>
           new Date(a.submission_time).getTime() -
           new Date(b.submission_time).getTime()
       );
 
-      const displayName = `KernelAgent: ${model}`;
-      const color = hashStringToColor(`ai_${model}`);
+      const displayName = `KernelAgent - ${model}`;
+      const color = hashStringToColor(`custom_${model}`);
 
       series.push({
         name: displayName,
         type: "line",
-        data: sortedAiData.map((point) => ({
+        data: sortedCustomData.map((point) => ({
           value: [
             new Date(point.submission_time).getTime(),
             parseFloat(point.score),
