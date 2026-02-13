@@ -575,7 +575,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       },
     },
     grid: {
-      left: "3%",
+      left: "5%",
       right: "4%",
       bottom: "15%",
       top: "15%",
@@ -606,7 +606,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       type: "value",
       name: "Score (lower is better)",
       nameLocation: "middle",
-      nameGap: 70,
+      nameGap: 90,
       nameTextStyle: {
         color: textColor,
       },
