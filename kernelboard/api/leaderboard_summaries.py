@@ -1,9 +1,11 @@
-from flask import Blueprint, request
+import logging
+import time
 from datetime import datetime, timezone
+
+from flask import Blueprint, request
+
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.status_code import http_success
-import time
-import logging
 
 logger = logging.getLogger(__name__)
 

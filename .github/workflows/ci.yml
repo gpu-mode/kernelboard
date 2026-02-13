@@ -34,6 +34,12 @@ jobs:
       - name: Install frontend dependencies
         run: cd frontend && npm ci
 
+      - name: Lint Python
+        run: ruff check kernelboard/ tests/
+
+      - name: Lint frontend
+        run: cd frontend && npm run lint
+
       - name: Run Python tests
         run: pytest --tb=short
         continue-on-error: true

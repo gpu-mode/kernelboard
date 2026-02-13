@@ -1,6 +1,8 @@
-import psycopg2
-from flask import g, Flask, current_app
 import logging
+
+import psycopg2
+from flask import Flask, current_app, g
+
 logger = logging.getLogger(__name__)
 def get_db_connection() -> psycopg2.extensions.connection:
     """

@@ -1,8 +1,6 @@
 import {
   Tooltip,
   Typography,
-  type SxProps,
-  type Theme,
   type TypographyVariant,
 } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
