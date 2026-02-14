@@ -291,6 +291,37 @@ export async function fetchCustomTrend(leaderboardId: string): Promise<CustomTre
   return r.data;
 }
 
+export interface FastestTrendDataPoint {
+  score: number;
+  submission_id: number;
+  submission_time: string;
+  gpu_type: string;
+  user_id: string | null;
+  user_name: string;
+}
+
+export interface FastestTrendTimeSeries {
+  [gpuType: string]: {
+    fastest: FastestTrendDataPoint[];
+  };
+}
+
+export interface FastestTrendResponse {
+  leaderboard_id: number;
+  time_series: FastestTrendTimeSeries;
+}
+
+export async function fetchFastestTrend(leaderboardId: string): Promise<FastestTrendResponse> {
+  const res = await fetch(`/api/leaderboard/${leaderboardId}/fastest_trend`);
+  if (!res.ok) {
+    const json = await res.json();
+    const message = json?.message || "Unknown error";
+    throw new APIError(`Failed to fetch fastest trend: ${message}`, res.status);
+  }
+  const r = await res.json();
+  return r.data;
+}
+
 export interface UserTrendResponse {
   leaderboard_id: number;
   user_ids: string[];
