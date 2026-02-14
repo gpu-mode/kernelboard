@@ -40,6 +40,11 @@ const styles: Record<string, SxProps<Theme>> = {
   rankingRow: {
     borderBottom: 1,
     borderColor: "divider",
+    "& > .MuiGrid-root": {
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    },
   },
   header: {
     display: "flex",
@@ -189,7 +194,18 @@ export default function RankingsList({
                     </Typography>
                   </Grid>
                   <Grid size={isAdmin ? 2 : 3}>
-                    <Typography>
+                    <Typography
+                      sx={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        "& .MuiButton-root": {
+                          maxWidth: "100%",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        },
+                      }}
+                    >
                       <CodeDialog
                         code={codes.get(item?.submission_id)}
                         fileName={item.file_name}
