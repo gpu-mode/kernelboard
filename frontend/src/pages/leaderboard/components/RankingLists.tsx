@@ -24,6 +24,7 @@ interface RankingItem {
   score: number;
   user_name: string;
   submission_id: number;
+  submission_count: number;
 }
 
 interface RankingsListProps {
@@ -181,13 +182,13 @@ export default function RankingsList({
                       {formatMicroseconds(item.score)}
                     </Typography>
                   </Grid>
-                  <Grid size={isAdmin ? 2 : 3}>
+                  <Grid size={isAdmin ? 1 : 3}>
                     <Typography sx={styles.delta}>
                       {item.prev_score > 0 &&
                         `+${formatMicroseconds(item.prev_score)}`}
                     </Typography>
                   </Grid>
-                  <Grid size={3}>
+                  <Grid size={isAdmin ? 2 : 3}>
                     <Typography>
                       <CodeDialog
                         code={codes.get(item?.submission_id)}
@@ -199,6 +200,13 @@ export default function RankingsList({
                       />
                     </Typography>
                   </Grid>
+                  {isAdmin && (
+                    <Grid size={2}>
+                      <Typography sx={styles.submissionId}>
+                        Subs: {item.submission_count}
+                      </Typography>
+                    </Grid>
+                  )}
                   {isAdmin && (
                     <Grid size={2}>
                       <Typography sx={styles.submissionId}>
