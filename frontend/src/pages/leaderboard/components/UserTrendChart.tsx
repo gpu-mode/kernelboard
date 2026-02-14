@@ -21,14 +21,19 @@ import {
 import {
   fetchUserTrend,
   fetchCustomTrend,
+  fetchFastestTrend,
   searchUsers,
   type UserTrendResponse,
   type CustomTrendResponse,
+  type FastestTrendResponse,
   type UserSearchResult,
 } from "../../../api/api";
 
 // Display name prefix for custom (KernelAgent) entries
 const CUSTOM_ENTRY_PREFIX = "KernelAgent";
+
+// Display label for the fastest trend option
+const FASTEST_TREND_LABEL = "⚡ Fastest (All Users)";
 
 // Simple option type - custom entries are identified by id starting with "custom_" to avoid collisions
 interface TrendOption {
@@ -89,11 +94,12 @@ function toDailyBestSeries<T extends { value: [number, number]; gpu_type?: strin
   const startMidnight = new Date(Date.UTC(firstDate.getUTCFullYear(), firstDate.getUTCMonth(), firstDate.getUTCDate()));
   const userEndMidnight = new Date(Date.UTC(userLastDate.getUTCFullYear(), userLastDate.getUTCMonth(), userLastDate.getUTCDate()));
 
-  // Build a map of timestamp -> score for quick lookup
-  const submissionsByTime = sorted.map(p => ({ time: p.value[0], score: p.value[1] }));
+  // Build a map of timestamp -> data point for quick lookup
+  const submissionsByTime = sorted.map(p => ({ time: p.value[0], score: p.value[1], point: p }));
 
   const result: T[] = [];
   let runningMin = Infinity;
+  let currentBestPoint: T = sorted[0]; // Track the point that holds the current record
   let submissionIndex = 0;
 
   // Iterate through each day up to user's last submission
@@ -103,15 +109,18 @@ function toDailyBestSeries<T extends { value: [number, number]; gpu_type?: strin
 
     // Process all submissions up to this day's end
     while (submissionIndex < submissionsByTime.length && submissionsByTime[submissionIndex].time < dayEnd) {
-      runningMin = Math.min(runningMin, submissionsByTime[submissionIndex].score);
+      if (submissionsByTime[submissionIndex].score < runningMin) {
+        runningMin = submissionsByTime[submissionIndex].score;
+        currentBestPoint = submissionsByTime[submissionIndex].point; // Update the record holder
+      }
       submissionIndex++;
     }
 
     // Only add a point if we have at least one submission by this day
     if (runningMin !== Infinity) {
-      // Use the template from the first point for metadata
+      // Use the current best point as template to preserve metadata (like user_name)
       result.push({
-        ...sorted[0],
+        ...currentBestPoint,
         value: [currentDate.getTime(), runningMin] as [number, number],
       });
     }
@@ -125,7 +134,7 @@ function toDailyBestSeries<T extends { value: [number, number]; gpu_type?: strin
     const globalEndMidnight = new Date(Date.UTC(globalEndDate.getUTCFullYear(), globalEndDate.getUTCMonth(), globalEndDate.getUTCDate()));
     if (globalEndMidnight.getTime() > userEndMidnight.getTime()) {
       result.push({
-        ...sorted[0],
+        ...currentBestPoint,
         value: [globalEndMidnight.getTime(), runningMin] as [number, number],
       });
     }
@@ -137,6 +146,8 @@ function toDailyBestSeries<T extends { value: [number, number]; gpu_type?: strin
 export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpuType, rankings }: UserTrendChartProps) {
   const [data, setData] = useState<UserTrendResponse | null>(null);
   const [customData, setCustomData] = useState<CustomTrendResponse | null>(null);
+  const [fastestTrendData, setFastestTrendData] = useState<FastestTrendResponse | null>(null);
+  const [showFastestTrend, setShowFastestTrend] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedGpuType, setSelectedGpuType] = useState<string>(defaultGpuType || "");
@@ -222,6 +233,21 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     };
     loadCustomData();
   }, [leaderboardId]);
+
+  // Fetch fastest trend data when checkbox is toggled on
+  useEffect(() => {
+    if (showFastestTrend && !fastestTrendData) {
+      const loadFastestTrend = async () => {
+        try {
+          const result = await fetchFastestTrend(leaderboardId);
+          setFastestTrendData(result);
+        } catch (err) {
+          console.error("Failed to load fastest trend data:", err);
+        }
+      };
+      loadFastestTrend();
+    }
+  }, [showFastestTrend, fastestTrendData, leaderboardId]);
 
   // Build combined options: users + custom entries
   // Custom entries are identified by id starting with "custom_"
@@ -525,17 +551,30 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
           {resetting ? "Loading..." : " Load Top 5 "}
         </Button>
       )}
-      <FormControlLabel
-        control={
-          <Switch
-            checked={clipOffscreen}
-            onChange={(e) => setClipOffscreen(e.target.checked)}
-            size="small"
-          />
-        }
-        label="Clip offscreen"
-        sx={{ ml: 1 }}
-      />
+      <Box sx={{ display: "flex", flexDirection: "column", ml: 1 }}>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={clipOffscreen}
+              onChange={(e) => setClipOffscreen(e.target.checked)}
+              size="small"
+            />
+          }
+          label="Clip offscreen"
+          slotProps={{ typography: { variant: "body2" } }}
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={showFastestTrend}
+              onChange={(e) => setShowFastestTrend(e.target.checked)}
+              size="small"
+            />
+          }
+          label="⚡ Fastest (All Users)"
+          slotProps={{ typography: { variant: "body2" } }}
+        />
+      </Box>
         <RadioGroup
           value={displayMode}
           onChange={(e) => setDisplayMode(e.target.value as "all" | "best")}
@@ -557,7 +596,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     </Box>
   );
 
-  if (selectedUsers.length === 0 && selectedCustomEntries.length === 0) {
+  if (selectedUsers.length === 0 && selectedCustomEntries.length === 0 && !showFastestTrend) {
     return (
       <Box>
         {renderSearchInput()}
@@ -611,7 +650,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   const hasUserData = data?.time_series && Object.keys(data.time_series).length > 0;
   const hasCustomSelection = selectedCustomEntries.length > 0;
 
-  if (!hasUserData && !hasCustomSelection) {
+  if (!hasUserData && !hasCustomSelection && !showFastestTrend) {
     return (
       <Box>
         {renderSearchInput()}
@@ -629,11 +668,13 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     );
   }
 
-  // Use user data GPU type or fall back to first available AI GPU type
-  const effectiveGpuType = selectedGpuType || gpuTypes[0] || "";
+  // Use user data GPU type or fall back to first available AI GPU type or fastest trend GPU type
+  const fastestTrendGpuTypes = fastestTrendData?.time_series ? Object.keys(fastestTrendData.time_series) : [];
+  const allGpuTypes = [...new Set([...gpuTypes, ...fastestTrendGpuTypes])];
+  const effectiveGpuType = selectedGpuType || allGpuTypes[0] || "";
   const gpuData = data?.time_series?.[effectiveGpuType] || {};
 
-  if (Object.keys(gpuData).length === 0 && !hasCustomSelection) {
+  if (Object.keys(gpuData).length === 0 && !hasCustomSelection && !showFastestTrend) {
     return (
       <Box>
         {renderSearchInput()}
@@ -779,6 +820,56 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
         },
       });
     });
+  }
+
+  // Add fastest trend series if enabled
+  if (showFastestTrend && fastestTrendData?.time_series?.[effectiveGpuType]) {
+    const fastestGpuData = fastestTrendData.time_series[effectiveGpuType];
+    const fastestDataPoints = fastestGpuData.fastest;
+
+    if (fastestDataPoints && fastestDataPoints.length > 0) {
+      const sortedFastestData = [...fastestDataPoints].sort(
+        (a, b) =>
+          new Date(a.submission_time).getTime() -
+          new Date(b.submission_time).getTime()
+      );
+
+      const displayName = FASTEST_TREND_LABEL;
+      const color = "#FFD700"; // Gold color for the fastest trend
+
+      let chartData = sortedFastestData.map((point) => ({
+        value: [
+          new Date(point.submission_time).getTime(),
+          point.score,
+        ] as [number, number],
+        gpu_type: point.gpu_type,
+        user_name: point.user_name,
+        record_holder: point.user_name,
+      }));
+
+      // Apply daily best series if display mode is "best"
+      if (displayMode === "best") {
+        chartData = toDailyBestSeries(chartData, globalEndDate);
+      }
+
+      series.push({
+        name: displayName,
+        type: "line",
+        data: chartData,
+        smooth: true,
+        symbol: "diamond",
+        symbolSize: 10,
+        lineStyle: {
+          width: 3,
+          color,
+          type: "solid",
+        },
+        itemStyle: {
+          color,
+        },
+        z: 10, // Ensure it's drawn on top
+      });
+    }
   }
 
   const chartTitle = `Performance Trend (${selectedGpuType})`;
