@@ -576,8 +576,8 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     },
     grid: {
       left: "5%",
-      right: "4%",
-      bottom: "15%",
+      right: 60,
+      bottom: 100,
       top: "15%",
       containLabel: true,
     },
@@ -625,6 +625,50 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
         },
       },
     },
+    dataZoom: [
+      {
+        type: "inside",
+        xAxisIndex: 0,
+        filterMode: "none",
+      },
+      {
+        type: "inside",
+        yAxisIndex: 0,
+        filterMode: "filter",
+      },
+      {
+        type: "slider",
+        xAxisIndex: 0,
+        filterMode: "none",
+        bottom: 40,
+        height: 20,
+        borderColor: isDark ? "#555" : "#ccc",
+        backgroundColor: isDark ? "#333" : "#f5f5f5",
+        fillerColor: isDark ? "rgba(100,100,100,0.3)" : "rgba(200,200,200,0.3)",
+        handleStyle: {
+          color: isDark ? "#888" : "#aaa",
+        },
+        textStyle: {
+          color: textColor,
+        },
+      },
+      {
+        type: "slider",
+        yAxisIndex: 0,
+        filterMode: "filter",
+        right: 10,
+        width: 20,
+        borderColor: isDark ? "#555" : "#ccc",
+        backgroundColor: isDark ? "#333" : "#f5f5f5",
+        fillerColor: isDark ? "rgba(100,100,100,0.3)" : "rgba(200,200,200,0.3)",
+        handleStyle: {
+          color: isDark ? "#888" : "#aaa",
+        },
+        textStyle: {
+          color: textColor,
+        },
+      },
+    ],
     series,
   };
 
