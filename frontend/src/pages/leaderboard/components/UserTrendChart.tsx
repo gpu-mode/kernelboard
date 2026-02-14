@@ -14,6 +14,7 @@ import {
   Button,
   FormControlLabel,
   Switch,
+  Stack,
 } from "@mui/material";
 import {
   fetchUserTrend,
@@ -92,18 +93,37 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   const [clipOffscreen, setClipOffscreen] = useState(false);
 
   const chartRef = useRef<ReactECharts>(null);
-  const [zoomState, setZoomState] = useState<Array<{ start?: number; end?: number }>>([]);
+  const [zoomState, setZoomState] = useState<Array<{ startValue?: number; endValue?: number }>>([]);
 
-  // Capture zoom state when it changes
+  // Local state for axis input fields (not applied until button clicked)
+  const [xStartInput, setXStartInput] = useState("");
+  const [xEndInput, setXEndInput] = useState("");
+  const [yMinInput, setYMinInput] = useState("");
+  const [yMaxInput, setYMaxInput] = useState("");
+
+  // Capture zoom state when it changes (using values, not percentages)
   const onDataZoom = useCallback(() => {
     const chartInstance = chartRef.current?.getEchartsInstance();
     if (chartInstance) {
-      const opt = chartInstance.getOption() as { dataZoom?: Array<{ start?: number; end?: number }> };
+      const opt = chartInstance.getOption() as { dataZoom?: Array<{ startValue?: number; endValue?: number }> };
       if (opt.dataZoom) {
         setZoomState(opt.dataZoom.map((dz) => ({
-          start: dz.start,
-          end: dz.end,
+          startValue: dz.startValue,
+          endValue: dz.endValue,
         })));
+        // Sync input fields with current zoom
+        if (opt.dataZoom[0]?.startValue) {
+          setXStartInput(new Date(opt.dataZoom[0].startValue).toISOString().split("T")[0]);
+        }
+        if (opt.dataZoom[0]?.endValue) {
+          setXEndInput(new Date(opt.dataZoom[0].endValue).toISOString().split("T")[0]);
+        }
+        if (opt.dataZoom[1]?.startValue !== undefined) {
+          setYMinInput(formatMicrosecondsNum(opt.dataZoom[1].startValue).toString());
+        }
+        if (opt.dataZoom[1]?.endValue !== undefined) {
+          setYMaxInput(formatMicrosecondsNum(opt.dataZoom[1].endValue).toString());
+        }
       }
     }
   }, []);
@@ -111,6 +131,10 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   // Clear saved zoom state when restore is triggered
   const onRestore = useCallback(() => {
     setZoomState([]);
+    setXStartInput("");
+    setXEndInput("");
+    setYMinInput("");
+    setYMaxInput("");
   }, []);
 
   const chartEvents = {
@@ -304,6 +328,45 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   const gpuTypesFromUsers = data?.time_series ? Object.keys(data.time_series) : [];
   const gpuTypesFromCustom = customData?.time_series ? Object.keys(customData.time_series) : [];
   const gpuTypes = [...new Set([...gpuTypesFromUsers, ...gpuTypesFromCustom])];
+
+  // Apply axis range from input fields
+  const handleApplyAxisRange = () => {
+    const newZoomState: Array<{ startValue?: number; endValue?: number }> = [{}, {}, {}, {}];
+
+    // Apply X-axis values
+    if (xStartInput) {
+      const date = new Date(xStartInput);
+      if (!isNaN(date.getTime())) {
+        newZoomState[0].startValue = date.getTime();
+        newZoomState[2].startValue = date.getTime();
+      }
+    }
+    if (xEndInput) {
+      const date = new Date(xEndInput);
+      if (!isNaN(date.getTime())) {
+        newZoomState[0].endValue = date.getTime();
+        newZoomState[2].endValue = date.getTime();
+      }
+    }
+
+    // Apply Y-axis values
+    if (yMinInput) {
+      const value = parseFloat(yMinInput) / 1_000_000;
+      if (!isNaN(value)) {
+        newZoomState[1].startValue = value;
+        newZoomState[3].startValue = value;
+      }
+    }
+    if (yMaxInput) {
+      const value = parseFloat(yMaxInput) / 1_000_000;
+      if (!isNaN(value)) {
+        newZoomState[1].endValue = value;
+        newZoomState[3].endValue = value;
+      }
+    }
+
+    setZoomState(newZoomState);
+  };
 
   const renderSearchInput = () => (
     <Box sx={{ mb: 2, display: "flex", gap: 2, alignItems: "flex-start" }}>
@@ -591,13 +654,15 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       type: "inside" as const,
       xAxisIndex: 0,
       filterMode,
-      ...(zoomState[0] && { start: zoomState[0].start, end: zoomState[0].end }),
+      ...(zoomState[0]?.startValue !== undefined && { startValue: zoomState[0].startValue }),
+      ...(zoomState[0]?.endValue !== undefined && { endValue: zoomState[0].endValue }),
     },
     {
       type: "inside" as const,
       yAxisIndex: 0,
       filterMode,
-      ...(zoomState[1] && { start: zoomState[1].start, end: zoomState[1].end }),
+      ...(zoomState[1]?.startValue !== undefined && { startValue: zoomState[1].startValue }),
+      ...(zoomState[1]?.endValue !== undefined && { endValue: zoomState[1].endValue }),
     },
     {
       type: "slider" as const,
@@ -614,7 +679,8 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       textStyle: {
         color: textColor,
       },
-      ...(zoomState[2] && { start: zoomState[2].start, end: zoomState[2].end }),
+      ...(zoomState[2]?.startValue !== undefined && { startValue: zoomState[2].startValue }),
+      ...(zoomState[2]?.endValue !== undefined && { endValue: zoomState[2].endValue }),
     },
     {
       type: "slider" as const,
@@ -631,7 +697,8 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       textStyle: {
         color: textColor,
       },
-      ...(zoomState[3] && { start: zoomState[3].start, end: zoomState[3].end }),
+      ...(zoomState[3]?.startValue !== undefined && { startValue: zoomState[3].startValue }),
+      ...(zoomState[3]?.endValue !== undefined && { endValue: zoomState[3].endValue }),
     },
   ];
 
@@ -752,6 +819,56 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
         notMerge={true}
         onEvents={chartEvents}
       />
+      <Stack direction="row" spacing={2} sx={{ mt: 2, alignItems: "center", flexWrap: "wrap" }}>
+        <Typography variant="body2" color="text.secondary">
+          X-Axis (Date):
+        </Typography>
+        <TextField
+          label="Start"
+          type="date"
+          size="small"
+          value={xStartInput}
+          onChange={(e) => setXStartInput(e.target.value)}
+          slotProps={{ inputLabel: { shrink: true } }}
+          sx={{ width: 150 }}
+        />
+        <TextField
+          label="End"
+          type="date"
+          size="small"
+          value={xEndInput}
+          onChange={(e) => setXEndInput(e.target.value)}
+          slotProps={{ inputLabel: { shrink: true } }}
+          sx={{ width: 150 }}
+        />
+        <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+          Y-Axis (μs):
+        </Typography>
+        <TextField
+          label="Min"
+          type="number"
+          size="small"
+          value={yMinInput}
+          onChange={(e) => setYMinInput(e.target.value)}
+          sx={{ width: 120 }}
+        />
+        <TextField
+          label="Max"
+          type="number"
+          size="small"
+          value={yMaxInput}
+          onChange={(e) => setYMaxInput(e.target.value)}
+          sx={{ width: 120 }}
+        />
+        <Button
+          variant="contained"
+          size="small"
+          onClick={handleApplyAxisRange}
+          sx={{ height: 40 }}
+        >
+          Apply
+        </Button>
+      </Stack>
     </Box>
   );
 }
