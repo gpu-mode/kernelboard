@@ -418,6 +418,91 @@ def get_user_trend(leaderboard_id: int):
     })
 
 
+@leaderboard_bp.route("/<int:leaderboard_id>/fastest_trend", methods=["GET"])
+def get_fastest_trend(leaderboard_id: int):
+    """
+    GET /leaderboard/<leaderboard_id>/fastest_trend
+
+    Returns time series data showing the fastest submission across ALL users
+    over time for each GPU type. This creates a "world record" line showing
+    the best performance achieved at any point in time.
+    """
+    total_start = time.perf_counter()
+
+    conn = get_db_connection()
+    query_start = time.perf_counter()
+
+    with conn.cursor() as cur:
+        sql = """
+            SELECT
+                s.id AS submission_id,
+                s.user_id,
+                u.user_name,
+                s.file_name,
+                s.submission_time,
+                r.score,
+                r.runner AS gpu_type
+            FROM leaderboard.submission s
+            JOIN leaderboard.runs r ON r.submission_id = s.id
+            LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
+            WHERE s.leaderboard_id = %s
+              AND r.score IS NOT NULL
+              AND r.passed = true
+              AND NOT r.secret
+            ORDER BY s.submission_time ASC
+        """
+        cur.execute(sql, (leaderboard_id,))
+        rows = cur.fetchall()
+
+    query_time = (time.perf_counter() - query_start) * 1000
+
+    if not rows:
+        return http_success(data={
+            "leaderboard_id": leaderboard_id,
+            "time_series": {},
+        })
+
+    # Group by GPU type and compute running minimum
+    series_by_gpu = {}
+    running_min_by_gpu = {}
+
+    for row in rows:
+        (submission_id, user_id, user_name, file_name, submission_time,
+         score, gpu_type) = row
+
+        if not gpu_type or gpu_type == "unknown":
+            continue
+
+        if gpu_type not in series_by_gpu:
+            series_by_gpu[gpu_type] = {"fastest": []}
+            running_min_by_gpu[gpu_type] = float("inf")
+
+        # Only add a point if this submission beats the current record
+        if score < running_min_by_gpu[gpu_type]:
+            running_min_by_gpu[gpu_type] = score
+            series_by_gpu[gpu_type]["fastest"].append({
+                "submission_time": (
+                    submission_time.isoformat() if submission_time else None
+                ),
+                "score": score,
+                "user_id": str(user_id) if user_id else None,
+                "user_name": user_name or str(user_id) if user_id else "Unknown",
+                "gpu_type": gpu_type,
+                "submission_id": submission_id,
+            })
+
+    total_time = (time.perf_counter() - total_start) * 1000
+    logger.info(
+        "[Perf] fastest_trend leaderboard_id=%s | query=%.2fms | total=%.2fms",
+        leaderboard_id, query_time, total_time,
+    )
+
+    return http_success(data={
+        "leaderboard_id": leaderboard_id,
+        "time_series": series_by_gpu,
+    })
+
+
 @leaderboard_bp.route("/<int:leaderboard_id>/users", methods=["GET"])
 def search_users(leaderboard_id: int):
     """
