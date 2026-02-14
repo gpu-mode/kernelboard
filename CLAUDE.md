@@ -1,5 +1,9 @@
 # Kernelboard Development Notes
 
+## CRITICAL: Submission Code Confidentiality
+
+**NEVER expose, display, return, or leak submitted code (`leaderboard.code_files`) for open/active competitions to non-moderators.** This includes API responses, database queries, debug output, logs, and any other channel. Leaking competition submissions would compromise the integrity of the competition and is a catastrophic failure. Always verify that any code path touching submission data enforces proper access control and that only moderators can view other users' submitted code for open competitions.
+
 ## Hackathons Maintenance
 
 The hackathons displayed on the `/lectures` page are defined in:
