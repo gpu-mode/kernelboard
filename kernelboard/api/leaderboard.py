@@ -138,6 +138,15 @@ def _get_query():
             WHERE leaderboard_id = %(leaderboard_id)s
         ),
 
+        -- Total submission count per user per GPU type for this leaderboard.
+        submission_counts AS (
+            SELECT s.user_id, r.runner, COUNT(DISTINCT s.id) AS submission_count
+            FROM leaderboard.submission s
+            JOIN leaderboard.runs r ON r.submission_id = s.id
+            WHERE s.leaderboard_id = %(leaderboard_id)s
+            GROUP BY s.user_id, r.runner
+        ),
+
         -- All the runs on this leaderboard. For each user and GPU type, the
         -- user's runs on that GPU type are ranked by score.
         ranked_runs AS (
@@ -147,10 +156,12 @@ def _get_query():
                 s.submission_time AS submission_time,
                 s.file_name AS file_name,
                 r.submission_id AS submission_id,
+                COALESCE(sc.submission_count, 0) AS submission_count,
                 RANK() OVER (PARTITION BY r.runner, u.id ORDER BY r.score ASC) AS rank
             FROM leaderboard.runs r
                 JOIN leaderboard.submission s ON r.submission_id = s.id
                 LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
+                LEFT JOIN submission_counts sc ON s.user_id = sc.user_id AND r.runner = sc.runner
             WHERE NOT r.secret AND r.score IS NOT NULL AND r.passed AND s.leaderboard_id = %(leaderboard_id)s
         ),
 
@@ -164,7 +175,8 @@ def _get_query():
                         'user_name', r.user_name,
                         'score', r.score,
                         'file_name', r.file_name,
-                        'submission_id', r.submission_id
+                        'submission_id', r.submission_id,
+                        'submission_count', r.submission_count
                     )
                     ORDER BY r.score ASC
                 )
