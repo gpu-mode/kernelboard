@@ -15,6 +15,8 @@ import {
   FormControlLabel,
   Switch,
   Stack,
+  Radio,
+  RadioGroup,
 } from "@mui/material";
 import {
   fetchUserTrend,
@@ -67,6 +69,71 @@ function hashStringToColor(str: string): string {
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
+// Convert data points to daily best-so-far series
+// Creates a data point at midnight for each day from first submission to last submission
+// If globalEndDate is provided and later than last submission, adds a final point to extend the line flat
+function toDailyBestSeries<T extends { value: [number, number]; gpu_type?: string | null; user_name?: string | null }>(
+  dataPoints: T[],
+  globalEndDate?: Date
+): T[] {
+  if (dataPoints.length === 0) return [];
+
+  // Sort by time
+  const sorted = [...dataPoints].sort((a, b) => a.value[0] - b.value[0]);
+
+  // Get date range: first submission to last submission
+  const firstDate = new Date(sorted[0].value[0]);
+  const userLastDate = new Date(sorted[sorted.length - 1].value[0]);
+
+  // Normalize to midnight UTC
+  const startMidnight = new Date(Date.UTC(firstDate.getUTCFullYear(), firstDate.getUTCMonth(), firstDate.getUTCDate()));
+  const userEndMidnight = new Date(Date.UTC(userLastDate.getUTCFullYear(), userLastDate.getUTCMonth(), userLastDate.getUTCDate()));
+
+  // Build a map of timestamp -> score for quick lookup
+  const submissionsByTime = sorted.map(p => ({ time: p.value[0], score: p.value[1] }));
+
+  const result: T[] = [];
+  let runningMin = Infinity;
+  let submissionIndex = 0;
+
+  // Iterate through each day up to user's last submission
+  const currentDate = new Date(startMidnight);
+  while (currentDate <= userEndMidnight) {
+    const dayEnd = currentDate.getTime() + 24 * 60 * 60 * 1000; // End of this day
+
+    // Process all submissions up to this day's end
+    while (submissionIndex < submissionsByTime.length && submissionsByTime[submissionIndex].time < dayEnd) {
+      runningMin = Math.min(runningMin, submissionsByTime[submissionIndex].score);
+      submissionIndex++;
+    }
+
+    // Only add a point if we have at least one submission by this day
+    if (runningMin !== Infinity) {
+      // Use the template from the first point for metadata
+      result.push({
+        ...sorted[0],
+        value: [currentDate.getTime(), runningMin] as [number, number],
+      });
+    }
+
+    // Move to next day
+    currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+  }
+
+  // If globalEndDate is provided and later than user's last submission, add a single point to extend flat
+  if (globalEndDate && runningMin !== Infinity) {
+    const globalEndMidnight = new Date(Date.UTC(globalEndDate.getUTCFullYear(), globalEndDate.getUTCMonth(), globalEndDate.getUTCDate()));
+    if (globalEndMidnight.getTime() > userEndMidnight.getTime()) {
+      result.push({
+        ...sorted[0],
+        value: [globalEndMidnight.getTime(), runningMin] as [number, number],
+      });
+    }
+  }
+
+  return result;
+}
+
 export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpuType, rankings }: UserTrendChartProps) {
   const [data, setData] = useState<UserTrendResponse | null>(null);
   const [customData, setCustomData] = useState<CustomTrendResponse | null>(null);
@@ -91,6 +158,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   const [searchLoading, setSearchLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [clipOffscreen, setClipOffscreen] = useState(false);
+  const [displayMode, setDisplayMode] = useState<"all" | "best">("best");
 
   const chartRef = useRef<ReactECharts>(null);
   const [zoomState, setZoomState] = useState<Array<{ startValue?: number; endValue?: number }>>([]);
@@ -468,6 +536,24 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
         label="Clip offscreen"
         sx={{ ml: 1 }}
       />
+        <RadioGroup
+          value={displayMode}
+          onChange={(e) => setDisplayMode(e.target.value as "all" | "best")}
+          sx={{ ml: 1 }}
+        >
+          <FormControlLabel
+            value="all"
+            control={<Radio size="small" sx={{ p: 0.5 }} />}
+            label="Raw Submissions"
+            slotProps={{ typography: { variant: "body2" } }}
+          />
+          <FormControlLabel
+            value="best"
+            control={<Radio size="small" sx={{ p: 0.5 }} />}
+            label="Best Over Time"
+            slotProps={{ typography: { variant: "body2" } }}
+          />
+        </RadioGroup>
     </Box>
   );
 
@@ -567,6 +653,43 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
 
   const series: Array<Record<string, unknown>> = [];
 
+  // Calculate global end date (latest submission across all users) for "best" display mode
+  let globalEndDate: Date | undefined;
+  if (displayMode === "best") {
+    let maxTimestamp = 0;
+
+    // Check user data
+    Object.values(gpuData).forEach((dataPoints) => {
+      dataPoints.forEach((point) => {
+        const timestamp = new Date(point.submission_time).getTime();
+        if (timestamp > maxTimestamp) {
+          maxTimestamp = timestamp;
+        }
+      });
+    });
+
+    // Check custom data
+    if (selectedCustomEntries.length > 0 && customData?.time_series?.[effectiveGpuType]) {
+      const customGpuData = customData.time_series[effectiveGpuType];
+      selectedCustomEntries.forEach((opt) => {
+        const model = opt.id.replace("custom_", "");
+        const customDataPoints = customGpuData[model];
+        if (customDataPoints) {
+          customDataPoints.forEach((point) => {
+            const timestamp = new Date(point.submission_time).getTime();
+            if (timestamp > maxTimestamp) {
+              maxTimestamp = timestamp;
+            }
+          });
+        }
+      });
+    }
+
+    if (maxTimestamp > 0) {
+      globalEndDate = new Date(maxTimestamp);
+    }
+  }
+
   Object.entries(gpuData).forEach(([userId, dataPoints]) => {
     const sortedData = [...dataPoints].sort(
       (a, b) =>
@@ -577,17 +700,24 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     const displayName = sortedData[0]?.user_name || userId;
     const color = hashStringToColor(userId);
 
+    let chartData = sortedData.map((point) => ({
+      value: [
+        new Date(point.submission_time).getTime(),
+        parseFloat(point.score),
+      ] as [number, number],
+      gpu_type: point.gpu_type,
+      user_name: point.user_name,
+    }));
+
+    // Apply daily best series if display mode is "best"
+    if (displayMode === "best") {
+      chartData = toDailyBestSeries(chartData, globalEndDate);
+    }
+
     series.push({
       name: displayName,
       type: "line",
-      data: sortedData.map((point) => ({
-        value: [
-          new Date(point.submission_time).getTime(),
-          parseFloat(point.score),
-        ],
-        gpu_type: point.gpu_type,
-        user_name: point.user_name,
-      })),
+      data: chartData,
       smooth: true,
       symbol: "circle",
       symbolSize: 8,
@@ -619,17 +749,24 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       const displayName = `${CUSTOM_ENTRY_PREFIX} - ${model}`;
       const color = hashStringToColor(`custom_${model}`);
 
+      let chartData = sortedCustomData.map((point) => ({
+        value: [
+          new Date(point.submission_time).getTime(),
+          parseFloat(point.score),
+        ] as [number, number],
+        gpu_type: point.gpu_type,
+        user_name: displayName,
+      }));
+
+      // Apply daily best series if display mode is "best"
+      if (displayMode === "best") {
+        chartData = toDailyBestSeries(chartData, globalEndDate);
+      }
+
       series.push({
         name: displayName,
         type: "line",
-        data: sortedCustomData.map((point) => ({
-          value: [
-            new Date(point.submission_time).getTime(),
-            parseFloat(point.score),
-          ],
-          gpu_type: point.gpu_type,
-          user_name: displayName,
-        })),
+        data: chartData,
         smooth: true,
         symbol: "circle",
         symbolSize: 8,
