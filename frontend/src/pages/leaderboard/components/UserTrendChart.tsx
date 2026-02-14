@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import ReactECharts from "echarts-for-react";
 import {
   Box,
@@ -12,6 +12,8 @@ import {
   Select,
   MenuItem,
   Button,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import {
   fetchUserTrend,
@@ -87,6 +89,34 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   const [userOptions, setUserOptions] = useState<UserSearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [clipOffscreen, setClipOffscreen] = useState(false);
+
+  const chartRef = useRef<ReactECharts>(null);
+  const [zoomState, setZoomState] = useState<Array<{ start?: number; end?: number }>>([]);
+
+  // Capture zoom state when it changes
+  const onDataZoom = useCallback(() => {
+    const chartInstance = chartRef.current?.getEchartsInstance();
+    if (chartInstance) {
+      const opt = chartInstance.getOption() as { dataZoom?: Array<{ start?: number; end?: number }> };
+      if (opt.dataZoom) {
+        setZoomState(opt.dataZoom.map((dz) => ({
+          start: dz.start,
+          end: dz.end,
+        })));
+      }
+    }
+  }, []);
+
+  // Clear saved zoom state when restore is triggered
+  const onRestore = useCallback(() => {
+    setZoomState([]);
+  }, []);
+
+  const chartEvents = {
+    datazoom: onDataZoom,
+    restore: onRestore,
+  };
 
   // Fetch custom trend data on mount
   useEffect(() => {
@@ -364,6 +394,17 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
           {resetting ? "Loading..." : " Load Top 5 "}
         </Button>
       )}
+      <FormControlLabel
+        control={
+          <Switch
+            checked={clipOffscreen}
+            onChange={(e) => setClipOffscreen(e.target.checked)}
+            size="small"
+          />
+        }
+        label="Clip offscreen"
+        sx={{ ml: 1 }}
+      />
     </Box>
   );
 
@@ -542,6 +583,58 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
 
   const chartTitle = `Performance Trend (${selectedGpuType})`;
 
+  const filterMode = clipOffscreen ? "filter" as const : "none" as const;
+
+  // Build dataZoom with preserved zoom state
+  const dataZoom = [
+    {
+      type: "inside" as const,
+      xAxisIndex: 0,
+      filterMode,
+      ...(zoomState[0] && { start: zoomState[0].start, end: zoomState[0].end }),
+    },
+    {
+      type: "inside" as const,
+      yAxisIndex: 0,
+      filterMode,
+      ...(zoomState[1] && { start: zoomState[1].start, end: zoomState[1].end }),
+    },
+    {
+      type: "slider" as const,
+      xAxisIndex: 0,
+      filterMode,
+      bottom: 40,
+      height: 20,
+      borderColor: isDark ? "#555" : "#ccc",
+      backgroundColor: isDark ? "#333" : "#f5f5f5",
+      fillerColor: isDark ? "rgba(100,100,100,0.3)" : "rgba(200,200,200,0.3)",
+      handleStyle: {
+        color: isDark ? "#888" : "#aaa",
+      },
+      textStyle: {
+        color: textColor,
+      },
+      ...(zoomState[2] && { start: zoomState[2].start, end: zoomState[2].end }),
+    },
+    {
+      type: "slider" as const,
+      yAxisIndex: 0,
+      filterMode,
+      right: 10,
+      width: 20,
+      borderColor: isDark ? "#555" : "#ccc",
+      backgroundColor: isDark ? "#333" : "#f5f5f5",
+      fillerColor: isDark ? "rgba(100,100,100,0.3)" : "rgba(200,200,200,0.3)",
+      handleStyle: {
+        color: isDark ? "#888" : "#aaa",
+      },
+      textStyle: {
+        color: textColor,
+      },
+      ...(zoomState[3] && { start: zoomState[3].start, end: zoomState[3].end }),
+    },
+  ];
+
   const option = {
     title: {
       text: chartTitle,
@@ -552,9 +645,29 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
         color: textColor,
       },
     },
+    toolbox: {
+      feature: {
+        dataZoom: {
+          yAxisIndex: 0,
+          title: { zoom: "Box Zoom", back: "Reset Zoom" },
+        },
+        restore: { title: "Reset All" },
+        saveAsImage: { title: "Save as Image" },
+      },
+      right: 80,
+      top: 10,
+      iconStyle: {
+        borderColor: textColor,
+      },
+      emphasis: {
+        iconStyle: {
+          borderColor: isDark ? "#fff" : "#000",
+        },
+      },
+    },
     tooltip: {
       trigger: "item",
-      formatter: (params: { value: [number, number]; data: { gpu_type?: string | null; user_name?: string | null}; seriesName: string }) => {
+      formatter: (params: { value: [number, number]; data: { gpu_type?: string | null; user_name?: string | null }; seriesName: string }) => {
         const date = new Date(params.value[0]);
         const score = formatMicroseconds(params.value[1]);
         const gpuType = params.data.gpu_type || "Unknown";
@@ -625,57 +738,20 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
         },
       },
     },
-    dataZoom: [
-      {
-        type: "inside",
-        xAxisIndex: 0,
-        filterMode: "none",
-      },
-      {
-        type: "inside",
-        yAxisIndex: 0,
-        filterMode: "filter",
-      },
-      {
-        type: "slider",
-        xAxisIndex: 0,
-        filterMode: "none",
-        bottom: 40,
-        height: 20,
-        borderColor: isDark ? "#555" : "#ccc",
-        backgroundColor: isDark ? "#333" : "#f5f5f5",
-        fillerColor: isDark ? "rgba(100,100,100,0.3)" : "rgba(200,200,200,0.3)",
-        handleStyle: {
-          color: isDark ? "#888" : "#aaa",
-        },
-        textStyle: {
-          color: textColor,
-        },
-      },
-      {
-        type: "slider",
-        yAxisIndex: 0,
-        filterMode: "filter",
-        right: 10,
-        width: 20,
-        borderColor: isDark ? "#555" : "#ccc",
-        backgroundColor: isDark ? "#333" : "#f5f5f5",
-        fillerColor: isDark ? "rgba(100,100,100,0.3)" : "rgba(200,200,200,0.3)",
-        handleStyle: {
-          color: isDark ? "#888" : "#aaa",
-        },
-        textStyle: {
-          color: textColor,
-        },
-      },
-    ],
+    dataZoom,
     series,
   };
 
   return (
     <Box>
       {renderSearchInput()}
-      <ReactECharts option={option} style={{ height: 500 }} notMerge={true} />
+      <ReactECharts
+        ref={chartRef}
+        option={option}
+        style={{ height: 500 }}
+        notMerge={true}
+        onEvents={chartEvents}
+      />
     </Box>
   );
 }
