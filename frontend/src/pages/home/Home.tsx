@@ -1,6 +1,14 @@
-import { Box, Button, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Typography,
+} from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { fetchLeaderboardSummaries } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
@@ -8,7 +16,8 @@ import { ErrorAlert } from "../../components/alert/ErrorAlert";
 import LeaderboardTile from "./components/LeaderboardTile";
 import Loading from "../../components/common/loading";
 import { ConstrainedContainer } from "../../components/app-layout/ConstrainedContainer";
-import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
+import MarkdownRenderer from "../../components/markdown-renderer/MarkdownRenderer";
+import quickStartMarkdown from "./quick-start.md?raw";
 
 interface TopUser {
   rank: number;
@@ -32,6 +41,7 @@ interface LeaderboardSummaries {
 
 export default function Home() {
   const [searchParams] = useSearchParams();
+  const [isQuickStartOpen, setIsQuickStartOpen] = useState(false);
   const useV1 = searchParams.has("v1_query");
 
   const { data, loading, error, errorStatus, call } = fetcherApiCallback<
@@ -63,10 +73,7 @@ export default function Home() {
         <Box sx={{ mb: 4 }}>
           <Button
             variant="contained"
-            href="https://github.com/gpu-mode/popcorn-cli"
-            target="_blank"
-            rel="noopener"
-            endIcon={<ArrowOutwardIcon />}
+            onClick={() => setIsQuickStartOpen(true)}
             sx={{
               textTransform: "none",
               fontWeight: 500,
@@ -77,6 +84,21 @@ export default function Home() {
             Submit your first kernel
           </Button>
         </Box>
+
+        <Dialog
+          open={isQuickStartOpen}
+          onClose={() => setIsQuickStartOpen(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>Submit Your First Kernel</DialogTitle>
+          <DialogContent dividers>
+            <MarkdownRenderer content={quickStartMarkdown} />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setIsQuickStartOpen(false)}>Close</Button>
+          </DialogActions>
+        </Dialog>
 
         {leaderboards.length > 0 ? (
           <Grid container spacing={3}>

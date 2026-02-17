@@ -73,7 +73,7 @@ function App() {
             <Route path="/working-groups" element={<WorkingGroups />} />
             <Route path="/lectures" element={<Lectures />} />
             <Route path="/login" element={<Login />} />
-            // error handling page
+            {/* error handling page */}
             {errorRoutes.map(({ path, code, title, description }) => (
               <Route
                 key={path}
