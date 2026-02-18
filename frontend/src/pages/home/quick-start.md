@@ -10,10 +10,12 @@ curl -fsSL https://raw.githubusercontent.com/gpu-mode/popcorn-cli/main/install.s
 popcorn-cli register discord
 ```
 
-## 3) Download a starter kernel
+## 3) Setup a project
+
+Setup your project with a working example and agent skills for Codex or Claude Code.
 
 ```bash
-wget https://raw.githubusercontent.com/gpu-mode/reference-kernels/refs/heads/main/problems/pmpp_v2/grayscale_py/submission.py
+popcorn-cli setup
 ```
 
 ## 4) Submit to leaderboard
