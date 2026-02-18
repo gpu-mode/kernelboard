@@ -216,6 +216,17 @@ export async function submitFile(form: FormData) {
   return data; // e.g. { submission_id, message, ... }
 }
 
+export async function deleteSubmission(submissionId: number): Promise<void> {
+  const res = await fetch(`/api/submission/${submissionId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const json = await res.json();
+    const message = json?.message || "Failed to delete submission";
+    throw new APIError(message, res.status);
+  }
+}
+
 export async function fetchUserSubmissions(
   leaderboardId: number | string,
   userId: number | string,

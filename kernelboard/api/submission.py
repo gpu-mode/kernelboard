@@ -187,6 +187,73 @@ def list_codes_route():
         )
 
 
+@submission_bp.route("/submission/<int:submission_id>", methods=["DELETE"])
+@login_required
+def delete_submission(submission_id):
+    """
+    DELETE /api/submission/<submission_id>
+    Admin-only: deletes a submission by proxying to the cluster-manager admin endpoint.
+    """
+    logger.info("[delete_submission] request for submission_id=%s", submission_id)
+
+    user_id, _ = get_id_and_username_from_session()
+    if not user_id:
+        return http_error(
+            message="user is not logged in",
+            status_code=http.HTTPStatus.UNAUTHORIZED,
+        )
+
+    whitelist = get_whitelist()
+    if user_id not in whitelist:
+        logger.warning(
+            "[delete_submission] non-admin user %s attempted delete on %s",
+            user_id,
+            submission_id,
+        )
+        return http_error(
+            message="forbidden: admin access required",
+            status_code=http.HTTPStatus.FORBIDDEN,
+        )
+
+    admin_token = os.getenv("ADMIN_TOKEN", "")
+    if not admin_token:
+        logger.error("[delete_submission] ADMIN_TOKEN is not set")
+        return http_error(
+            message="admin API not configured",
+            status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+
+    base = get_cluster_manager_endpoint()
+    url = f"{base}/admin/submissions/{submission_id}"
+    headers = {"Authorization": f"Bearer {admin_token}"}
+
+    try:
+        resp = requests.delete(url, headers=headers, timeout=30)
+    except requests.RequestException as e:
+        logger.error("[delete_submission] forward failed: %s", e)
+        return http_error(
+            message=f"forward failed: {e}",
+            status_code=http.HTTPStatus.BAD_GATEWAY,
+        )
+
+    try:
+        payload = resp.json()
+        message = payload.get("message") or payload.get("detail") or resp.reason
+        if resp.status_code == 200:
+            return http_success(message=message, data=payload)
+        else:
+            return http_error(
+                message=message,
+                status_code=http.HTTPStatus(resp.status_code),
+            )
+    except Exception as e:
+        logger.error("[delete_submission] failed: %s", e)
+        return http_error(
+            message=str(e),
+            status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
+
+
 def check_admin_access_codes(
     user_id: str, leaderboard_id: int, submission_ids: List[int]
 ):

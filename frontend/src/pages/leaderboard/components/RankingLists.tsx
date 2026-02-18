@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
+  Link as MuiLink,
   Stack,
   type SxProps,
   type Theme,
@@ -12,7 +17,8 @@ import RankingTitleBadge from "./RankingTitleBadge";
 
 import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
 import { getMedalIcon } from "../../../components/common/medal.tsx";
-import { fetchCodes } from "../../../api/api.ts";
+import { deleteSubmission, fetchCodes } from "../../../api/api.ts";
+import CodeBlock from "../../../components/codeblock/CodeBlock";
 import { CodeDialog } from "./CodeDialog.tsx";
 import { isExpired } from "../../../lib/date/utils.ts";
 import { useAuthStore } from "../../../lib/store/authStore.ts";
@@ -31,6 +37,7 @@ interface RankingsListProps {
   rankings: Record<string, RankingItem[]>;
   leaderboardId?: string;
   deadline?: string;
+  onRefresh?: () => void;
 }
 
 const styles: Record<string, SxProps<Theme>> = {
@@ -86,6 +93,7 @@ export default function RankingsList({
   rankings,
   leaderboardId,
   deadline,
+  onRefresh,
 }: RankingsListProps) {
   const expired = !!deadline && isExpired(deadline);
   const me = useAuthStore((s) => s.me);
@@ -95,6 +103,30 @@ export default function RankingsList({
     Math.random().toString(36).slice(2, 8),
   );
   const [codes, setCodes] = useState<Map<number, string>>(new Map());
+  const [selectedSubmission, setSelectedSubmission] = useState<{
+    id: number;
+    userName: string;
+  } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const handleDelete = async () => {
+    if (!selectedSubmission) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteSubmission(selectedSubmission.id);
+      setSelectedSubmission(null);
+      setConfirmDelete(false);
+      if (onRefresh) onRefresh();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Delete failed";
+      setDeleteError(msg);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const submissionIds = useMemo(() => {
     if (!rankings) return [];
@@ -225,9 +257,23 @@ export default function RankingsList({
                   )}
                   {isAdmin && (
                     <Grid size={2}>
-                      <Typography sx={styles.submissionId}>
+                      <MuiLink
+                        component="button"
+                        variant="body2"
+                        sx={{
+                          ...styles.submissionId,
+                          cursor: "pointer",
+                          textDecoration: "underline",
+                        }}
+                        onClick={() =>
+                          setSelectedSubmission({
+                            id: item.submission_id,
+                            userName: item.user_name,
+                          })
+                        }
+                      >
                         ID: {item.submission_id}
-                      </Typography>
+                      </MuiLink>
                     </Grid>
                   )}
                 </Grid>
@@ -236,6 +282,79 @@ export default function RankingsList({
           </Box>
         );
       })}
+
+      {/* Admin submission detail + delete dialog */}
+      {isAdmin && selectedSubmission && (
+        <Dialog
+          open={!!selectedSubmission}
+          onClose={() => {
+            setSelectedSubmission(null);
+            setConfirmDelete(false);
+            setDeleteError(null);
+          }}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>
+            Submission #{selectedSubmission.id} by {selectedSubmission.userName}
+          </DialogTitle>
+          <DialogContent dividers>
+            {codes.get(selectedSubmission.id) ? (
+              <CodeBlock code={codes.get(selectedSubmission.id)!} />
+            ) : (
+              <Typography color="text.secondary">
+                No code available for this submission.
+              </Typography>
+            )}
+            {deleteError && (
+              <Typography color="error" sx={{ mt: 2 }}>
+                Error: {deleteError}
+              </Typography>
+            )}
+          </DialogContent>
+          <DialogActions>
+            {!confirmDelete ? (
+              <>
+                <Button
+                  onClick={() => {
+                    setSelectedSubmission(null);
+                    setDeleteError(null);
+                  }}
+                >
+                  Close
+                </Button>
+                <Button
+                  color="error"
+                  variant="contained"
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  Delete Submission
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={() => {
+                    setConfirmDelete(false);
+                    setDeleteError(null);
+                  }}
+                  disabled={deleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  color="error"
+                  variant="contained"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? "Deleting..." : "Confirm Delete"}
+                </Button>
+              </>
+            )}
+          </DialogActions>
+        </Dialog>
+      )}
     </Stack>
   );
 }
