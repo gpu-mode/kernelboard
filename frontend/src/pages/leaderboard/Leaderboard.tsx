@@ -193,6 +193,20 @@ export default function Leaderboard() {
             <CardContent>
               <CardTitle fontWeight="bold">Description</CardTitle>
               <MarkdownRenderer content={data.description} />
+              {data.benchmarks && data.benchmarks.length > 0 && (
+                <details>
+                  <summary style={{ cursor: "pointer", fontWeight: "bold", marginTop: 16 }}>
+                    Benchmark Shapes
+                  </summary>
+                  <ul>
+                    {data.benchmarks.map((b, i) => (
+                      <li key={i}>
+                        <code>{JSON.stringify(Object.fromEntries(Object.entries(b).filter(([k]) => k !== "seed")))}</code>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
             </CardContent>
           </Card>
         </Grid>
