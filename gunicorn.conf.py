@@ -1,5 +1,4 @@
 import os
-import multiprocessing
 
 PORT = int(os.getenv("PORT", 443))
 
@@ -8,7 +7,7 @@ bind = f"0.0.0.0:{PORT}"
 backlog = 2048
 
 # Worker processes
-workers = multiprocessing.cpu_count()
+workers = int(os.getenv("WEB_CONCURRENCY", 2))
 worker_class = "sync"
 worker_connections = 100
 timeout = 30
