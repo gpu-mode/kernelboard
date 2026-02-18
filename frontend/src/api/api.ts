@@ -23,6 +23,7 @@ export interface LeaderboardDetail {
   description: string;
   name: string;
   reference: string;
+  benchmarks: Record<string, unknown>[];
   gpu_types: string[];
   rankings: Record<
     string,
