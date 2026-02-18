@@ -194,10 +194,10 @@ export default function Leaderboard() {
               <CardTitle fontWeight="bold">Description</CardTitle>
               <MarkdownRenderer content={data.description} />
               {data.benchmarks && data.benchmarks.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle1" fontWeight="bold">
+                <details>
+                  <summary style={{ cursor: "pointer", fontWeight: "bold", marginTop: 16 }}>
                     Benchmark Shapes
-                  </Typography>
+                  </summary>
                   <ul>
                     {data.benchmarks.map((b, i) => (
                       <li key={i}>
@@ -205,7 +205,7 @@ export default function Leaderboard() {
                       </li>
                     ))}
                   </ul>
-                </Box>
+                </details>
               )}
             </CardContent>
           </Card>
