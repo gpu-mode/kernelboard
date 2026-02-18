@@ -240,6 +240,9 @@ export default function Leaderboard() {
                   rankings={data.rankings}
                   leaderboardId={id}
                   deadline={data.deadline}
+                  onRefresh={() => {
+                    if (id) call(id);
+                  }}
                 />
                 <Box sx={{ my: 4, borderTop: 1, borderColor: "divider" }} />
                 <Card>

@@ -23,6 +23,7 @@ def check_env_vars():
         "DISCORD_CLIENT_ID": "preview-disabled",
         "DISCORD_CLIENT_SECRET": "preview-disabled",
         "DISCORD_CLUSTER_MANAGER_API_BASE_URL": "http://localhost:8080",
+        "ADMIN_TOKEN": "",
     }
 
     for var, default in optional_with_defaults.items():
