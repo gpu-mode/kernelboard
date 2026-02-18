@@ -191,22 +191,26 @@ export default function Leaderboard() {
         <Grid marginBottom={2}>
           <Card>
             <CardContent>
-              <CardTitle fontWeight="bold">Description</CardTitle>
-              <MarkdownRenderer content={data.description} />
-              {data.benchmarks && data.benchmarks.length > 0 && (
-                <details>
-                  <summary style={{ cursor: "pointer", fontWeight: "bold", marginTop: 16 }}>
-                    Benchmark Shapes
-                  </summary>
-                  <ul>
-                    {data.benchmarks.map((b, i) => (
-                      <li key={i}>
-                        <code>{JSON.stringify(Object.fromEntries(Object.entries(b).filter(([k]) => k !== "seed")))}</code>
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              )}
+              <details>
+                <summary style={{ cursor: "pointer", fontWeight: "bold", fontSize: "1.5rem" }}>
+                  Description
+                </summary>
+                <MarkdownRenderer content={data.description} />
+                {data.benchmarks && data.benchmarks.length > 0 && (
+                  <details>
+                    <summary style={{ cursor: "pointer", fontWeight: "bold", marginTop: 16 }}>
+                      Benchmark Shapes
+                    </summary>
+                    <ul>
+                      {data.benchmarks.map((b, i) => (
+                        <li key={i}>
+                          <code>{JSON.stringify(Object.fromEntries(Object.entries(b).filter(([k]) => k !== "seed")))}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </details>
             </CardContent>
           </Card>
         </Grid>
