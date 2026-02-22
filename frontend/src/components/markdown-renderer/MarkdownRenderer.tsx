@@ -2,12 +2,44 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
+import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import { useTheme } from "@mui/material/styles";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark, oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import "katex/dist/katex.min.css";
+
+function HeadingWithAnchor({
+  level,
+  id,
+  children,
+  ...props
+}: {
+  level: 1 | 2 | 3 | 4 | 5 | 6;
+  id?: string;
+  children?: React.ReactNode;
+  [key: string]: unknown;
+}) {
+  const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+
+  const handleClick = () => {
+    if (id) {
+      window.history.replaceState(null, "", `#${id}`);
+    }
+  };
+
+  return (
+    <Tag
+      id={id}
+      onClick={handleClick}
+      style={{ cursor: "pointer" }}
+      {...props}
+    >
+      {children}
+    </Tag>
+  );
+}
 
 type MarkdownRendererProps = {
   content: string;
@@ -55,8 +87,38 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMath]}
-      rehypePlugins={[rehypeRaw, rehypeKatex]}
+      rehypePlugins={[rehypeRaw, rehypeSlug, rehypeKatex]}
       components={{
+        h1: ({ node: _node, children, ...props }) => (
+          <HeadingWithAnchor level={1} {...props}>
+            {children}
+          </HeadingWithAnchor>
+        ),
+        h2: ({ node: _node, children, ...props }) => (
+          <HeadingWithAnchor level={2} {...props}>
+            {children}
+          </HeadingWithAnchor>
+        ),
+        h3: ({ node: _node, children, ...props }) => (
+          <HeadingWithAnchor level={3} {...props}>
+            {children}
+          </HeadingWithAnchor>
+        ),
+        h4: ({ node: _node, children, ...props }) => (
+          <HeadingWithAnchor level={4} {...props}>
+            {children}
+          </HeadingWithAnchor>
+        ),
+        h5: ({ node: _node, children, ...props }) => (
+          <HeadingWithAnchor level={5} {...props}>
+            {children}
+          </HeadingWithAnchor>
+        ),
+        h6: ({ node: _node, children, ...props }) => (
+          <HeadingWithAnchor level={6} {...props}>
+            {children}
+          </HeadingWithAnchor>
+        ),
         a: ({ node: _node, ...props }) => (
           <a
             style={{
