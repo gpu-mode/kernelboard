@@ -33,10 +33,11 @@ import { isExpired } from "../../../lib/date/utils";
 import { useAuthStore } from "../../../lib/store/authStore";
 import { formatMicrosecondsNum, formatMicroseconds } from "../../../lib/utils/ranking";
 import { useThemeStore } from "../../../lib/store/themeStore";
-import SubmissionCodeModal, {
-  type NavigationItem,
-  type SelectedSubmission,
-} from "./SubmissionCodeModal";
+import type {
+  NavigationItem,
+  SelectedSubmission,
+} from "./submissionTypes";
+import { useSubmissionSidebar } from "./SubmissionSidebarContext";
 
 // Display name prefix for custom (KernelAgent) entries
 const CUSTOM_ENTRY_PREFIX = "KernelAgent";
@@ -175,13 +176,8 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   // Pre-fetched codes map (same pattern as RankingLists)
   const [codes, setCodes] = useState<Map<number, string>>(new Map());
 
-  // State for showing code dialog on datapoint click (with navigation context)
-  const [selectedSubmission, setSelectedSubmission] =
-    useState<SelectedSubmission | null>(null);
-
-  // Navigation state - all points in the series and current index
-  const [navigationItems, setNavigationItems] = useState<NavigationItem[]>([]);
-  const [navigationIndex, setNavigationIndex] = useState<number>(0);
+  // Use sidebar context instead of local state
+  const { openSubmission } = useSubmissionSidebar();
 
   const [data, setData] = useState<UserTrendResponse | null>(null);
   const [customData, setCustomData] = useState<CustomTrendResponse | null>(null);
@@ -364,17 +360,10 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
             // Use dataIndex directly since it corresponds to the clicked point's position
             const clickedIndex = params.dataIndex;
 
-            setNavigationItems(navItems);
-            setNavigationIndex(
-              clickedIndex >= 0 && clickedIndex < navItems.length
-                ? clickedIndex
-                : 0
-            );
-
             // Set the selected submission using the navItem at clicked index
             if (clickedIndex >= 0 && clickedIndex < navItems.length) {
               const item = navItems[clickedIndex];
-              setSelectedSubmission({
+              const submission: SelectedSubmission = {
                 submissionId: item.submissionId,
                 userName: item.userName,
                 fileName: item.fileName,
@@ -382,12 +371,14 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
                 timestamp: item.timestamp,
                 score: item.score,
                 originalTimestamp: item.originalTimestamp,
-              });
+              };
+              openSubmission(submission, navItems, clickedIndex, codes);
               return;
             }
           }
 
-          setSelectedSubmission({
+          // Fallback: create a single-item navigation
+          const fallbackSubmission: SelectedSubmission = {
             submissionId: params.data.submission_id,
             userName: params.data.user_name || params.seriesName || "Unknown",
             fileName: `submission_${params.data.submission_id}.py`,
@@ -395,9 +386,18 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
             timestamp: params.value[0],
             score: params.value[1],
             originalTimestamp: params.data.originalTimestamp,
-          });
+          };
+          const fallbackNavItems: NavigationItem[] = [{
+            submissionId: params.data.submission_id,
+            userName: params.data.user_name || params.seriesName || "Unknown",
+            fileName: `submission_${params.data.submission_id}.py`,
+            timestamp: params.value[0],
+            score: params.value[1],
+            originalTimestamp: params.data.originalTimestamp,
+          }];
+          openSubmission(fallbackSubmission, fallbackNavItems, 0, codes);
     },
-    [isCodeViewingAllowed]
+    [isCodeViewingAllowed, codes, openSubmission]
   );
 
   const chartEvents = useMemo(
@@ -1285,30 +1285,6 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
           Apply
         </Button>
       </Stack>
-      {/* Modal for viewing submission code */}
-      <SubmissionCodeModal
-        selectedSubmission={selectedSubmission}
-        navigationItems={navigationItems}
-        navigationIndex={navigationIndex}
-        codes={codes}
-        onClose={() => {
-          setSelectedSubmission(null);
-          setNavigationItems([]);
-          setNavigationIndex(0);
-        }}
-        onNavigate={(newIndex, item) => {
-          setNavigationIndex(newIndex);
-          setSelectedSubmission({
-            ...selectedSubmission!,
-            submissionId: item.submissionId,
-            userName: item.userName,
-            fileName: item.fileName,
-            timestamp: item.timestamp,
-            score: item.score,
-            originalTimestamp: item.originalTimestamp,
-          });
-        }}
-      />
     </Box>
   );
 }

@@ -13,10 +13,11 @@ import RankingTitleBadge from "./RankingTitleBadge";
 import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
 import { getMedalIcon } from "../../../components/common/medal.tsx";
 import { fetchCodes } from "../../../api/api.ts";
-import SubmissionCodeModal, {
-  type NavigationItem,
-  type SelectedSubmission,
-} from "./SubmissionCodeModal.tsx";
+import type {
+  NavigationItem,
+  SelectedSubmission,
+} from "./submissionTypes";
+import { useSubmissionSidebar } from "./SubmissionSidebarContext.tsx";
 import { isExpired } from "../../../lib/date/utils.ts";
 import { useAuthStore } from "../../../lib/store/authStore.ts";
 
@@ -27,7 +28,8 @@ interface RankingItem {
   score: number;
   user_name: string;
   submission_id: number;
-  submission_count: number;
+  submission_count?: number;
+  submission_time?: string;
 }
 
 interface RankingsListProps {
@@ -98,10 +100,7 @@ export default function RankingsList({
     Math.random().toString(36).slice(2, 8),
   );
   const [codes, setCodes] = useState<Map<number, string>>(new Map());
-  const [selectedSubmission, setSelectedSubmission] =
-    useState<SelectedSubmission | null>(null);
-  const [navigationItems, setNavigationItems] = useState<NavigationItem[]>([]);
-  const [navigationIndex, setNavigationIndex] = useState(0);
+  const { openSubmission } = useSubmissionSidebar();
 
   const submissionIds = useMemo(() => {
     if (!rankings) return [];
@@ -145,43 +144,36 @@ export default function RankingsList({
 
   const handleOpenSubmission = (
     item: RankingItem,
-    field: string,
+    _field: string,
     allItems: RankingItem[],
   ) => {
     const navItems: NavigationItem[] = allItems.map((i) => ({
       submissionId: i.submission_id,
       userName: i.user_name,
       fileName: i.file_name,
-      timestamp: 0,
+      timestamp: i.submission_time ? new Date(i.submission_time).getTime() : 0,
       score: i.score,
+      originalTimestamp: i.submission_time
+        ? new Date(i.submission_time).getTime()
+        : undefined,
     }));
     const index = allItems.findIndex(
       (i) => i.submission_id === item.submission_id,
     );
-    setNavigationItems(navItems);
-    setNavigationIndex(index >= 0 ? index : 0);
-    setSelectedSubmission({
+    const submission: SelectedSubmission = {
       submissionId: item.submission_id,
       userName: item.user_name,
       fileName: item.file_name,
       isFastest: item.rank === 1,
       score: item.score,
-    });
-  };
-
-  const handleNavigate = (newIndex: number, navItem: NavigationItem) => {
-    setNavigationIndex(newIndex);
-    setSelectedSubmission({
-      submissionId: navItem.submissionId,
-      userName: navItem.userName,
-      fileName: navItem.fileName,
-      isFastest: newIndex === 0,
-      score: navItem.score,
-    });
-  };
-
-  const handleCloseModal = () => {
-    setSelectedSubmission(null);
+      timestamp: item.submission_time
+        ? new Date(item.submission_time).getTime()
+        : undefined,
+      originalTimestamp: item.submission_time
+        ? new Date(item.submission_time).getTime()
+        : undefined,
+    };
+    openSubmission(submission, navItems, index >= 0 ? index : 0, codes);
   };
 
   return (
@@ -295,15 +287,6 @@ export default function RankingsList({
           </Box>
         );
       })}
-
-      <SubmissionCodeModal
-        selectedSubmission={selectedSubmission}
-        navigationItems={navigationItems}
-        navigationIndex={navigationIndex}
-        codes={codes}
-        onClose={handleCloseModal}
-        onNavigate={handleNavigate}
-      />
     </Stack>
   );
 }
