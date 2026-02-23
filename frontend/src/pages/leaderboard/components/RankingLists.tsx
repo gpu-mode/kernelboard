@@ -13,7 +13,10 @@ import RankingTitleBadge from "./RankingTitleBadge";
 import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
 import { getMedalIcon } from "../../../components/common/medal.tsx";
 import { fetchCodes } from "../../../api/api.ts";
-import { CodeDialog } from "./CodeDialog.tsx";
+import SubmissionCodeModal, {
+  type NavigationItem,
+  type SelectedSubmission,
+} from "./SubmissionCodeModal.tsx";
 import { isExpired } from "../../../lib/date/utils.ts";
 import { useAuthStore } from "../../../lib/store/authStore.ts";
 
@@ -95,6 +98,10 @@ export default function RankingsList({
     Math.random().toString(36).slice(2, 8),
   );
   const [codes, setCodes] = useState<Map<number, string>>(new Map());
+  const [selectedSubmission, setSelectedSubmission] =
+    useState<SelectedSubmission | null>(null);
+  const [navigationItems, setNavigationItems] = useState<NavigationItem[]>([]);
+  const [navigationIndex, setNavigationIndex] = useState(0);
 
   const submissionIds = useMemo(() => {
     if (!rankings) return [];
@@ -134,6 +141,47 @@ export default function RankingsList({
       ...prev,
       [field]: !prev[field],
     }));
+  };
+
+  const handleOpenSubmission = (
+    item: RankingItem,
+    field: string,
+    allItems: RankingItem[],
+  ) => {
+    const navItems: NavigationItem[] = allItems.map((i) => ({
+      submissionId: i.submission_id,
+      userName: i.user_name,
+      fileName: i.file_name,
+      timestamp: 0,
+      score: i.score,
+    }));
+    const index = allItems.findIndex(
+      (i) => i.submission_id === item.submission_id,
+    );
+    setNavigationItems(navItems);
+    setNavigationIndex(index >= 0 ? index : 0);
+    setSelectedSubmission({
+      submissionId: item.submission_id,
+      userName: item.user_name,
+      fileName: item.file_name,
+      isFastest: item.rank === 1,
+      score: item.score,
+    });
+  };
+
+  const handleNavigate = (newIndex: number, navItem: NavigationItem) => {
+    setNavigationIndex(newIndex);
+    setSelectedSubmission({
+      submissionId: navItem.submissionId,
+      userName: navItem.userName,
+      fileName: navItem.fileName,
+      isFastest: newIndex === 0,
+      score: navItem.score,
+    });
+  };
+
+  const handleCloseModal = () => {
+    setSelectedSubmission(null);
   };
 
   return (
@@ -206,14 +254,25 @@ export default function RankingsList({
                         },
                       }}
                     >
-                      <CodeDialog
-                        code={codes.get(item?.submission_id)}
-                        fileName={item.file_name}
-                        isActive={!expired && !isAdmin}
-                        rank={item.rank}
-                        userName={item.user_name}
-                        problemName={field}
-                      />
+                      {!expired && !isAdmin ? (
+                        <Typography
+                          variant="body2"
+                          sx={{ fontSize: "0.8125rem" }}
+                        >
+                          {item.file_name}
+                        </Typography>
+                      ) : (
+                        <Button
+                          variant="text"
+                          size="small"
+                          onClick={() =>
+                            handleOpenSubmission(item, field, items)
+                          }
+                          sx={{ textTransform: "none" }}
+                        >
+                          {item.file_name}
+                        </Button>
+                      )}
                     </Typography>
                   </Grid>
                   {isAdmin && (
@@ -236,6 +295,15 @@ export default function RankingsList({
           </Box>
         );
       })}
+
+      <SubmissionCodeModal
+        selectedSubmission={selectedSubmission}
+        navigationItems={navigationItems}
+        navigationIndex={navigationIndex}
+        codes={codes}
+        onClose={handleCloseModal}
+        onNavigate={handleNavigate}
+      />
     </Stack>
   );
 }
