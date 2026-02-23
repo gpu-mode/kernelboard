@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useState, useCallback } from "react";
 import type { NavigationItem, SelectedSubmission } from "./submissionTypes";
 
 interface SubmissionSidebarContextType {
@@ -15,10 +15,10 @@ interface SubmissionSidebarContextType {
   ) => void;
   navigate: (newIndex: number, item: NavigationItem) => void;
   close: () => void;
-  updateCodes: (codesMap: Map<number, string>) => void;
 }
 
-const SubmissionSidebarContext = createContext<SubmissionSidebarContextType | null>(null);
+export const SubmissionSidebarContext =
+  createContext<SubmissionSidebarContextType | null>(null);
 
 export function SubmissionSidebarProvider({
   children,
@@ -67,10 +67,6 @@ export function SubmissionSidebarProvider({
     setSelectedSubmission(null);
   }, []);
 
-  const updateCodes = useCallback((codesMap: Map<number, string>) => {
-    setCodes(codesMap);
-  }, []);
-
   return (
     <SubmissionSidebarContext.Provider
       value={{
@@ -82,20 +78,9 @@ export function SubmissionSidebarProvider({
         openSubmission,
         navigate,
         close,
-        updateCodes,
       }}
     >
       {children}
     </SubmissionSidebarContext.Provider>
   );
-}
-
-export function useSubmissionSidebar() {
-  const context = useContext(SubmissionSidebarContext);
-  if (!context) {
-    throw new Error(
-      "useSubmissionSidebar must be used within SubmissionSidebarProvider"
-    );
-  }
-  return context;
 }

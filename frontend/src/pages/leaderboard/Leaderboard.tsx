@@ -27,8 +27,8 @@ import LeaderboardSubmit from "./components/LeaderboardSubmit";
 import UserTrendChart from "./components/UserTrendChart";
 import {
   SubmissionSidebarProvider,
-  useSubmissionSidebar,
 } from "./components/SubmissionSidebarContext";
+import { useSubmissionSidebar } from "./components/useSubmissionSidebar";
 import SubmissionCodeSidebar from "./components/SubmissionCodeSidebar";
 
 const SIDEBAR_WIDTH = 600;
