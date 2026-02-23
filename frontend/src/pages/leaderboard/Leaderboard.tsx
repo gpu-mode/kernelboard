@@ -245,7 +245,7 @@ export default function Leaderboard() {
                 <Card>
                   <CardContent>
                     <CardTitle fontWeight="bold">Performance Trend</CardTitle>
-                    <UserTrendChart leaderboardId={id!} defaultUsers={defaultUsers} defaultGpuType={defaultGpuType} rankings={data.rankings} />
+                    <UserTrendChart leaderboardId={id!} defaultUsers={defaultUsers} defaultGpuType={defaultGpuType} rankings={data.rankings} deadline={data.deadline} />
                   </CardContent>
                 </Card>
               </>
