@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchLeaderBoard, searchUsers } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { isExpired, toDateUtc } from "../../lib/date/utils";
@@ -31,7 +31,7 @@ import {
 } from "./components/SubmissionSidebarContext";
 import SubmissionCodeSidebar from "./components/SubmissionCodeSidebar";
 
-const SIDEBAR_WIDTH = 600;
+const DEFAULT_SIDEBAR_WIDTH = 600;
 
 export const CardTitle = styled(Typography)(() => ({
   fontSize: "1.5rem",
@@ -277,7 +277,7 @@ function LeaderboardContent() {
             <CardContent>
               <CardTitle fontWeight="bold">Reference Implementation</CardTitle>
               <Box>
-                <CodeBlock code={data.reference} />
+                <CodeBlock code={data.reference} bordered />
               </Box>
             </CardContent>
           </Card>
@@ -362,6 +362,13 @@ function LeaderboardWithSidebar() {
     close,
   } = useSubmissionSidebar();
 
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
+
+  const handleWidthChange = useCallback((newWidth: number) => {
+    const maxWidth = window.innerWidth * 0.8;
+    setSidebarWidth(Math.min(Math.max(newWidth, 300), maxWidth));
+  }, []);
+
   return (
     <Box
       sx={{
@@ -373,7 +380,10 @@ function LeaderboardWithSidebar() {
         sx={{
           flex: 1,
           minWidth: 0,
-          width: isOpen ? `calc(100% - ${SIDEBAR_WIDTH}px)` : "100%",
+          width: {
+            xs: "100%",
+            md: isOpen ? `calc(100% - ${sidebarWidth}px)` : "100%",
+          },
           transition: "width 0.3s ease",
         }}
       >
@@ -387,7 +397,8 @@ function LeaderboardWithSidebar() {
         isLoadingCodes={isLoadingCodes}
         onClose={close}
         onNavigate={navigate}
-        width={SIDEBAR_WIDTH}
+        width={sidebarWidth}
+        onWidthChange={handleWidthChange}
       />
     </Box>
   );
