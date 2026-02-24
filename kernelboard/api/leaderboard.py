@@ -180,7 +180,8 @@ def _get_query():
                         'score', r.score,
                         'file_name', r.file_name,
                         'submission_id', r.submission_id,
-                        'submission_count', r.submission_count
+                        'submission_count', r.submission_count,
+                        'submission_time', r.submission_time
                     )
                     ORDER BY r.score ASC
                 )

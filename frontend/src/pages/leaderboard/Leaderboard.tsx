@@ -25,6 +25,14 @@ import { useAuthStore } from "../../lib/store/authStore";
 import SubmissionHistorySection from "./components/submission-history/SubmissionHistorySection";
 import LeaderboardSubmit from "./components/LeaderboardSubmit";
 import UserTrendChart from "./components/UserTrendChart";
+import {
+  SubmissionSidebarProvider,
+  useSubmissionSidebar,
+} from "./components/SubmissionSidebarContext";
+import SubmissionCodeSidebar from "./components/SubmissionCodeSidebar";
+
+const SIDEBAR_WIDTH = 600;
+
 export const CardTitle = styled(Typography)(() => ({
   fontSize: "1.5rem",
   fontWeight: "bold",
@@ -60,7 +68,8 @@ function TabPanel(props: {
   );
 }
 
-export default function Leaderboard() {
+// Inner component that uses the sidebar context
+function LeaderboardContent() {
   const { id } = useParams<{ id: string }>();
 
   const { data, loading, error, errorStatus, call } =
@@ -245,7 +254,7 @@ export default function Leaderboard() {
                 <Card>
                   <CardContent>
                     <CardTitle fontWeight="bold">Performance Trend</CardTitle>
-                    <UserTrendChart leaderboardId={id!} defaultUsers={defaultUsers} defaultGpuType={defaultGpuType} rankings={data.rankings} />
+                    <UserTrendChart leaderboardId={id!} defaultUsers={defaultUsers} defaultGpuType={defaultGpuType} rankings={data.rankings} deadline={data.deadline} />
                   </CardContent>
                 </Card>
               </>
@@ -328,5 +337,56 @@ export default function Leaderboard() {
 
       </Box>
     </ConstrainedContainer>
+  );
+}
+
+// Main wrapper component with sidebar provider and flex layout
+export default function Leaderboard() {
+  return (
+    <SubmissionSidebarProvider>
+      <LeaderboardWithSidebar />
+    </SubmissionSidebarProvider>
+  );
+}
+
+// Layout component that uses the sidebar context for flex layout
+function LeaderboardWithSidebar() {
+  const {
+    selectedSubmission,
+    navigationItems,
+    navigationIndex,
+    codes,
+    isOpen,
+    navigate,
+    close,
+  } = useSubmissionSidebar();
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        width: "100%",
+      }}
+    >
+      <Box
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          width: isOpen ? `calc(100% - ${SIDEBAR_WIDTH}px)` : "100%",
+          transition: "width 0.3s ease",
+        }}
+      >
+        <LeaderboardContent />
+      </Box>
+      <SubmissionCodeSidebar
+        selectedSubmission={selectedSubmission}
+        navigationItems={navigationItems}
+        navigationIndex={navigationIndex}
+        codes={codes}
+        onClose={close}
+        onNavigate={navigate}
+        width={SIDEBAR_WIDTH}
+      />
+    </Box>
   );
 }
