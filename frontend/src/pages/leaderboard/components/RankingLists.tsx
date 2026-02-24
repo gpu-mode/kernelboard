@@ -16,7 +16,7 @@ import type {
   NavigationItem,
   SelectedSubmission,
 } from "./submissionTypes";
-import { useSubmissionSidebar } from "./SubmissionSidebarContext";
+import { useSubmissionSidebarActions } from "./SubmissionSidebarContext";
 import { isExpired } from "../../../lib/date/utils.ts";
 import { useAuthStore } from "../../../lib/store/authStore.ts";
 
@@ -98,7 +98,7 @@ export default function RankingsList({
   const [colorHash] = useState<string>(
     Math.random().toString(36).slice(2, 8),
   );
-  const { openSubmission } = useSubmissionSidebar();
+  const { openSubmission } = useSubmissionSidebarActions();
 
   const toggleExpanded = (field: string) => {
     setExpanded((prev) => ({
