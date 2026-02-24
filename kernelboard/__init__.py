@@ -3,10 +3,10 @@ import os
 
 from dotenv import load_dotenv
 from flask import Flask, make_response, redirect, send_from_directory
-from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_login import LoginManager
 from flask_session import Session
 from flask_talisman import Talisman
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from kernelboard import color, health
 from kernelboard import error as error
