@@ -68,7 +68,7 @@ function TabPanel(props: {
   );
 }
 
-// Inner component — memoized to avoid re-rendering on sidebar navigation
+// Inner component
 const LeaderboardContent = memo(function LeaderboardContent() {
   const { id } = useParams<{ id: string }>();
 
