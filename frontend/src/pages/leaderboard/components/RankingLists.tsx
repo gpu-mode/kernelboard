@@ -13,7 +13,11 @@ import RankingTitleBadge from "./RankingTitleBadge";
 import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
 import { getMedalIcon } from "../../../components/common/medal.tsx";
 import { fetchCodes } from "../../../api/api.ts";
-import { CodeDialog } from "./CodeDialog.tsx";
+import type {
+  NavigationItem,
+  SelectedSubmission,
+} from "./submissionTypes";
+import { useSubmissionSidebar } from "./SubmissionSidebarContext";
 import { isExpired } from "../../../lib/date/utils.ts";
 import { useAuthStore } from "../../../lib/store/authStore.ts";
 
@@ -24,7 +28,8 @@ interface RankingItem {
   score: number;
   user_name: string;
   submission_id: number;
-  submission_count: number;
+  submission_count?: number;
+  submission_time?: string;
 }
 
 interface RankingsListProps {
@@ -95,6 +100,7 @@ export default function RankingsList({
     Math.random().toString(36).slice(2, 8),
   );
   const [codes, setCodes] = useState<Map<number, string>>(new Map());
+  const { openSubmission } = useSubmissionSidebar();
 
   const submissionIds = useMemo(() => {
     if (!rankings) return [];
@@ -134,6 +140,40 @@ export default function RankingsList({
       ...prev,
       [field]: !prev[field],
     }));
+  };
+
+  const handleOpenSubmission = (
+    item: RankingItem,
+    _field: string,
+    allItems: RankingItem[],
+  ) => {
+    const navItems: NavigationItem[] = allItems.map((i) => ({
+      submissionId: i.submission_id,
+      userName: i.user_name,
+      fileName: i.file_name,
+      timestamp: i.submission_time ? new Date(i.submission_time).getTime() : 0,
+      score: i.score,
+      originalTimestamp: i.submission_time
+        ? new Date(i.submission_time).getTime()
+        : undefined,
+    }));
+    const index = allItems.findIndex(
+      (i) => i.submission_id === item.submission_id,
+    );
+    const submission: SelectedSubmission = {
+      submissionId: item.submission_id,
+      userName: item.user_name,
+      fileName: item.file_name,
+      isFastest: item.rank === 1,
+      score: item.score,
+      timestamp: item.submission_time
+        ? new Date(item.submission_time).getTime()
+        : undefined,
+      originalTimestamp: item.submission_time
+        ? new Date(item.submission_time).getTime()
+        : undefined,
+    };
+    openSubmission(submission, navItems, index >= 0 ? index : 0, codes);
   };
 
   return (
@@ -206,14 +246,25 @@ export default function RankingsList({
                         },
                       }}
                     >
-                      <CodeDialog
-                        code={codes.get(item?.submission_id)}
-                        fileName={item.file_name}
-                        isActive={!expired && !isAdmin}
-                        rank={item.rank}
-                        userName={item.user_name}
-                        problemName={field}
-                      />
+                      {!expired && !isAdmin ? (
+                        <Typography
+                          variant="body2"
+                          sx={{ fontSize: "0.8125rem" }}
+                        >
+                          {item.file_name}
+                        </Typography>
+                      ) : (
+                        <Button
+                          variant="text"
+                          size="small"
+                          onClick={() =>
+                            handleOpenSubmission(item, field, items)
+                          }
+                          sx={{ textTransform: "none" }}
+                        >
+                          {item.file_name}
+                        </Button>
+                      )}
                     </Typography>
                   </Grid>
                   {isAdmin && (
