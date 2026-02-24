@@ -3,6 +3,7 @@ import os
 
 from dotenv import load_dotenv
 from flask import Flask, make_response, redirect, send_from_directory
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_login import LoginManager
 from flask_session import Session
 from flask_talisman import Talisman
@@ -32,6 +33,12 @@ def create_app(test_config=None):
 
     app = Flask(__name__, instance_relative_config=True)
 
+    # Trust proxy headers (X-Forwarded-For, X-Forwarded-Proto, X-Forwarded-Host)
+    # so url_for(_external=True) generates correct OAuth callback URLs behind
+    # Northflank's reverse proxy.
+    if not is_dev:
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
     # set logging for flask app
     configure_logging(app)
 
@@ -46,10 +53,8 @@ def create_app(test_config=None):
         SESSION_PERMANENT=True,
         PERMANENT_SESSION_LIFETIME=1209600,  # 14 days
         SESSION_TYPE="redis",
-        # Heroku Redis uses self-signed certificates:
-        # https://devcenter.heroku.com/articles/heroku-redis#security-and-compliance
-        # In Heroku we use the config key REDIS_SSL_CERT_REQS to have redis-py
-        # accept self-signed certificates.
+        # REDIS_SSL_CERT_REQS can be set to override SSL cert verification
+        # for Redis connections (e.g., "none" for self-signed certificates).
         SESSION_REDIS=create_redis_connection(
             cert_reqs=os.getenv("REDIS_SSL_CERT_REQS")
         ),
