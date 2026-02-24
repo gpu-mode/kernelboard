@@ -357,6 +357,7 @@ function LeaderboardWithSidebar() {
     navigationIndex,
     codes,
     isOpen,
+    isLoadingCodes,
     navigate,
     close,
   } = useSubmissionSidebar();
@@ -383,6 +384,7 @@ function LeaderboardWithSidebar() {
         navigationItems={navigationItems}
         navigationIndex={navigationIndex}
         codes={codes}
+        isLoadingCodes={isLoadingCodes}
         onClose={close}
         onNavigate={navigate}
         width={SIDEBAR_WIDTH}

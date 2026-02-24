@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import {
   Box,
   Button,
+  CircularProgress,
   Drawer,
   IconButton,
   Typography,
@@ -18,6 +19,7 @@ interface SubmissionCodeSidebarProps {
   navigationItems: NavigationItem[];
   navigationIndex: number;
   codes: Map<number, string>;
+  isLoadingCodes?: boolean;
   onClose: () => void;
   onNavigate: (newIndex: number, item: NavigationItem) => void;
   width?: number;
@@ -28,6 +30,7 @@ export default function SubmissionCodeSidebar({
   navigationItems,
   navigationIndex,
   codes,
+  isLoadingCodes = false,
   onClose,
   onNavigate,
   width = 600,
@@ -203,7 +206,21 @@ export default function SubmissionCodeSidebar({
               p: 2,
             }}
           >
-            {codes.get(selectedSubmission.submissionId) ? (
+            {isLoadingCodes ? (
+              <Box
+                display="flex"
+                flexDirection="column"
+                justifyContent="center"
+                alignItems="center"
+                minHeight={200}
+                gap={2}
+              >
+                <CircularProgress />
+                <Typography variant="body2" color="text.secondary">
+                  Loading code...
+                </Typography>
+              </Box>
+            ) : codes.get(selectedSubmission.submissionId) ? (
               <CodeBlock
                 code={codes.get(selectedSubmission.submissionId)!}
               />
