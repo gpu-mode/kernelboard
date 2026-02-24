@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -12,7 +12,6 @@ import RankingTitleBadge from "./RankingTitleBadge";
 
 import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
 import { getMedalIcon } from "../../../components/common/medal.tsx";
-import { fetchCodes } from "../../../api/api.ts";
 import type {
   NavigationItem,
   SelectedSubmission,
@@ -99,41 +98,7 @@ export default function RankingsList({
   const [colorHash] = useState<string>(
     Math.random().toString(36).slice(2, 8),
   );
-  const [codes, setCodes] = useState<Map<number, string>>(new Map());
   const { openSubmission } = useSubmissionSidebar();
-
-  const submissionIds = useMemo(() => {
-    if (!rankings) return [];
-    const ids: number[] = [];
-    Object.entries(rankings).forEach(([_key, value]) => {
-      const li = value as RankingItem[];
-      if (Array.isArray(li) && li.length > 0) {
-        li.forEach((item) => {
-          if (item?.submission_id) {
-            ids.push(item.submission_id);
-          }
-        });
-      }
-    });
-    return ids;
-  }, [rankings]);
-
-  useEffect(() => {
-    if (!expired && !isAdmin) return;
-    if (!submissionIds || submissionIds.length === 0 || !leaderboardId) return;
-    fetchCodes(leaderboardId, submissionIds)
-      .then((data) => {
-        const map = new Map<number, string>();
-        for (const item of data?.results ?? []) {
-          map.set(item.submission_id, item.code);
-        }
-        setCodes(map);
-      })
-      .catch((err) => {
-        // soft error handle it since it's not critical
-        console.warn("[RankingsList] Failed to fetch codes:", err);
-      });
-  }, [leaderboardId, submissionIds, expired, isAdmin]);
 
   const toggleExpanded = (field: string) => {
     setExpanded((prev) => ({
@@ -173,7 +138,9 @@ export default function RankingsList({
         ? new Date(item.submission_time).getTime()
         : undefined,
     };
-    openSubmission(submission, navItems, index >= 0 ? index : 0, codes);
+    if (leaderboardId) {
+      openSubmission(submission, navItems, index >= 0 ? index : 0, leaderboardId);
+    }
   };
 
   return (
