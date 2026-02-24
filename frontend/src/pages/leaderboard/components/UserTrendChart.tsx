@@ -22,7 +22,6 @@ import {
   fetchUserTrend,
   fetchCustomTrend,
   fetchFastestTrend,
-  fetchCodes,
   searchUsers,
   type UserTrendResponse,
   type CustomTrendResponse,
@@ -30,7 +29,6 @@ import {
   type UserSearchResult,
 } from "../../../api/api";
 import { isExpired } from "../../../lib/date/utils";
-import { useAuthStore } from "../../../lib/store/authStore";
 import { formatMicrosecondsNum, formatMicroseconds } from "../../../lib/utils/ranking";
 import { useThemeStore } from "../../../lib/store/themeStore";
 import type {
@@ -169,13 +167,6 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   const isContestClosed = !!deadline && isExpired(deadline);
   const isCodeViewingAllowed = isContestClosed;
 
-  // Auth state for code viewing (same pattern as RankingLists)
-  const me = useAuthStore((s) => s.me);
-  const isAdmin = !!me?.user?.is_admin;
-
-  // Pre-fetched codes map (same pattern as RankingLists)
-  const [codes, setCodes] = useState<Map<number, string>>(new Map());
-
   // Use sidebar context instead of local state
   const { openSubmission } = useSubmissionSidebar();
 
@@ -260,58 +251,6 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     return selectedGpuType || allGpuTypes[0] || "";
   }, [selectedGpuType, data, customData, fastestTrendData]);
 
-  // Collect all submission IDs from chart data for pre-fetching
-  const submissionIds = useMemo(() => {
-    const ids: number[] = [];
-    // From user trend data
-    if (data?.time_series) {
-      Object.values(data.time_series).forEach((gpuData) => {
-        Object.values(gpuData).forEach((points) => {
-          points.forEach((point) => {
-            if (point.submission_id) ids.push(point.submission_id);
-          });
-        });
-      });
-    }
-    // From custom trend data
-    if (customData?.time_series) {
-      Object.values(customData.time_series).forEach((gpuData) => {
-        Object.values(gpuData).forEach((points) => {
-          points.forEach((point) => {
-            if (point.submission_id) ids.push(point.submission_id);
-          });
-        });
-      });
-    }
-    // From fastest trend data
-    if (fastestTrendData?.time_series) {
-      Object.values(fastestTrendData.time_series).forEach((gpuData) => {
-        gpuData.fastest?.forEach((point) => {
-          if (point.submission_id) ids.push(point.submission_id);
-        });
-      });
-    }
-    return [...new Set(ids)]; // deduplicate
-  }, [data, customData, fastestTrendData]);
-
-  // Pre-fetch codes when contest is closed
-  useEffect(() => {
-    if (!isCodeViewingAllowed && !isAdmin) return;
-    if (!submissionIds || submissionIds.length === 0 || !leaderboardId) return;
-    fetchCodes(leaderboardId, submissionIds)
-      .then((response) => {
-        const map = new Map<number, string>();
-        for (const item of response?.results ?? []) {
-          map.set(item.submission_id, item.code);
-        }
-        setCodes(map);
-      })
-      .catch((err) => {
-        // soft error - not critical
-        console.warn("[UserTrendChart] Failed to fetch codes:", err);
-      });
-  }, [leaderboardId, submissionIds, isCodeViewingAllowed, isAdmin]);
-
   // Simple click handler - just set the selected submission
   // Also collects all datapoints from the series for navigation
   const onChartClick = useCallback(
@@ -372,7 +311,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
                 score: item.score,
                 originalTimestamp: item.originalTimestamp,
               };
-              openSubmission(submission, navItems, clickedIndex, codes);
+              openSubmission(submission, navItems, clickedIndex, leaderboardId);
               return;
             }
           }
@@ -395,9 +334,9 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
             score: params.value[1],
             originalTimestamp: params.data.originalTimestamp,
           }];
-          openSubmission(fallbackSubmission, fallbackNavItems, 0, codes);
+          openSubmission(fallbackSubmission, fallbackNavItems, 0, leaderboardId);
     },
-    [isCodeViewingAllowed, codes, openSubmission]
+    [isCodeViewingAllowed, leaderboardId, openSubmission]
   );
 
   const chartEvents = useMemo(

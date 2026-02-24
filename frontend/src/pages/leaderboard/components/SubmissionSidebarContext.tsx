@@ -1,5 +1,6 @@
 import { createContext, useState, useCallback, useContext } from "react";
 import type { NavigationItem, SelectedSubmission } from "./submissionTypes";
+import { fetchCodes } from "../../../api/api";
 
 interface SubmissionSidebarContextType {
   selectedSubmission: SelectedSubmission | null;
@@ -7,11 +8,12 @@ interface SubmissionSidebarContextType {
   navigationIndex: number;
   codes: Map<number, string>;
   isOpen: boolean;
+  isLoadingCodes: boolean;
   openSubmission: (
     submission: SelectedSubmission,
     navItems: NavigationItem[],
     navIndex: number,
-    codesMap: Map<number, string>
+    leaderboardId: string | number
   ) => void;
   navigate: (newIndex: number, item: NavigationItem) => void;
   close: () => void;
@@ -30,20 +32,46 @@ export function SubmissionSidebarProvider({
   const [navigationItems, setNavigationItems] = useState<NavigationItem[]>([]);
   const [navigationIndex, setNavigationIndex] = useState(0);
   const [codes, setCodes] = useState<Map<number, string>>(new Map());
+  const [isLoadingCodes, setIsLoadingCodes] = useState(false);
 
   const openSubmission = useCallback(
     (
       submission: SelectedSubmission,
       navItems: NavigationItem[],
       navIndex: number,
-      codesMap: Map<number, string>
+      leaderboardId: string | number
     ) => {
+      // Immediately show sidebar
       setSelectedSubmission(submission);
       setNavigationItems(navItems);
       setNavigationIndex(navIndex);
-      setCodes(codesMap);
+
+      // Find submission IDs that aren't already cached
+      const idsToFetch = navItems
+        .map((item) => item.submissionId)
+        .filter((id) => !codes.has(id));
+
+      if (idsToFetch.length > 0) {
+        setIsLoadingCodes(true);
+        fetchCodes(leaderboardId, idsToFetch)
+          .then((response) => {
+            setCodes((prev) => {
+              const next = new Map(prev);
+              for (const item of response?.results ?? []) {
+                next.set(item.submission_id, item.code);
+              }
+              return next;
+            });
+          })
+          .catch((err) => {
+            console.warn("[SubmissionSidebar] Failed to fetch codes:", err);
+          })
+          .finally(() => {
+            setIsLoadingCodes(false);
+          });
+      }
     },
-    []
+    [codes]
   );
 
   const navigate = useCallback((newIndex: number, item: NavigationItem) => {
@@ -75,6 +103,7 @@ export function SubmissionSidebarProvider({
         navigationIndex,
         codes,
         isOpen: !!selectedSubmission,
+        isLoadingCodes,
         openSubmission,
         navigate,
         close,
