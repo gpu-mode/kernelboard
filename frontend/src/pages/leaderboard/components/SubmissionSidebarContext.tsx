@@ -1,4 +1,4 @@
-import { createContext, useState, useCallback } from "react";
+import { createContext, useState, useCallback, useContext } from "react";
 import type { NavigationItem, SelectedSubmission } from "./submissionTypes";
 
 interface SubmissionSidebarContextType {
@@ -17,7 +17,7 @@ interface SubmissionSidebarContextType {
   close: () => void;
 }
 
-export const SubmissionSidebarContext =
+const SubmissionSidebarContext =
   createContext<SubmissionSidebarContextType | null>(null);
 
 export function SubmissionSidebarProvider({
@@ -83,4 +83,15 @@ export function SubmissionSidebarProvider({
       {children}
     </SubmissionSidebarContext.Provider>
   );
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function useSubmissionSidebar(): SubmissionSidebarContextType {
+  const context = useContext(SubmissionSidebarContext);
+  if (!context) {
+    throw new Error(
+      "useSubmissionSidebar must be used within SubmissionSidebarProvider"
+    );
+  }
+  return context;
 }

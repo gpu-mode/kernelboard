@@ -17,7 +17,7 @@ import type {
   NavigationItem,
   SelectedSubmission,
 } from "./submissionTypes";
-import { useSubmissionSidebar } from "./useSubmissionSidebar";
+import { useSubmissionSidebar } from "./SubmissionSidebarContext";
 import { isExpired } from "../../../lib/date/utils.ts";
 import { useAuthStore } from "../../../lib/store/authStore.ts";
 

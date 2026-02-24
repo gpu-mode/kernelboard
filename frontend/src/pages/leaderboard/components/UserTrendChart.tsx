@@ -37,7 +37,7 @@ import type {
   NavigationItem,
   SelectedSubmission,
 } from "./submissionTypes";
-import { useSubmissionSidebar } from "./useSubmissionSidebar";
+import { useSubmissionSidebar } from "./SubmissionSidebarContext";
 
 // Display name prefix for custom (KernelAgent) entries
 const CUSTOM_ENTRY_PREFIX = "KernelAgent";
