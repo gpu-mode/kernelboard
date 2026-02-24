@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, IconButton, Tooltip, useTheme } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -29,8 +29,15 @@ const styles = {
 
 export default function CodeBlock({ code }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
+  const [highlighted, setHighlighted] = useState(false);
   const theme = useTheme();
   const syntaxTheme = theme.palette.mode === "dark" ? oneDark : oneLight;
+
+  useEffect(() => {
+    setHighlighted(false);
+    const id = requestAnimationFrame(() => setHighlighted(true));
+    return () => cancelAnimationFrame(id);
+  }, [code]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code).then(() => {
@@ -74,20 +81,35 @@ export default function CodeBlock({ code }: CodeBlockProps) {
           },
         }}
       >
-        <SyntaxHighlighter
-          language="python"
-          style={syntaxTheme}
-          customStyle={{
-            margin: 0,
-            padding: 12,
-            fontSize: "0.85rem",
-            fontFamily: "monospace",
-            background: "transparent",
-          }}
-          wrapLongLines={true}
-        >
-          {code}
-        </SyntaxHighlighter>
+        {highlighted ? (
+          <SyntaxHighlighter
+            language="python"
+            style={syntaxTheme}
+            customStyle={{
+              margin: 0,
+              padding: 12,
+              fontSize: "0.85rem",
+              fontFamily: "monospace",
+              background: "transparent",
+            }}
+            wrapLongLines={true}
+          >
+            {code}
+          </SyntaxHighlighter>
+        ) : (
+          <pre
+            style={{
+              margin: 0,
+              padding: 12,
+              fontSize: "0.85rem",
+              fontFamily: "monospace",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
+          >
+            {code}
+          </pre>
+        )}
       </Box>
     </Box>
   );
