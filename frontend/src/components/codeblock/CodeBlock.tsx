@@ -8,6 +8,7 @@ import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 interface CodeBlockProps {
   code: string;
   maxHeight?: number | string;
+  bordered?: boolean;
 }
 
 const styles = {
@@ -27,7 +28,7 @@ const styles = {
   },
 };
 
-export default function CodeBlock({ code }: CodeBlockProps) {
+export default function CodeBlock({ code, bordered = false }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const [highlighted, setHighlighted] = useState(false);
   const theme = useTheme();
@@ -60,15 +61,12 @@ export default function CodeBlock({ code }: CodeBlockProps) {
       {/* Scrollable Code with Syntax Highlighting */}
       <Box
         sx={{
-          maxHeight: {
-            xs: "40vh", // mobile
-            sm: "50vh", // ipad
-            md: "60vh", // desktop
-          },
-          overflowY: "auto", // pass maxHeight to overflowY to enable scrolling
-          border: `1px solid ${theme.palette.divider}`,
-          borderRadius: 2,
-          bgcolor: theme.palette.background.paper,
+          overflowY: "auto",
+          ...(bordered && {
+            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: 2,
+            bgcolor: theme.palette.background.paper,
+          }),
           "& pre": {
             margin: "0 !important",
             padding: "12px !important",
