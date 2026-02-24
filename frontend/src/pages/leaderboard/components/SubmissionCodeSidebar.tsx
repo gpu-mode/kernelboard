@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Box,
   Button,
@@ -35,6 +35,8 @@ export default function SubmissionCodeSidebar({
   onNavigate,
   width = 600,
 }: SubmissionCodeSidebarProps) {
+  const location = useLocation();
+
   const handlePrevious = () => {
     const newIndex =
       (navigationIndex - 1 + navigationItems.length) % navigationItems.length;
@@ -236,7 +238,11 @@ export default function SubmissionCodeSidebar({
                 <Typography variant="body1" color="text.secondary">
                   Please log in to view submission code
                 </Typography>
-                <Button component={Link} to="/login" variant="contained">
+                <Button
+                  component={Link}
+                  to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`}
+                  variant="contained"
+                >
                   Log in
                 </Button>
               </Box>
