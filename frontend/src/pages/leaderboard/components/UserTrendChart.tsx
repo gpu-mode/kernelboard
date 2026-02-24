@@ -35,7 +35,7 @@ import type {
   NavigationItem,
   SelectedSubmission,
 } from "./submissionTypes";
-import { useSubmissionSidebar } from "./SubmissionSidebarContext";
+import { useSubmissionSidebarActions } from "./SubmissionSidebarContext";
 
 // Display name prefix for custom (KernelAgent) entries
 const CUSTOM_ENTRY_PREFIX = "KernelAgent";
@@ -168,7 +168,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   const isCodeViewingAllowed = isContestClosed;
 
   // Use sidebar context instead of local state
-  const { openSubmission } = useSubmissionSidebar();
+  const { openSubmission } = useSubmissionSidebarActions();
 
   const [data, setData] = useState<UserTrendResponse | null>(null);
   const [customData, setCustomData] = useState<CustomTrendResponse | null>(null);

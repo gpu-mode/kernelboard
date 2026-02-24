@@ -296,26 +296,26 @@ export default function SubmissionCodeSidebar({
                   code={codes.get(selectedSubmission.submissionId)!}
                 />
               ) : (
-                <Box
-                  display="flex"
-                  flexDirection="column"
-                  justifyContent="center"
-                  alignItems="center"
-                  minHeight={200}
-                  gap={2}
-                >
-                  <Typography variant="body1" color="text.secondary">
-                    Please log in to view submission code
-                  </Typography>
-                  <Button
-                    component={Link}
-                    to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`}
-                    variant="contained"
+                  <Box
+                    display="flex"
+                    flexDirection="column"
+                    justifyContent="center"
+                    alignItems="center"
+                    minHeight={200}
+                    gap={2}
                   >
-                    Log in
-                  </Button>
-                </Box>
-              )}
+                    <Typography variant="body1" color="text.secondary">
+                      Please log in to view submission code
+                    </Typography>
+                    <Button
+                      component={Link}
+                      to={`/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`}
+                      variant="contained"
+                    >
+                      Log in
+                    </Button>
+                  </Box>
+                )}
             </Box>
           </Box>
         </Box>

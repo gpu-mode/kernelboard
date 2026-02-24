@@ -28,7 +28,7 @@ const styles = {
   },
 };
 
-export default function CodeBlock({ code, bordered = false }: CodeBlockProps) {
+export default React.memo(function CodeBlock({ code, bordered = false }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const [highlighted, setHighlighted] = useState(false);
   const theme = useTheme();
@@ -111,4 +111,4 @@ export default function CodeBlock({ code, bordered = false }: CodeBlockProps) {
       </Box>
     </Box>
   );
-}
+});

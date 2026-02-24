@@ -1,26 +1,34 @@
-import { createContext, useState, useCallback, useContext } from "react";
+import { createContext, useState, useCallback, useContext, useRef } from "react";
 import type { NavigationItem, SelectedSubmission } from "./submissionTypes";
 import { fetchCodes } from "../../../api/api";
 
-interface SubmissionSidebarContextType {
-  selectedSubmission: SelectedSubmission | null;
-  navigationItems: NavigationItem[];
-  navigationIndex: number;
-  codes: Map<number, string>;
-  isOpen: boolean;
-  isLoadingCodes: boolean;
+// Actions context — stable references, rarely changes
+interface SubmissionSidebarActionsType {
   openSubmission: (
     submission: SelectedSubmission,
     navItems: NavigationItem[],
     navIndex: number,
     leaderboardId: string | number
   ) => void;
+}
+
+// State context — changes on every navigation
+interface SubmissionSidebarStateType {
+  selectedSubmission: SelectedSubmission | null;
+  navigationItems: NavigationItem[];
+  navigationIndex: number;
+  codes: Map<number, string>;
+  isOpen: boolean;
+  isLoadingCodes: boolean;
   navigate: (newIndex: number, item: NavigationItem) => void;
   close: () => void;
 }
 
-const SubmissionSidebarContext =
-  createContext<SubmissionSidebarContextType | null>(null);
+const SubmissionSidebarActionsContext =
+  createContext<SubmissionSidebarActionsType | null>(null);
+
+const SubmissionSidebarStateContext =
+  createContext<SubmissionSidebarStateType | null>(null);
 
 export function SubmissionSidebarProvider({
   children,
@@ -33,6 +41,8 @@ export function SubmissionSidebarProvider({
   const [navigationIndex, setNavigationIndex] = useState(0);
   const [codes, setCodes] = useState<Map<number, string>>(new Map());
   const [isLoadingCodes, setIsLoadingCodes] = useState(false);
+  const codesRef = useRef(codes);
+  codesRef.current = codes;
 
   const openSubmission = useCallback(
     (
@@ -49,7 +59,7 @@ export function SubmissionSidebarProvider({
       // Find submission IDs that aren't already cached
       const idsToFetch = navItems
         .map((item) => item.submissionId)
-        .filter((id) => !codes.has(id));
+        .filter((id) => !codesRef.current.has(id));
 
       if (idsToFetch.length > 0) {
         setIsLoadingCodes(true);
@@ -71,7 +81,7 @@ export function SubmissionSidebarProvider({
           });
       }
     },
-    [codes]
+    []
   );
 
   const navigate = useCallback((newIndex: number, item: NavigationItem) => {
@@ -96,30 +106,44 @@ export function SubmissionSidebarProvider({
   }, []);
 
   return (
-    <SubmissionSidebarContext.Provider
-      value={{
-        selectedSubmission,
-        navigationItems,
-        navigationIndex,
-        codes,
-        isOpen: !!selectedSubmission,
-        isLoadingCodes,
-        openSubmission,
-        navigate,
-        close,
-      }}
-    >
-      {children}
-    </SubmissionSidebarContext.Provider>
+    <SubmissionSidebarActionsContext.Provider value={{ openSubmission }}>
+      <SubmissionSidebarStateContext.Provider
+        value={{
+          selectedSubmission,
+          navigationItems,
+          navigationIndex,
+          codes,
+          isOpen: !!selectedSubmission,
+          isLoadingCodes,
+          navigate,
+          close,
+        }}
+      >
+        {children}
+      </SubmissionSidebarStateContext.Provider>
+    </SubmissionSidebarActionsContext.Provider>
   );
 }
 
+// For components that only need to open the sidebar (RankingsList, UserTrendChart)
 // eslint-disable-next-line react-refresh/only-export-components
-export function useSubmissionSidebar(): SubmissionSidebarContextType {
-  const context = useContext(SubmissionSidebarContext);
+export function useSubmissionSidebarActions(): SubmissionSidebarActionsType {
+  const context = useContext(SubmissionSidebarActionsContext);
   if (!context) {
     throw new Error(
-      "useSubmissionSidebar must be used within SubmissionSidebarProvider"
+      "useSubmissionSidebarActions must be used within SubmissionSidebarProvider"
+    );
+  }
+  return context;
+}
+
+// For the sidebar component that needs the full state
+// eslint-disable-next-line react-refresh/only-export-components
+export function useSubmissionSidebarState(): SubmissionSidebarStateType {
+  const context = useContext(SubmissionSidebarStateContext);
+  if (!context) {
+    throw new Error(
+      "useSubmissionSidebarState must be used within SubmissionSidebarProvider"
     );
   }
   return context;
