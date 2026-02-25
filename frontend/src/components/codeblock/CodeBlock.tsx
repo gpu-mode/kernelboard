@@ -21,7 +21,7 @@ function renderNode(
   let props: Record<string, unknown>;
   if (useInlineStyles) {
     const nonToken = classNames.filter((c: string) => c !== "token");
-    let style: React.CSSProperties = {};
+    const style: React.CSSProperties = {};
     for (const cls of nonToken) {
       if (stylesheet[cls]) Object.assign(style, stylesheet[cls]);
     }
@@ -61,6 +61,11 @@ const styles = {
     top: 4,
     right: 4,
     zIndex: 1,
+  },
+  pre: {
+    fontFamily: "monospace",
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
   },
 };
 
@@ -113,6 +118,7 @@ export default function CodeBlock({ code, bordered = false }: CodeBlockProps) {
         itemCount={rows.length}
         itemSize={LINE_HEIGHT_PX}
         width="100%"
+        style={{ paddingTop: 12, boxSizing: "content-box" }}
       >
         {({
           index,
@@ -124,9 +130,10 @@ export default function CodeBlock({ code, bordered = false }: CodeBlockProps) {
           <div
             style={{
               ...style,
+              top: ((style.top as number) || 0) + 12,
               lineHeight: `${LINE_HEIGHT_PX}px`,
-              overflow: "hidden",
               whiteSpace: "pre",
+              padding: "0 12px",
             }}
           >
             {renderNode(
@@ -163,7 +170,7 @@ export default function CodeBlock({ code, bordered = false }: CodeBlockProps) {
         </Tooltip>
       </Box>
 
-      {/* Code Content */}
+      {/* Scrollable Code with Syntax Highlighting */}
       <Box
         ref={canVirtualize ? containerRef : undefined}
         sx={{
@@ -182,12 +189,12 @@ export default function CodeBlock({ code, bordered = false }: CodeBlockProps) {
             fontFamily: "monospace !important",
             background: "transparent !important",
           },
-          "& code": {
+          "& code, & div[class*='language-']": {
             background: "transparent !important",
           },
         }}
       >
-        {highlighted ? (
+        {highlighted && (!canVirtualize || shouldVirtualize) ? (
           <SyntaxHighlighter
             language="python"
             style={syntaxTheme}
