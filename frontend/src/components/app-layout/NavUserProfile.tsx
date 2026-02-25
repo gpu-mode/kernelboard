@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   Avatar,
   Button,
-  Divider,
   IconButton,
   ListItemIcon,
   Menu,
@@ -119,13 +118,6 @@ export default function NavUserProfile() {
             transformOrigin={{ horizontal: "right", vertical: "top" }}
             anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
           >
-            <MenuItem disabled data-testid="profile-btn">
-              <ListItemIcon>
-                <AccountCircleIcon fontSize="small" />
-              </ListItemIcon>
-              {name} (Coming soon)
-            </MenuItem>
-            <Divider />
             <MenuItem onClick={onLogout} data-testid="logout-btn">
               <ListItemIcon>
                 <LogoutIcon fontSize="small" />
