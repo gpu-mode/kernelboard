@@ -203,10 +203,13 @@ def create_app(test_config=None):
 
                 response = make_response(html)
                 response.headers["Content-Type"] = "text/html"
+                response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
                 return response
             except Exception:
                 pass  # Fall back to normal serving
 
-        return send_from_directory(static_dir, "index.html")
+        response = send_from_directory(static_dir, "index.html")
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        return response
 
     return app
