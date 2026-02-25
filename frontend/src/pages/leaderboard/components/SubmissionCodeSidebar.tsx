@@ -273,8 +273,11 @@ export default function SubmissionCodeSidebar({
             <Box
               sx={{
                 flex: 1,
-                overflow: "auto",
+                overflow: "hidden",
                 p: 0,
+                display: "flex",
+                flexDirection: "column",
+                minHeight: 0,
               }}
             >
               {isLoadingCodes ? (
