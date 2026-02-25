@@ -173,7 +173,6 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   const [data, setData] = useState<UserTrendResponse | null>(null);
   const [customData, setCustomData] = useState<CustomTrendResponse | null>(null);
   const [fastestTrendData, setFastestTrendData] = useState<FastestTrendResponse | null>(null);
-  const [showFastestTrend, setShowFastestTrend] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedGpuType, setSelectedGpuType] = useState<string>(defaultGpuType || "");
@@ -361,20 +360,18 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     loadCustomData();
   }, [leaderboardId]);
 
-  // Fetch fastest trend data when checkbox is toggled on
+  // Fetch fastest trend data on mount
   useEffect(() => {
-    if (showFastestTrend && !fastestTrendData) {
-      const loadFastestTrend = async () => {
-        try {
-          const result = await fetchFastestTrend(leaderboardId);
-          setFastestTrendData(result);
-        } catch (err) {
-          console.error("Failed to load fastest trend data:", err);
-        }
-      };
-      loadFastestTrend();
-    }
-  }, [showFastestTrend, fastestTrendData, leaderboardId]);
+    const loadFastestTrend = async () => {
+      try {
+        const result = await fetchFastestTrend(leaderboardId);
+        setFastestTrendData(result);
+      } catch (err) {
+        console.error("Failed to load fastest trend data:", err);
+      }
+    };
+    loadFastestTrend();
+  }, [leaderboardId]);
 
   // Build combined options: users + custom entries
   // Custom entries are identified by id starting with "custom_"
@@ -678,6 +675,24 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
           {resetting ? "Loading..." : " Load Top 5 "}
         </Button>
       )}
+        <RadioGroup
+          value={displayMode}
+          onChange={(e) => setDisplayMode(e.target.value as "all" | "best")}
+          sx={{ ml: 1 }}
+        >
+          <FormControlLabel
+            value="best"
+            control={<Radio size="small" sx={{ p: 0.5 }} />}
+            label="Best Over Time"
+            slotProps={{ typography: { variant: "body2" } }}
+          />
+          <FormControlLabel
+            value="all"
+            control={<Radio size="small" sx={{ p: 0.5 }} />}
+            label="Raw Submissions"
+            slotProps={{ typography: { variant: "body2" } }}
+          />
+        </RadioGroup>
       <Box sx={{ display: "flex", flexDirection: "column", ml: 1 }}>
         <FormControlLabel
           control={
@@ -690,40 +705,11 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
           label="Clip offscreen"
           slotProps={{ typography: { variant: "body2" } }}
         />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={showFastestTrend}
-              onChange={(e) => setShowFastestTrend(e.target.checked)}
-              size="small"
-            />
-          }
-          label="⚡ Fastest (All Users)"
-          slotProps={{ typography: { variant: "body2" } }}
-        />
       </Box>
-        <RadioGroup
-          value={displayMode}
-          onChange={(e) => setDisplayMode(e.target.value as "all" | "best")}
-          sx={{ ml: 1 }}
-        >
-          <FormControlLabel
-            value="all"
-            control={<Radio size="small" sx={{ p: 0.5 }} />}
-            label="Raw Submissions"
-            slotProps={{ typography: { variant: "body2" } }}
-          />
-          <FormControlLabel
-            value="best"
-            control={<Radio size="small" sx={{ p: 0.5 }} />}
-            label="Best Over Time"
-            slotProps={{ typography: { variant: "body2" } }}
-          />
-        </RadioGroup>
     </Box>
   );
 
-  if (selectedUsers.length === 0 && selectedCustomEntries.length === 0 && !showFastestTrend) {
+  if (selectedUsers.length === 0 && selectedCustomEntries.length === 0 && !fastestTrendData) {
     return (
       <Box>
         {renderSearchInput()}
@@ -777,7 +763,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   const hasUserData = data?.time_series && Object.keys(data.time_series).length > 0;
   const hasCustomSelection = selectedCustomEntries.length > 0;
 
-  if (!hasUserData && !hasCustomSelection && !showFastestTrend) {
+  if (!hasUserData && !hasCustomSelection && !fastestTrendData) {
     return (
       <Box>
         {renderSearchInput()}
@@ -798,7 +784,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   // effectiveGpuType is already defined via useMemo at the top of the component
   const gpuData = data?.time_series?.[effectiveGpuType] || {};
 
-  if (Object.keys(gpuData).length === 0 && !hasCustomSelection && !showFastestTrend) {
+  if (Object.keys(gpuData).length === 0 && !hasCustomSelection && !fastestTrendData) {
     return (
       <Box>
         {renderSearchInput()}
@@ -948,8 +934,8 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     });
   }
 
-  // Add fastest trend series if enabled
-  if (showFastestTrend && fastestTrendData?.time_series?.[effectiveGpuType]) {
+  // Add fastest trend series (togglable via the chart legend)
+  if (fastestTrendData?.time_series?.[effectiveGpuType]) {
     const fastestGpuData = fastestTrendData.time_series[effectiveGpuType];
     const fastestDataPoints = fastestGpuData.fastest;
 
