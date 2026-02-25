@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { fetchLeaderBoard, searchUsers } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { isExpired, toDateUtc } from "../../lib/date/utils";
@@ -27,7 +27,7 @@ import LeaderboardSubmit from "./components/LeaderboardSubmit";
 import UserTrendChart from "./components/UserTrendChart";
 import {
   SubmissionSidebarProvider,
-  useSubmissionSidebar,
+  useSubmissionSidebarState,
 } from "./components/SubmissionSidebarContext";
 import SubmissionCodeSidebar from "./components/SubmissionCodeSidebar";
 
@@ -68,8 +68,8 @@ function TabPanel(props: {
   );
 }
 
-// Inner component that uses the sidebar context
-function LeaderboardContent() {
+// Inner component
+const LeaderboardContent = memo(function LeaderboardContent() {
   const { id } = useParams<{ id: string }>();
 
   const { data, loading, error, errorStatus, call } =
@@ -338,7 +338,7 @@ function LeaderboardContent() {
       </Box>
     </ConstrainedContainer>
   );
-}
+});
 
 // Main wrapper component with sidebar provider and flex layout
 export default function Leaderboard() {
@@ -360,7 +360,7 @@ function LeaderboardWithSidebar() {
     isLoadingCodes,
     navigate,
     close,
-  } = useSubmissionSidebar();
+  } = useSubmissionSidebarState();
 
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
 
