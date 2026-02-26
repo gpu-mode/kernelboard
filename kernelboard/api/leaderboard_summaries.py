@@ -13,6 +13,10 @@ leaderboard_summaries_bp = Blueprint(
     "leaderboard_summaries_bp", __name__, url_prefix="/leaderboard-summaries"
 )
 
+# In-memory cache keyed by query version ("v1" / "v2")
+_cache: dict = {}
+CACHE_TTL_SECONDS = 30
+
 
 @leaderboard_summaries_bp.route("", methods=["GET"])
 def index():
@@ -20,6 +24,17 @@ def index():
 
     # Check if legacy v1 query is requested (v2 is now default)
     use_v1 = request.args.get("v1_query") is not None
+    version = "v1" if use_v1 else "v2"
+
+    # Return cached data if still valid
+    now = time.time()
+    cached = _cache.get(version)
+    if cached and (now - cached["timestamp"]) < CACHE_TTL_SECONDS:
+        total_time = (time.perf_counter() - total_start) * 1000
+        logger.info("[Perf] leaderboard_summaries (%s) | cache_hit | total=%.2fms", version, total_time)
+        return http_success(
+            {"leaderboards": cached["data"], "now": datetime.now(timezone.utc)}
+        )
 
     # 1. Database connection
     db_conn_start = time.perf_counter()
@@ -41,10 +56,12 @@ def index():
             lb["gpu_types"] = []
     transform_time = (time.perf_counter() - transform_start) * 1000
 
+    # Update cache
+    _cache[version] = {"data": leaderboards, "timestamp": time.time()}
+
     total_time = (time.perf_counter() - total_start) * 1000
 
     # Log timing breakdown
-    version = "v1" if use_v1 else "v2"
     logger.info(
         "[Perf] leaderboard_summaries (%s) | "
         "db_conn=%.2fms | query=%.2fms | transform=%.2fms | total=%.2fms",
