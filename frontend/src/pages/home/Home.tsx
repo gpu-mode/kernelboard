@@ -43,15 +43,16 @@ export default function Home() {
   const [searchParams] = useSearchParams();
   const [isQuickStartOpen, setIsQuickStartOpen] = useState(false);
   const useV1 = searchParams.has("v1_query");
+  const forceRefresh = searchParams.has("force_refresh");
 
   const { data, loading, error, errorStatus, call } = fetcherApiCallback<
     LeaderboardSummaries,
-    [boolean]
+    [boolean, boolean]
   >(fetchLeaderboardSummaries);
 
   useEffect(() => {
-    call(useV1);
-  }, [call, useV1]);
+    call(useV1, forceRefresh);
+  }, [call, useV1, forceRefresh]);
 
   if (loading) {
     return <Loading />;
