@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Box,
   Typography,
@@ -90,7 +90,7 @@ const styles = {
 
 export default function SubmissionHistorySection({
   leaderboardId,
-  leaderboardName,
+  leaderboardName: _leaderboardName,
   userId,
   pageSize = 10,
   refreshFlag,
@@ -107,6 +107,12 @@ export default function SubmissionHistorySection({
   const { data, loading, error, errorStatus, call } =
     fetcherApiCallback(fetchUserSubmissions);
 
+  const refresh = useCallback(() => {
+    if (!leaderboardId || !userId) return;
+    call(leaderboardId, userId, page, pageSize);
+    setLastRefresh(new Date());
+  }, [leaderboardId, userId, page, pageSize, call]);
+
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(id);
@@ -119,7 +125,7 @@ export default function SubmissionHistorySection({
 
   useEffect(() => {
     refresh();
-  }, [refreshFlag]);
+  }, [refreshFlag, refresh]);
 
   // fetch when inputs or page change
   useEffect(() => {
@@ -128,10 +134,10 @@ export default function SubmissionHistorySection({
     setLastRefresh(new Date());
   }, [leaderboardId, userId, page, pageSize, call]);
 
-  let totalPages =
+  const totalPages =
     data?.limit && data?.total ? Math.ceil(data?.total / data?.limit) : 1;
-  let items: Submission[] = data?.items ?? [];
-  let total: number = data?.total ?? 0;
+  const items: Submission[] = useMemo(() => data?.items ?? [], [data?.items]);
+  const total: number = data?.total ?? 0;
 
   const tooOld = lastRefresh && now - lastRefresh.getTime() > 10 * 60 * 1000;
 
@@ -150,12 +156,6 @@ export default function SubmissionHistorySection({
   // toggle handler
   const toggleRow = (id: number) => {
     setOpenMap((m) => ({ ...m, [id]: !m[id] }));
-  };
-
-  const refresh = () => {
-    if (!leaderboardId || !userId) return;
-    call(leaderboardId, userId, page, pageSize);
-    setLastRefresh(new Date());
   };
 
   const stabelItems = useMemo(

@@ -1,12 +1,11 @@
+import logging
 import secrets
-import os
 from typing import Any, Optional
 
 from flask import session
 from flask_login import current_user
 
 from kernelboard.lib.db import get_db_connection
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +114,7 @@ def get_whitelist(leaderboard_id: str = "") -> set[str]:
         "325883680419610631",
         "557943190045327360",
         "1394757548833509408",
+        "268205958637944832",
     ]
 
     whitelist = GPU_TEAM_WHITE_LIST

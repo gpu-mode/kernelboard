@@ -1,22 +1,27 @@
 import http
 import os
-from re import L
+
 from dotenv import load_dotenv
-from flask import Flask, jsonify, redirect, session, g
-from flask_login import LoginManager, current_user
+from flask import Flask, make_response, redirect, send_from_directory
+from flask_login import LoginManager
 from flask_session import Session
 from flask_talisman import Talisman
-from kernelboard.api.auth import User, providers
-from kernelboard.lib import db, env, time, score
-from kernelboard import color, error, health, index, leaderboard, news
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+from kernelboard import color, health
+from kernelboard import error as error
+from kernelboard import index as index
+from kernelboard import leaderboard as leaderboard
+from kernelboard import news as news
 from kernelboard.api import create_api_blueprint
-from kernelboard.lib.redis_connection import create_redis_connection
-from flask import send_from_directory, make_response
+from kernelboard.api.auth import User, providers
+from kernelboard.lib import db, env, score, time
 from kernelboard.lib.logging import configure_logging
-from kernelboard.og_tags import is_social_crawler, get_og_tags_for_path, inject_og_tags
-from flask_limiter import Limiter
 from kernelboard.lib.rate_limiter import limiter
+from kernelboard.lib.redis_connection import create_redis_connection
 from kernelboard.lib.status_code import http_error
+from kernelboard.og_tags import get_og_tags_for_path, inject_og_tags, is_social_crawler
+
 
 def create_app(test_config=None):
     # Check if we're in development mode:
@@ -27,6 +32,12 @@ def create_app(test_config=None):
     env.check_env_vars()
 
     app = Flask(__name__, instance_relative_config=True)
+
+    # Trust proxy headers (X-Forwarded-For, X-Forwarded-Proto, X-Forwarded-Host)
+    # so url_for(_external=True) generates correct OAuth callback URLs behind
+    # Northflank's reverse proxy.
+    if not is_dev:
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     # set logging for flask app
     configure_logging(app)
@@ -42,10 +53,8 @@ def create_app(test_config=None):
         SESSION_PERMANENT=True,
         PERMANENT_SESSION_LIFETIME=1209600,  # 14 days
         SESSION_TYPE="redis",
-        # Heroku Redis uses self-signed certificates:
-        # https://devcenter.heroku.com/articles/heroku-redis#security-and-compliance
-        # In Heroku we use the config key REDIS_SSL_CERT_REQS to have redis-py
-        # accept self-signed certificates.
+        # REDIS_SSL_CERT_REQS can be set to override SSL cert verification
+        # for Redis connections (e.g., "none" for self-signed certificates).
         SESSION_REDIS=create_redis_connection(
             cert_reqs=os.getenv("REDIS_SSL_CERT_REQS")
         ),
@@ -123,7 +132,7 @@ def create_app(test_config=None):
         return redirect(f"/{path}", code=301)
 
     @app.errorhandler(401)
-    def unauthorized(_error):
+    def handle_401(_error):
         return redirect("/401")
 
     @app.errorhandler(404)
@@ -194,10 +203,13 @@ def create_app(test_config=None):
 
                 response = make_response(html)
                 response.headers["Content-Type"] = "text/html"
+                response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
                 return response
             except Exception:
                 pass  # Fall back to normal serving
 
-        return send_from_directory(static_dir, "index.html")
+        response = send_from_directory(static_dir, "index.html")
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        return response
 
     return app

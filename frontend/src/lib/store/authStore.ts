@@ -9,7 +9,7 @@ type AuthState = {
   inFlight: boolean;
   setMe: (me: User | null) => void;
   fetchMe: () => Promise<void>;
-  logoutAndRefresh: () => Promise<any>;
+  logoutAndRefresh: () => Promise<{ ok: boolean; error?: unknown }>;
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -27,15 +27,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     );
     try {
       const res = await getMe();
-      set((s) => ({
+      set((_s) => ({
         me: res,
         loading: false,
         inFlight: false,
         error: null,
       }));
-    } catch (e: any) {
-      set((s) => ({
-        error: e?.message ?? "Failed to fetch user",
+    } catch (e: unknown) {
+      set((_s) => ({
+        error: e instanceof Error ? e.message : "Failed to fetch user",
         loading: false,
         inFlight: false,
         me: null,
@@ -48,7 +48,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await logout();
       await get().fetchMe();
       return { ok: true };
-    } catch (e: any) {
+    } catch (e: unknown) {
       return { ok: false, error: e };
     }
   },

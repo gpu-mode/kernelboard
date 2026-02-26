@@ -9,8 +9,8 @@ import {
   Typography,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { useEffect, useState, useMemo } from "react";
-import { fetchLeaderBoard } from "../../api/api";
+import { memo, useCallback, useEffect, useState } from "react";
+import { fetchLeaderBoard, searchUsers } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { isExpired, toDateUtc } from "../../lib/date/utils";
 import RankingsList from "./components/RankingLists";
@@ -24,14 +24,21 @@ import { SubmissionMode } from "../../lib/types/mode";
 import { useAuthStore } from "../../lib/store/authStore";
 import SubmissionHistorySection from "./components/submission-history/SubmissionHistorySection";
 import LeaderboardSubmit from "./components/LeaderboardSubmit";
-import AiTrendChart from "./components/AiTrendChart";
 import UserTrendChart from "./components/UserTrendChart";
+import {
+  SubmissionSidebarProvider,
+  useSubmissionSidebarState,
+} from "./components/SubmissionSidebarContext";
+import SubmissionCodeSidebar from "./components/SubmissionCodeSidebar";
+
+const DEFAULT_SIDEBAR_WIDTH = 600;
+
 export const CardTitle = styled(Typography)(() => ({
   fontSize: "1.5rem",
   fontWeight: "bold",
 }));
 
-type TabKey = "rankings" | "reference" | "submission" | "ai_trend";
+type TabKey = "rankings" | "reference" | "submission";
 
 // Tab accessibility props
 function a11yProps(index: number) {
@@ -61,7 +68,8 @@ function TabPanel(props: {
   );
 }
 
-export default function Leaderboard() {
+// Inner component
+const LeaderboardContent = memo(function LeaderboardContent() {
   const { id } = useParams<{ id: string }>();
 
   const { data, loading, error, errorStatus, call } =
@@ -70,20 +78,16 @@ export default function Leaderboard() {
   const isAuthed = !!(me && me.authenticated);
   const userId = me?.user?.identity ?? null;
 
+  // State for top users (strongest submissions) and default GPU type
+  const [defaultUsers, setDefaultUsers] = useState<
+    Array<{ userId: string; username: string }>
+  >([]);
+  const [defaultGpuType, setDefaultGpuType] = useState<string | null>(null);
+
   // Sync tab state with query parameter
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Check if AI Trend should be shown
-  const showAiTrend = searchParams.get("showAiTrend") === "true";
-
-  // Build tab keys dynamically based on showAiTrend
-  const TAB_KEYS: TabKey[] = useMemo(() => {
-    const keys: TabKey[] = ["rankings", "reference", "submission"];
-    if (showAiTrend) {
-      keys.push("ai_trend");
-    }
-    return keys;
-  }, [showAiTrend]);
+  const TAB_KEYS: TabKey[] = ["rankings", "reference", "submission"];
 
   const initialTabFromUrl = ((): TabKey => {
     const t = (searchParams.get("tab") || "").toLowerCase();
@@ -102,12 +106,66 @@ export default function Leaderboard() {
       next.set("tab", tab);
       setSearchParams(next, { replace: true });
     }
-  }, [tab]);
+  }, [tab, searchParams, setSearchParams]);
 
   // Fetch leaderboard data
   useEffect(() => {
     if (id) call(id);
-  }, [id]);
+  }, [id, call]);
+
+  // Fetch top users (strongest submissions) when rankings are available
+  // Select from the GPU with the most unique users
+  useEffect(() => {
+    const findTopUsers = async () => {
+      if (!id || !data?.rankings) return;
+
+      const gpuTypes = Object.keys(data.rankings);
+      if (gpuTypes.length === 0) return;
+
+      // Find the GPU type with the most unique users
+      const mostActiveGpu = gpuTypes.reduce((currentMax, gpuType) => {
+        const rankings = data.rankings[gpuType];
+        const userCount = rankings ? rankings.length : 0;
+        const maxCount = data.rankings[currentMax]?.length ?? 0;
+        return userCount > maxCount ? gpuType : currentMax;
+      }, gpuTypes[0]);
+
+      // Set the default GPU type to the one with most users
+      setDefaultGpuType(mostActiveGpu);
+
+      const mostActiveGpuRankings = data.rankings[mostActiveGpu];
+      if (!mostActiveGpuRankings || mostActiveGpuRankings.length === 0) return;
+
+      // Get top 5 users (sorted by score ascending)
+      const topUserNames = mostActiveGpuRankings
+        .slice(0, 5)
+        .map((r) => r.user_name)
+        .filter(Boolean);
+
+      if (topUserNames.length === 0) return;
+
+      try {
+        // Search for each user by username to get their user_id
+        const userPromises = topUserNames.map((userName: string) =>
+          searchUsers(id, userName, 1)
+        );
+        const results = await Promise.all(userPromises);
+
+        const foundUsers = results
+          .filter((result) => result.users && result.users.length > 0)
+          .map((result) => ({
+            userId: result.users[0].user_id,
+            username: result.users[0].username,
+          }));
+
+        setDefaultUsers(foundUsers);
+      } catch (err) {
+        console.error("Failed to fetch top users:", err);
+      }
+    };
+
+    findTopUsers();
+  }, [id, data?.rankings]);
 
   if (loading) return <Loading />;
   if (error) return <ErrorAlert status={errorStatus} message={error} />;
@@ -142,8 +200,26 @@ export default function Leaderboard() {
         <Grid marginBottom={2}>
           <Card>
             <CardContent>
-              <CardTitle fontWeight="bold">Description</CardTitle>
-              <MarkdownRenderer content={data.description} />
+              <details>
+                <summary style={{ cursor: "pointer", fontWeight: "bold", fontSize: "1.5rem" }}>
+                  Description
+                </summary>
+                <MarkdownRenderer content={data.description} />
+                {data.benchmarks && data.benchmarks.length > 0 && (
+                  <details>
+                    <summary style={{ cursor: "pointer", fontWeight: "bold", marginTop: 16 }}>
+                      Benchmark Shapes
+                    </summary>
+                    <ul>
+                      {data.benchmarks.map((b, i) => (
+                        <li key={i}>
+                          <code>{JSON.stringify(Object.fromEntries(Object.entries(b).filter(([k]) => k !== "seed")))}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </details>
             </CardContent>
           </Card>
         </Grid>
@@ -161,9 +237,6 @@ export default function Leaderboard() {
             <Tab label="Rankings" value="rankings" {...a11yProps(0)} />
             <Tab label="Reference" value="reference" {...a11yProps(1)} />
             <Tab label="Submission" value="submission" {...a11yProps(2)} />
-            {showAiTrend && (
-              <Tab label="AI Trend" value="ai_trend" {...a11yProps(3)} />
-            )}
           </Tabs>
         </Box>
 
@@ -171,11 +244,20 @@ export default function Leaderboard() {
         <TabPanel value={tab} tabKey="rankings">
           <Box>
             {Object.entries(data.rankings).length > 0 ? (
-              <RankingsList
-                rankings={data.rankings}
-                leaderboardId={id}
-                deadline={data.deadline}
-              />
+              <>
+                <RankingsList
+                  rankings={data.rankings}
+                  leaderboardId={id}
+                  deadline={data.deadline}
+                />
+                <Box sx={{ my: 4, borderTop: 1, borderColor: "divider" }} />
+                <Card>
+                  <CardContent>
+                    <CardTitle fontWeight="bold">Performance Trend</CardTitle>
+                    <UserTrendChart leaderboardId={id!} defaultUsers={defaultUsers} defaultGpuType={defaultGpuType} rankings={data.rankings} deadline={data.deadline} />
+                  </CardContent>
+                </Card>
+              </>
             ) : (
               <Box display="flex" flexDirection="column" alignItems="center">
                 <Typography variant="h6" fontWeight="bold">
@@ -195,7 +277,7 @@ export default function Leaderboard() {
             <CardContent>
               <CardTitle fontWeight="bold">Reference Implementation</CardTitle>
               <Box>
-                <CodeBlock code={data.reference} />
+                <CodeBlock code={data.reference} bordered />
               </Box>
             </CardContent>
           </Card>
@@ -217,7 +299,7 @@ export default function Leaderboard() {
                 >
                   <CardTitle fontWeight="bold">Submission</CardTitle>
                   <LeaderboardSubmit
-                    leaderboardId={id!!}
+                    leaderboardId={id!}
                     leaderboardName={data.name}
                     gpuTypes={data.gpu_types}
                     disabled={isExpired(data.deadline)}
@@ -243,9 +325,9 @@ export default function Leaderboard() {
                 )}
                 {/* History List */}
                 <SubmissionHistorySection
-                  leaderboardId={id!!}
+                  leaderboardId={id!}
                   leaderboardName={data.name}
-                  userId={userId!!}
+                  userId={userId!}
                   refreshFlag={refreshFlag}
                 />
               </CardContent>
@@ -253,26 +335,71 @@ export default function Leaderboard() {
           )}
         </TabPanel>
 
-        {/* AI Trend Tab - only shown when showAiTrend=true */}
-        {showAiTrend && (
-          <TabPanel value={tab} tabKey="ai_trend">
-            <Card>
-              <CardContent>
-                <CardTitle fontWeight="bold">
-                  AI Model Performance Trend
-                </CardTitle>
-                <AiTrendChart leaderboardId={id!!} />
-              </CardContent>
-            </Card>
-            <Card sx={{ mt: 2 }}>
-              <CardContent>
-                <CardTitle fontWeight="bold">User Performance Trend</CardTitle>
-                <UserTrendChart leaderboardId={id!!} />
-              </CardContent>
-            </Card>
-          </TabPanel>
-        )}
       </Box>
     </ConstrainedContainer>
+  );
+});
+
+// Main wrapper component with sidebar provider and flex layout
+export default function Leaderboard() {
+  return (
+    <SubmissionSidebarProvider>
+      <LeaderboardWithSidebar />
+    </SubmissionSidebarProvider>
+  );
+}
+
+// Layout component that uses the sidebar context for flex layout
+function LeaderboardWithSidebar() {
+  const {
+    selectedSubmission,
+    navigationItems,
+    navigationIndex,
+    codes,
+    isOpen,
+    isLoadingCodes,
+    navigate,
+    close,
+  } = useSubmissionSidebarState();
+
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
+
+  const handleWidthChange = useCallback((newWidth: number) => {
+    const maxWidth = window.innerWidth * 0.8;
+    setSidebarWidth(Math.min(Math.max(newWidth, 300), maxWidth));
+  }, []);
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        width: "100%",
+      }}
+    >
+      <Box
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          width: {
+            xs: "100%",
+            md: isOpen ? `calc(100% - ${sidebarWidth}px)` : "100%",
+          },
+          transition: "width 0.3s ease",
+        }}
+      >
+        <LeaderboardContent />
+      </Box>
+      <SubmissionCodeSidebar
+        selectedSubmission={selectedSubmission}
+        navigationItems={navigationItems}
+        navigationIndex={navigationIndex}
+        codes={codes}
+        isLoadingCodes={isLoadingCodes}
+        onClose={close}
+        onNavigate={navigate}
+        width={sidebarWidth}
+        onWidthChange={handleWidthChange}
+      />
+    </Box>
   );
 }

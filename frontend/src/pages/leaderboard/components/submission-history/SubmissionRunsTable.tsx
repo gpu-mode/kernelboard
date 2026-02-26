@@ -22,8 +22,8 @@ export type SubmissionRun = {
   mode: string;
   passed: boolean;
   score: number | null;
-  meta: any | null; // present, but null when passed = true
-  report: any | null; // present, but null when passed = true
+  meta: Record<string, unknown> | null;
+  report: Record<string, unknown> | null;
 };
 
 // --- Child table for runs (rendered inside Collapse) ---
@@ -44,16 +44,16 @@ export function SubmissionRunsTable({ runs }: { runs: SubmissionRun[] }) {
       <TableBody>
         {runs.map((r, idx) => {
           const debug_info = {
-            stderr: r.meta?.stderr,
-            success: r.meta?.success,
-            exit_code: r.meta?.exit_code,
-            exit_code_info: r.meta?.exit_code
-              ? getExitCodeMessage(r.meta?.exit_code)
+            stderr: (r.meta as Record<string, unknown>)?.stderr,
+            success: (r.meta as Record<string, unknown>)?.success,
+            exit_code: (r.meta as Record<string, unknown>)?.exit_code,
+            exit_code_info: (r.meta as Record<string, unknown>)?.exit_code
+              ? getExitCodeMessage((r.meta as Record<string, unknown>)?.exit_code as number)
               : null,
-            duration: r.meta?.duration,
+            duration: (r.meta as Record<string, unknown>)?.duration,
           };
 
-          const report = r.report?.log;
+          const report = (r.report as Record<string, unknown>)?.log as string | undefined;
 
           return (
             <TableRow key={`${r.start_time}-${idx}`}>

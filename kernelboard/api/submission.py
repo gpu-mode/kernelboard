@@ -1,8 +1,16 @@
+import base64
 import http
+import json
+import logging
+import os
+import textwrap
+import time
 from typing import Any, List, Optional, Tuple
-from flask import Blueprint, request, jsonify
-from flask_login import login_required, current_user
+
 import requests
+from flask import Blueprint, jsonify, request
+from flask_login import current_user, login_required
+
 from kernelboard.lib.auth_utils import (
     get_id_and_username_from_session,
     get_whitelist,
@@ -10,18 +18,8 @@ from kernelboard.lib.auth_utils import (
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.error import ValidationError, validate_required_fields
 from kernelboard.lib.file_handler import get_submission_file_info
-from kernelboard.lib.status_code import http_error, http_success
-import logging
-import os
 from kernelboard.lib.rate_limiter import limiter
-import time
-from typing import Any, List, Tuple
-import json
-from typing import Any, Tuple, List
-import json
-import base64
-import textwrap
-
+from kernelboard.lib.status_code import http_error, http_success
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +56,10 @@ def submission():
     if not web_token:
         logger.error("user %s missing web token", user_id)
         return http_error(
-            message="cannot find user info from db for user. if this is a bug, please contact the gpumode administrator",
+            message=(
+                "cannot find user info from db for user."
+                " if this is a bug, please contact the gpumode administrator"
+            ),
             status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
         )
     req = request.form.to_dict()
@@ -125,7 +126,7 @@ def submission():
 
 
 @submission_bp.route("/codes", methods=["POST"])
-def list_codes():
+def list_codes_route():
     """
     POST /codes
     Body example:
@@ -175,7 +176,8 @@ def list_codes():
                 data={"results": results},
             )
         else:
-            # otherwise, check if user able to see the leaderboard codes (only admin can see the leaderboard codes if leaderboard is not ended)
+            # otherwise, check if user able to see the leaderboard codes
+            # (only admin can see the leaderboard codes if leaderboard is not ended)
             return check_admin_access_codes(user_id, leaderboard_id, submission_ids)
     except Exception as e:
         logger.error(f"faild to list codes: {e}")
@@ -470,38 +472,6 @@ def make_profile_log(result: dict) -> str:
         return "\n".join(bench_log)
     else:
         return "❗ Could not find any profiling data"
-
-
-def make_benchmark_log(result: dict) -> str:
-    num_bench = int(result.get("benchmark-count", 0))
-
-    def log_one(base_name):
-        status = result.get(f"{base_name}.status")
-        spec = result.get(f"{base_name}.spec")
-        if status == "fail":
-            bench_log.append(f"❌ {spec} failed testing:\n")
-            bench_log.append(result.get(f"{base_name}.error"))
-            return
-
-        mean = result.get(f"{base_name}.mean")
-        err = result.get(f"{base_name}.err")
-        best = result.get(f"{base_name}.best")
-        worst = result.get(f"{base_name}.worst")
-
-        bench_log.append(f"{spec}")
-        bench_log.append(f" ⏱ {format_time(mean, err)}")
-        if best is not None and worst is not None:
-            bench_log.append(f" ⚡ {format_time(best)} 🐌 {format_time(worst)}")
-
-    bench_log = []
-    for i in range(num_bench):
-        log_one(f"benchmark.{i}")
-        bench_log.append("")
-
-    if len(bench_log) > 0:
-        return "\n".join(bench_log)
-    else:
-        return "❗ Could not find any benchmarks"
 
 
 def _is_crash_report(compilation: dict, passed: bool):

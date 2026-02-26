@@ -1,6 +1,6 @@
 import { Box, Typography, Button } from "@mui/material";
-import { lazy, Suspense } from "react";
-import { useNavigate } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 const MarkdownRenderer = lazy(
@@ -32,6 +32,21 @@ const styles = {
 
 export function NewsSinglePost({ post }: { post: NewsItem }) {
   const navigate = useNavigate();
+  const { hash } = useLocation();
+
+  useEffect(() => {
+    if (!hash) return;
+    // Retry scrolling until the lazy-loaded markdown renders the target element
+    const id = hash.replace("#", "");
+    const interval = setInterval(() => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+        clearInterval(interval);
+      }
+    }, 100);
+    return () => clearInterval(interval);
+  }, [hash]);
 
   return (
     <Box sx={styles.container}>

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { screen, fireEvent, within } from "@testing-library/react";
 import { vi, expect, it, describe, beforeEach } from "vitest";
 import Leaderboard from "./Leaderboard";
 import * as apiHook from "../../lib/hooks/useApi";
@@ -18,7 +18,7 @@ let currentAuth: AuthState = { me: null };
 vi.mock("../../lib/store/authStore", () => {
   return {
     // Simulate Zustand's selector pattern
-    useAuthStore: (selector: any) =>
+    useAuthStore: (selector: (state: { me: AuthState["me"] }) => unknown) =>
       selector({
         me: currentAuth.me,
       }),

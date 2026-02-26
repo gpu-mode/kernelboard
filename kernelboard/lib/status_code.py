@@ -1,5 +1,6 @@
-from flask import jsonify
 from http import HTTPStatus
+
+from flask import jsonify
 
 
 class HttpError(Exception):
