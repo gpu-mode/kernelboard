@@ -1,14 +1,16 @@
 # tests/test_submission_api.py
+import datetime as dt
 import http
 from io import BytesIO
 from types import SimpleNamespace
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 import flask_login
-import datetime as dt
-import requests
 import pytest
-from kernelboard.lib.db import get_db_connection
+import requests
 from psycopg2.extras import execute_values
+
+from kernelboard.lib.db import get_db_connection
 
 _TEST_USER_ID = "333"
 _TEST_WEB_AUTH_ID = "111"
@@ -302,7 +304,7 @@ def test_submission_upstream_non_200_maps_to_http_error(app, client, prepare):
     error_response.reason = "Bad Request"
     error_response.json.return_value = {"detail": "invalid format"}
 
-    with patch("kernelboard.api.submission.requests.post", return_value=error_response) as mock_post:
+    with patch("kernelboard.api.submission.requests.post", return_value=error_response):
         resp = _post_submission(client)
 
     assert resp.status_code == http.HTTPStatus.BAD_REQUEST

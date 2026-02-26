@@ -8,6 +8,7 @@ import {
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import News from "./News"; // 假设你当前文件路径为 pages/News.tsx
 import * as apiHook from "../../lib/hooks/useApi";
+import { useParams, useNavigate } from "react-router-dom";
 
 // 统一 mock useApi hook
 vi.mock("../../lib/hooks/useApi", () => ({
@@ -52,7 +53,6 @@ const mockData = [
 describe("News", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    const { useParams, useNavigate } = require("react-router-dom");
     (useParams as ReturnType<typeof vi.fn>).mockReturnValue({});
     (useNavigate as ReturnType<typeof vi.fn>).mockReturnValue(mockNavigate);
   });
@@ -181,7 +181,6 @@ describe("News", () => {
   it("scrolls to section when slug is provided in URL", async () => {
     // prepare
     const scrollIntoViewMock = vi.fn();
-    const { useParams } = require("react-router-dom");
     (useParams as ReturnType<typeof vi.fn>).mockReturnValue({ slug: "news-2" });
 
     const mockHookReturn = {

@@ -17,7 +17,7 @@ vi.mock("../../../api/api", () => ({
 // Make AlertBar deterministic and closable
 vi.mock("../../../components/alert/AlertBar", () => ({
   __esModule: true,
-  default: ({ notice, onClose }: any) =>
+  default: ({ notice, onClose }: { notice: { open: boolean; title?: string; message?: string }; onClose: () => void }) =>
     notice?.open ? (
       <div data-testid="alertbar">
         <div data-testid="alertbar-title">{notice.title}</div>
@@ -79,7 +79,7 @@ function getHiddenFileInput(): HTMLInputElement {
 }
 
 async function formDataToObject(fd: FormData) {
-  const out: Record<string, any> = {};
+  const out: Record<string, FormDataEntryValue> = {};
   fd.forEach((v, k) => (out[k] = v));
   return out;
 }

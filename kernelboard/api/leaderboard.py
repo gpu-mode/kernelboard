@@ -1,12 +1,13 @@
-import re
-from typing import Any, List
-from flask import Blueprint
-from kernelboard.lib.db import get_db_connection
-from kernelboard.lib.time import to_time_left
-from kernelboard.lib.status_code import http_error, http_success
-from http import HTTPStatus
-import time
 import logging
+import time
+from http import HTTPStatus
+from typing import Any, List
+
+from flask import Blueprint
+
+from kernelboard.lib.db import get_db_connection
+from kernelboard.lib.status_code import http_error, http_success
+from kernelboard.lib.time import to_time_left
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +80,8 @@ def to_api_leaderboard_item(data: dict[str, Any]):
     reference = leaderboard_data["reference"] or ""
     reference = reference.replace("\\n", "\n")
 
+    benchmarks = leaderboard_data.get("benchmarks") or []
+
     gpu_types = leaderboard_data["gpu_types"]
     gpu_types.sort()
 
@@ -110,6 +113,7 @@ def to_api_leaderboard_item(data: dict[str, Any]):
         "gpu_types": gpu_types,
         "description": description,
         "reference": reference,
+        "benchmarks": benchmarks,
         "rankings": rankings,
     }
 
@@ -125,7 +129,8 @@ def _get_query():
                 deadline,
                 task->>'lang' AS lang,
                 description AS description,
-                task->'files'->>'reference.py' AS reference
+                task->'files'->>'reference.py' AS reference,
+                task->'benchmarks' AS benchmarks
             FROM leaderboard.leaderboard
             WHERE id = %(leaderboard_id)s
         ),
@@ -137,6 +142,15 @@ def _get_query():
             WHERE leaderboard_id = %(leaderboard_id)s
         ),
 
+        -- Total submission count per user per GPU type for this leaderboard.
+        submission_counts AS (
+            SELECT s.user_id, r.runner, COUNT(DISTINCT s.id) AS submission_count
+            FROM leaderboard.submission s
+            JOIN leaderboard.runs r ON r.submission_id = s.id
+            WHERE s.leaderboard_id = %(leaderboard_id)s
+            GROUP BY s.user_id, r.runner
+        ),
+
         -- All the runs on this leaderboard. For each user and GPU type, the
         -- user's runs on that GPU type are ranked by score.
         ranked_runs AS (
@@ -146,10 +160,12 @@ def _get_query():
                 s.submission_time AS submission_time,
                 s.file_name AS file_name,
                 r.submission_id AS submission_id,
+                COALESCE(sc.submission_count, 0) AS submission_count,
                 RANK() OVER (PARTITION BY r.runner, u.id ORDER BY r.score ASC) AS rank
             FROM leaderboard.runs r
                 JOIN leaderboard.submission s ON r.submission_id = s.id
                 LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
+                LEFT JOIN submission_counts sc ON s.user_id = sc.user_id AND r.runner = sc.runner
             WHERE NOT r.secret AND r.score IS NOT NULL AND r.passed AND s.leaderboard_id = %(leaderboard_id)s
         ),
 
@@ -163,7 +179,9 @@ def _get_query():
                         'user_name', r.user_name,
                         'score', r.score,
                         'file_name', r.file_name,
-                        'submission_id', r.submission_id
+                        'submission_id', r.submission_id,
+                        'submission_count', r.submission_count,
+                        'submission_time', r.submission_time
                     )
                     ORDER BY r.score ASC
                 )
@@ -175,6 +193,7 @@ def _get_query():
                 'lang', lang,
                 'description', description,
                 'reference', reference,
+                'benchmarks', benchmarks,
                 'gpu_types', (SELECT jsonb_agg(gpu_type) FROM gpu_types)
             ) FROM leaderboard_info)
         ) AS result FROM (SELECT gpu_type FROM gpu_types) g;
@@ -197,12 +216,12 @@ def is_result_invalid(result):
 HARDCODED_USER_ID = "205851652572315658"
 
 
-@leaderboard_bp.route("/<int:leaderboard_id>/ai_trend", methods=["GET"])
-def get_ai_trend(leaderboard_id: int):
+@leaderboard_bp.route("/<int:leaderboard_id>/custom_trend", methods=["GET"])
+def get_custom_trend(leaderboard_id: int):
     """
-    GET /leaderboard/<leaderboard_id>/ai_trend
+    GET /leaderboard/<leaderboard_id>/custom_trend
 
-    Returns time series data for ai_trend matching file name patterns like:
+    Returns time series data for custom submissions matching file name patterns like:
     - H100_claude-opus-4.5_ka_submission
     - H100_gpt-5-2_ka_submission
     - H100_gpt-5_ka_submission
@@ -269,7 +288,7 @@ def get_ai_trend(leaderboard_id: int):
 
     total_time = (time.perf_counter() - total_start) * 1000
     logger.info(
-        "[Perf] timeseries leaderboard_id=%s | query=%.2fms | total=%.2fms",
+        "[Perf] custom_trend leaderboard_id=%s | query=%.2fms | total=%.2fms",
         leaderboard_id, query_time, total_time,
     )
 
@@ -405,6 +424,91 @@ def get_user_trend(leaderboard_id: int):
     })
 
 
+@leaderboard_bp.route("/<int:leaderboard_id>/fastest_trend", methods=["GET"])
+def get_fastest_trend(leaderboard_id: int):
+    """
+    GET /leaderboard/<leaderboard_id>/fastest_trend
+
+    Returns time series data showing the fastest submission across ALL users
+    over time for each GPU type. This creates a "world record" line showing
+    the best performance achieved at any point in time.
+    """
+    total_start = time.perf_counter()
+
+    conn = get_db_connection()
+    query_start = time.perf_counter()
+
+    with conn.cursor() as cur:
+        sql = """
+            SELECT
+                s.id AS submission_id,
+                s.user_id,
+                u.user_name,
+                s.file_name,
+                s.submission_time,
+                r.score,
+                r.runner AS gpu_type
+            FROM leaderboard.submission s
+            JOIN leaderboard.runs r ON r.submission_id = s.id
+            LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
+            WHERE s.leaderboard_id = %s
+              AND r.score IS NOT NULL
+              AND r.passed = true
+              AND NOT r.secret
+            ORDER BY s.submission_time ASC
+        """
+        cur.execute(sql, (leaderboard_id,))
+        rows = cur.fetchall()
+
+    query_time = (time.perf_counter() - query_start) * 1000
+
+    if not rows:
+        return http_success(data={
+            "leaderboard_id": leaderboard_id,
+            "time_series": {},
+        })
+
+    # Group by GPU type and compute running minimum
+    series_by_gpu = {}
+    running_min_by_gpu = {}
+
+    for row in rows:
+        (submission_id, user_id, user_name, file_name, submission_time,
+         score, gpu_type) = row
+
+        if not gpu_type or gpu_type == "unknown":
+            continue
+
+        if gpu_type not in series_by_gpu:
+            series_by_gpu[gpu_type] = {"fastest": []}
+            running_min_by_gpu[gpu_type] = float("inf")
+
+        # Only add a point if this submission beats the current record
+        if score < running_min_by_gpu[gpu_type]:
+            running_min_by_gpu[gpu_type] = score
+            series_by_gpu[gpu_type]["fastest"].append({
+                "submission_time": (
+                    submission_time.isoformat() if submission_time else None
+                ),
+                "score": score,
+                "user_id": str(user_id) if user_id else None,
+                "user_name": user_name or str(user_id) if user_id else "Unknown",
+                "gpu_type": gpu_type,
+                "submission_id": submission_id,
+            })
+
+    total_time = (time.perf_counter() - total_start) * 1000
+    logger.info(
+        "[Perf] fastest_trend leaderboard_id=%s | query=%.2fms | total=%.2fms",
+        leaderboard_id, query_time, total_time,
+    )
+
+    return http_success(data={
+        "leaderboard_id": leaderboard_id,
+        "time_series": series_by_gpu,
+    })
+
+
 @leaderboard_bp.route("/<int:leaderboard_id>/users", methods=["GET"])
 def search_users(leaderboard_id: int):
     """
@@ -466,7 +570,7 @@ def group_multi_user_submissions(
 ) -> dict:
     """
     Group submissions from multiple users by gpu_type with username as series.
-    Same format as ai_trend: { "H100": { "user1": [...], "user2": [...] } }
+    Same format as custom_trend: { "H100": { "user1": [...], "user2": [...] } }
     """
     series = {}
     for user_id, items in items_by_user.items():

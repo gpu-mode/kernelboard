@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -12,8 +12,11 @@ import RankingTitleBadge from "./RankingTitleBadge";
 
 import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
 import { getMedalIcon } from "../../../components/common/medal.tsx";
-import { fetchCodes } from "../../../api/api.ts";
-import { CodeDialog } from "./CodeDialog.tsx";
+import type {
+  NavigationItem,
+  SelectedSubmission,
+} from "./submissionTypes";
+import { useSubmissionSidebarActions } from "./SubmissionSidebarContext";
 import { isExpired } from "../../../lib/date/utils.ts";
 import { useAuthStore } from "../../../lib/store/authStore.ts";
 
@@ -24,6 +27,8 @@ interface RankingItem {
   score: number;
   user_name: string;
   submission_id: number;
+  submission_count?: number;
+  submission_time?: string;
 }
 
 interface RankingsListProps {
@@ -39,6 +44,11 @@ const styles: Record<string, SxProps<Theme>> = {
   rankingRow: {
     borderBottom: 1,
     borderColor: "divider",
+    "& > .MuiGrid-root": {
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    },
   },
   header: {
     display: "flex",
@@ -70,11 +80,6 @@ const styles: Record<string, SxProps<Theme>> = {
     color: "text.secondary",
     minWidth: "90px",
   },
-  loc: {
-    fontFamily: "monospace",
-    color: "text.secondary",
-    textAlign: "right",
-  },
   submissionId: {
     fontFamily: "monospace",
     color: "text.secondary",
@@ -86,53 +91,56 @@ export default function RankingsList({
   leaderboardId,
   deadline,
 }: RankingsListProps) {
-  const showLoc = !!deadline && isExpired(deadline);
+  const expired = !!deadline && isExpired(deadline);
   const me = useAuthStore((s) => s.me);
   const isAdmin = !!me?.user?.is_admin;
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [colorHash, _] = useState<string>(
+  const [colorHash] = useState<string>(
     Math.random().toString(36).slice(2, 8),
   );
-  const [codes, setCodes] = useState<Map<number, string>>(new Map());
-
-  const submissionIds = useMemo(() => {
-    if (!rankings) return [];
-    const ids: number[] = [];
-    Object.entries(rankings).forEach(([key, value]) => {
-      const li = value as any[];
-      if (Array.isArray(li) && li.length > 0) {
-        li.forEach((item) => {
-          if (item?.submission_id) {
-            ids.push(item.submission_id);
-          }
-        });
-      }
-    });
-    return ids;
-  }, [rankings]);
-
-  useEffect(() => {
-    if (!showLoc) return;
-    if (!submissionIds || submissionIds.length === 0 || !leaderboardId) return;
-    fetchCodes(leaderboardId, submissionIds)
-      .then((data) => {
-        const map = new Map<number, string>();
-        for (const item of data?.results ?? []) {
-          map.set(item.submission_id, item.code);
-        }
-        setCodes(map);
-      })
-      .catch((err) => {
-        // soft error handle it since it's not critical
-        console.warn("[RankingsList] Failed to fetch codes:", err);
-      });
-  }, [leaderboardId, submissionIds, showLoc]);
+  const { openSubmission } = useSubmissionSidebarActions();
 
   const toggleExpanded = (field: string) => {
     setExpanded((prev) => ({
       ...prev,
       [field]: !prev[field],
     }));
+  };
+
+  const handleOpenSubmission = (
+    item: RankingItem,
+    _field: string,
+    allItems: RankingItem[],
+  ) => {
+    const navItems: NavigationItem[] = allItems.map((i) => ({
+      submissionId: i.submission_id,
+      userName: i.user_name,
+      fileName: i.file_name,
+      timestamp: i.submission_time ? new Date(i.submission_time).getTime() : 0,
+      score: i.score,
+      originalTimestamp: i.submission_time
+        ? new Date(i.submission_time).getTime()
+        : undefined,
+    }));
+    const index = allItems.findIndex(
+      (i) => i.submission_id === item.submission_id,
+    );
+    const submission: SelectedSubmission = {
+      submissionId: item.submission_id,
+      userName: item.user_name,
+      fileName: item.file_name,
+      isFastest: item.rank === 1,
+      score: item.score,
+      timestamp: item.submission_time
+        ? new Date(item.submission_time).getTime()
+        : undefined,
+      originalTimestamp: item.submission_time
+        ? new Date(item.submission_time).getTime()
+        : undefined,
+    };
+    if (leaderboardId) {
+      openSubmission(submission, navItems, index >= 0 ? index : 0, leaderboardId);
+    }
   };
 
   return (
@@ -181,43 +189,60 @@ export default function RankingsList({
                       {item.user_name} {getMedalIcon(item.rank)}
                     </Typography>
                   </Grid>
-                  <Grid size={showLoc ? 2 : isAdmin ? 2 : 3}>
+                  <Grid size={isAdmin ? 2 : 3}>
                     <Typography sx={styles.score}>
                       {formatMicroseconds(item.score)}
                     </Typography>
                   </Grid>
-                  <Grid size={showLoc ? (isAdmin ? 1.5 : 2) : isAdmin ? 2 : 3}>
+                  <Grid size={isAdmin ? 1 : 3}>
                     <Typography sx={styles.delta}>
                       {item.prev_score > 0 &&
                         `+${formatMicroseconds(item.prev_score)}`}
                     </Typography>
                   </Grid>
-                  {showLoc && (
-                    <Grid size={isAdmin ? 1.5 : 2}>
-                      <Typography sx={styles.loc}>
-                        {(() => {
-                          const code = codes.get(item?.submission_id);
-                          if (!code) return "";
-                          const lines = code.split("\n").length;
-                          return `${lines} LOC`;
-                        })()}
-                      </Typography>
-                    </Grid>
-                  )}
-                  <Grid size={showLoc ? (isAdmin ? 2.5 : 3) : 3}>
-                    <Typography>
-                      <CodeDialog
-                        code={codes.get(item?.submission_id)}
-                        fileName={item.file_name}
-                        isActive={!showLoc}
-                        rank={item.rank}
-                        userName={item.user_name}
-                        problemName={field}
-                      />
+                  <Grid size={isAdmin ? 2 : 3}>
+                    <Typography
+                      sx={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        "& .MuiButton-root": {
+                          maxWidth: "100%",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        },
+                      }}
+                    >
+                      {!expired && !isAdmin ? (
+                        <Typography
+                          variant="body2"
+                          sx={{ fontSize: "0.8125rem" }}
+                        >
+                          {item.file_name}
+                        </Typography>
+                      ) : (
+                        <Button
+                          variant="text"
+                          size="small"
+                          onClick={() =>
+                            handleOpenSubmission(item, field, items)
+                          }
+                          sx={{ textTransform: "none" }}
+                        >
+                          {item.file_name}
+                        </Button>
+                      )}
                     </Typography>
                   </Grid>
                   {isAdmin && (
-                    <Grid size={showLoc ? 1.5 : 2}>
+                    <Grid size={2}>
+                      <Typography sx={styles.submissionId}>
+                        Subs: {item.submission_count}
+                      </Typography>
+                    </Grid>
+                  )}
+                  {isAdmin && (
+                    <Grid size={2}>
                       <Typography sx={styles.submissionId}>
                         ID: {item.submission_id}
                       </Typography>

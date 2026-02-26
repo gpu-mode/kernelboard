@@ -1,11 +1,13 @@
-import psycopg2
-from kernelboard import create_app
-import pytest
 import random
+import secrets
 import string
 import subprocess
 import time
-import secrets
+
+import psycopg2
+import pytest
+
+from kernelboard import create_app
 
 
 def get_test_redis_url(port: int):

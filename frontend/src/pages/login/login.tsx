@@ -8,25 +8,29 @@ import {
   Typography,
 } from "@mui/material";
 import { ConstrainedContainer } from "../../components/app-layout/ConstrainedContainer";
-import { useSearchParams } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
+import { useAuthStore } from "../../lib/store/authStore";
 import { DiscordIcon } from "../../components/common/DiscordDefaultIcon";
 import { GoogleIcon } from "../../components/common/GoogleIcon";
 import { GitHubIcon } from "../../components/common/GitHubIcon";
 import AlertBar from "../../components/alert/AlertBar";
 
 export default function Login() {
+  const me = useAuthStore((s) => s.me);
   const [params] = useSearchParams();
+  const returnTo = params.get("returnTo") || "/";
+  const nextParam = encodeURIComponent(returnTo);
   const discordLoginUrl = () => {
-    const loginDiscrodHref = `/api/auth/discord?next=/`;
+    const loginDiscrodHref = `/api/auth/discord?next=${nextParam}`;
     return loginDiscrodHref;
   };
   const googleLoginUrl = () => {
-    const loginGoogleHref = `/api/auth/google?next=/`;
+    const loginGoogleHref = `/api/auth/google?next=${nextParam}`;
     return loginGoogleHref;
   };
   const githubLoginUrl = () => {
-    const loginGithubHref = `/api/auth/github?next=/`;
+    const loginGithubHref = `/api/auth/github?next=${nextParam}`;
     return loginGithubHref;
   };
   const error = params.get("error");
@@ -48,7 +52,7 @@ export default function Login() {
       const msg =
         typeof message === "string"
           ? message
-          : ((message as any)?.message ?? "Unknown error");
+          : (message instanceof Error ? message.message : "Unknown error");
       const t = title ?? "Error";
       setErr({ open: true, message: msg, status, title: t });
     },
@@ -61,7 +65,11 @@ export default function Login() {
       const errorMsg = msg ? error + ": " + msg : error;
       showError("Failed to login", errorMsg, 401);
     }
-  }, [error, showError]);
+  }, [error, showError, params]);
+
+  if (me?.authenticated) {
+    return <Navigate to={returnTo} replace />;
+  }
 
   return (
     <>

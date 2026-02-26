@@ -1,4 +1,5 @@
-from flask import abort, Blueprint, render_template
+from flask import Blueprint, abort, render_template
+
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.time import to_time_left
 

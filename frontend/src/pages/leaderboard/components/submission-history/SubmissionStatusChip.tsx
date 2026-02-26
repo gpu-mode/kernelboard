@@ -29,7 +29,7 @@ function SubmissionStatusChip({ status }: { status?: string | null }) {
       <Chip
         size="small"
         variant="outlined"
-        color={color as any}
+        color={color}
         label={label}
       />
     </Tooltip>

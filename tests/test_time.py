@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
-from kernelboard.lib.time import to_time_left, _to_time_left, format_datetime
+
+from kernelboard.lib.time import _to_time_left, format_datetime, to_time_left
 
 
 def test_to_time_left():
@@ -34,7 +35,7 @@ def test_to_time_left():
 
     assert to_time_left("1970-01-01 00:00:00+00:00") == "ended"
 
-    assert to_time_left("gibberish") == None
+    assert to_time_left("gibberish") is None
 
 
 def test_format_datetime():
