@@ -20,7 +20,6 @@ def get_redis_connection(
 
     url: str | None = os.getenv("REDIS_URL")
     if url is None:
-        _redis_client = None
         return None
 
     kwargs = {}
