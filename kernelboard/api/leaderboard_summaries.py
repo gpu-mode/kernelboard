@@ -94,6 +94,7 @@ def index():
     user_id, _ = get_id_and_username_from_session()
     whitelist = get_whitelist()
     if not user_id or user_id not in whitelist:
+        logger.info("[leaderboard_summaries] skip force_refresh since user is not admin")
         force_refresh = False
 
     # Choose strategy based on query params
@@ -149,6 +150,7 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
         # 4. Try to get cached top_users for ended leaderboards
         cache_start = time.perf_counter()
         if force_refresh:
+            logger.info("[Cache] force_refresh=True, ignoring cache")
             cached_top_users = {}
         else:
             cached_top_users = _get_cached_top_users(redis_conn, ended_ids)
@@ -254,7 +256,7 @@ def _get_leaderboards_original(total_start: float):
     total_time = (time.perf_counter() - total_start) * 1000
 
     logger.info(
-        "[Perf] leaderboard_summaries (original) | " "db_conn=%.2fms | query=%.2fms | transform=%.2fms | total=%.2fms",
+        "[Perf] leaderboard_summaries (original) | db_conn=%.2fms | query=%.2fms | transform=%.2fms | total=%.2fms",
         db_conn_time,
         query_time,
         transform_time,
