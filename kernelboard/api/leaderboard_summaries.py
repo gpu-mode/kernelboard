@@ -1,3 +1,5 @@
+from kernelboard.lib.auth_utils import get_id_and_username_from_session
+from kernelboard.lib.auth_utils import get_whitelist
 import json
 import logging
 import os
@@ -7,7 +9,7 @@ from datetime import datetime, timezone
 from flask import Blueprint, request
 
 from kernelboard.lib.db import get_db_connection
-from kernelboard.lib.redis_connection import create_redis_connection
+from kernelboard.lib.redis_connection import get_redis_connection
 from kernelboard.lib.status_code import http_success
 
 logger = logging.getLogger(__name__)
@@ -24,9 +26,9 @@ CACHE_KEY_PREFIX = "lb_top_users:"
 
 
 def _get_redis():
-    """Get Redis connection."""
+    """Get Redis connection (singleton)."""
     cert_reqs = os.getenv("REDIS_SSL_CERT_REQS")
-    return create_redis_connection(cert_reqs=cert_reqs)
+    return get_redis_connection(cert_reqs=cert_reqs)
 
 
 def _get_cached_top_users(redis_conn, leaderboard_ids: list[int]) -> dict[int, list]:
@@ -59,6 +61,17 @@ def _set_cached_top_users(redis_conn, leaderboard_id: int, top_users: list):
         logger.warning("Redis cache write failed", exc_info=True)
 
 
+def _delete_cached_top_users(redis_conn, leaderboard_ids: list[int]):
+    """Delete cached top_users for leaderboards (e.g., when deadline extended)."""
+    if not redis_conn or not leaderboard_ids:
+        return
+    try:
+        keys = [f"{CACHE_KEY_PREFIX}{lb_id}" for lb_id in leaderboard_ids]
+        redis_conn.delete(*keys)
+    except Exception:
+        logger.warning("Redis cache delete failed", exc_info=True)
+
+
 # =============================================================================
 # Main API Endpoint
 # =============================================================================
@@ -70,17 +83,22 @@ def index():
     Get leaderboard summaries.
 
     Query params:
-        - v1_query: Use legacy v1 query (no caching)
+        - use_beta: Use hide beta query
         - force_refresh_cache: Clear and refresh cache for ended leaderboards
     """
     total_start = time.perf_counter()
 
-    use_v1 = request.args.get("v1_query") is not None
+    use_beta = request.args.get("use_beta") is not None
     force_refresh = request.args.get("force_refresh_cache") is not None
 
-    # Choose strategy based on query params
-    if use_v1:
+    # Check if user is admin to force refresh cache
+    user_id, _ = get_id_and_username_from_session()
+    whitelist = get_whitelist()
+    if not user_id or user_id not in whitelist:
+        force_refresh = False
 
+    # Choose strategy based on query params
+    if use_beta:
         return _get_leaderboards_cached(total_start, force_refresh)
     else:
         return _get_leaderboards_original(total_start)
@@ -125,7 +143,11 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
         ended_ids = [row[0] for row in all_leaderboards if row[3]]
         active_ids = [row[0] for row in all_leaderboards if not row[3]]
 
-        # 3. Try to get cached top_users for ended leaderboards
+        # 3. Delete stale cache for active leaderboards (ex. deadline extended)
+        if active_ids:
+            _delete_cached_top_users(redis_conn, active_ids)
+
+        # 4. Try to get cached top_users for ended leaderboards
         cache_start = time.perf_counter()
         if force_refresh:
             cached_top_users = {}
@@ -149,8 +171,8 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
 
         compute_start = time.perf_counter()
         if ids_to_compute:
-            query = _get_query_for_ids(ids_to_compute)
-            cur.execute(query)
+            ids_tuple = tuple(ids_to_compute)
+            cur.execute(_get_query_for_ids(), (ids_tuple, ids_tuple))
             computed_results = {row[0]: row[1] for row in cur.fetchall()}
         else:
             computed_results = {}
@@ -213,8 +235,6 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
 def _get_leaderboards_original(total_start: float):
     """
     Get leaderboard summaries without caching (original implementation).
-
-    Use ?v1_query to enable this mode.
     """
     # 1. Database connection
     db_conn_start = time.perf_counter()
@@ -303,20 +323,21 @@ def _get_leaderboard_metadata_query():
     """
 
 
-def _get_query_for_ids(leaderboard_ids: list[int]):
+def _get_query_for_ids():
     """
     Get top_users for specific leaderboard IDs only.
     Returns (leaderboard_id, top_users_json) pairs.
+
+    Usage: cur.execute(_get_query_for_ids(), (tuple(leaderboard_ids),) * 2)
     """
-    ids_str = ",".join(str(id) for id in leaderboard_ids)
-    return f"""
+    return """
         WITH
         priority_gpu AS (
             SELECT DISTINCT ON (leaderboard_id)
                 leaderboard_id,
                 gpu_type
             FROM leaderboard.gpu_type
-            WHERE leaderboard_id IN ({ids_str})
+            WHERE leaderboard_id IN %s
             ORDER BY leaderboard_id,
                 CASE gpu_type
                     WHEN 'B200' THEN 1
@@ -348,7 +369,7 @@ def _get_query_for_ids(leaderboard_ids: list[int]):
             WHERE NOT r.secret
                 AND r.score IS NOT NULL
                 AND r.passed
-                AND s.leaderboard_id IN ({ids_str})
+                AND s.leaderboard_id IN %s
         ),
         personal_best_runs AS (
             SELECT * FROM personal_best_candidates

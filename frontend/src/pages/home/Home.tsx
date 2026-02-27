@@ -42,7 +42,7 @@ interface LeaderboardSummaries {
 export default function Home() {
   const [searchParams] = useSearchParams();
   const [isQuickStartOpen, setIsQuickStartOpen] = useState(false);
-  const useV1 = searchParams.has("v1_query");
+  const useBeta = searchParams.has("use_beta");
   const forceRefresh = searchParams.has("force_refresh");
 
   const { data, loading, error, errorStatus, call } = fetcherApiCallback<
@@ -51,8 +51,8 @@ export default function Home() {
   >(fetchLeaderboardSummaries);
 
   useEffect(() => {
-    call(useV1, forceRefresh);
-  }, [call, useV1, forceRefresh]);
+    call(useBeta, forceRefresh);
+  }, [call, useBeta, forceRefresh]);
 
   if (loading) {
     return <Loading />;
