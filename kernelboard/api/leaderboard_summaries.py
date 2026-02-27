@@ -1,5 +1,3 @@
-from kernelboard.lib.auth_utils import get_id_and_username_from_session
-from kernelboard.lib.auth_utils import get_whitelist
 import json
 import logging
 import os
@@ -8,6 +6,7 @@ from datetime import datetime, timezone
 
 from flask import Blueprint, request
 
+from kernelboard.lib.auth_utils import get_id_and_username_from_session, get_whitelist
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.redis_connection import get_redis_connection
 from kernelboard.lib.status_code import http_success
@@ -156,9 +155,7 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
         cache_time = (time.perf_counter() - cache_start) * 1000
 
         # Find ended leaderboards not in cache
-        uncached_ended_ids = [
-            lb_id for lb_id in ended_ids if lb_id not in cached_top_users
-        ]
+        uncached_ended_ids = [lb_id for lb_id in ended_ids if lb_id not in cached_top_users]
         logger.info(
             "[Cache] cached=%d | uncached=%d | active=%d",
             len(cached_top_users),
@@ -194,9 +191,7 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
         lb_data = metadata.get(lb_id, {})
 
         # Get top_users from cache or computed results
-        lb_data["top_users"] = cached_top_users.get(
-            lb_id, computed_results.get(lb_id)
-        )
+        lb_data["top_users"] = cached_top_users.get(lb_id, computed_results.get(lb_id))
 
         if lb_data.get("gpu_types") is None:
             lb_data["gpu_types"] = []
