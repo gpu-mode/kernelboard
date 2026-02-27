@@ -158,15 +158,16 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
 
         # Find ended leaderboards not in cache
         uncached_ended_ids = [lb_id for lb_id in ended_ids if lb_id not in cached_top_users]
+        # 4. Compute top_users for: active + uncached ended leaderboards
+        ids_to_compute = active_ids + uncached_ended_ids
+
         logger.info(
-            "[Cache] cached=%d | uncached=%d | active=%d",
+            "[Cache] cached=%d | uncached=%d | active=%d | ids_to_compute=%d",
             len(cached_top_users),
             len(uncached_ended_ids),
             len(active_ids),
+            len(ids_to_compute)
         )
-
-        # 4. Compute top_users for: active + uncached ended leaderboards
-        ids_to_compute = active_ids + uncached_ended_ids
 
         compute_start = time.perf_counter()
         if ids_to_compute:
