@@ -80,6 +80,7 @@ def index():
 
     # Choose strategy based on query params
     if use_v1:
+
         return _get_leaderboards_cached(total_start, force_refresh)
     else:
         return _get_leaderboards_original(total_start)
@@ -127,9 +128,11 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
     # 3. Try to get cached top_users for ended leaderboards
     cache_start = time.perf_counter()
     if force_refresh:
+        logger.info("[Perf] leaderboard_summaries (cached) force fresh redis cache")
         # Skip cache, will recompute all
         cached_top_users = {}
     else:
+        logger.info("[Perf] leaderboard_summaries (cached) read from cache")
         cached_top_users = _get_cached_top_users(redis_conn, ended_ids)
     cache_time = (time.perf_counter() - cache_start) * 1000
 
