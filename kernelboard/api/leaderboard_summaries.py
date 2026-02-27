@@ -112,8 +112,8 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
 
     query_start = time.perf_counter()
 
-    # 2. Get all leaderboards and identify ended vs active
     with conn.cursor() as cur:
+        # 2. Get all leaderboards and identify ended vs active
         cur.execute("""
             SELECT id, name, deadline,
                    deadline < NOW() AS is_ended
@@ -122,57 +122,62 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
         """)
         all_leaderboards = cur.fetchall()
 
-    ended_ids = [row[0] for row in all_leaderboards if row[3]]
-    active_ids = [row[0] for row in all_leaderboards if not row[3]]
+        ended_ids = [row[0] for row in all_leaderboards if row[3]]
+        active_ids = [row[0] for row in all_leaderboards if not row[3]]
 
-    # 3. Try to get cached top_users for ended leaderboards
-    cache_start = time.perf_counter()
-    if force_refresh:
-        logger.info("[Perf] leaderboard_summaries (cached) force fresh redis cache")
-        # Skip cache, will recompute all
-        cached_top_users = {}
-    else:
-        logger.info("[Perf] leaderboard_summaries (cached) read from cache")
-        cached_top_users = _get_cached_top_users(redis_conn, ended_ids)
-    cache_time = (time.perf_counter() - cache_start) * 1000
+        # 3. Try to get cached top_users for ended leaderboards
+        cache_start = time.perf_counter()
+        if force_refresh:
+            cached_top_users = {}
+        else:
+            cached_top_users = _get_cached_top_users(redis_conn, ended_ids)
+        cache_time = (time.perf_counter() - cache_start) * 1000
 
-    # Find ended leaderboards not in cache
-    uncached_ended_ids = [lb_id for lb_id in ended_ids if lb_id not in cached_top_users]
+        # Find ended leaderboards not in cache
+        uncached_ended_ids = [
+            lb_id for lb_id in ended_ids if lb_id not in cached_top_users
+        ]
+        logger.info(
+            "[Cache] cached=%d | uncached=%d | active=%d",
+            len(cached_top_users),
+            len(uncached_ended_ids),
+            len(active_ids),
+        )
 
-    # 4. Compute top_users for: active + uncached ended leaderboards
-    ids_to_compute = active_ids + uncached_ended_ids
+        # 4. Compute top_users for: active + uncached ended leaderboards
+        ids_to_compute = active_ids + uncached_ended_ids
 
-    compute_start = time.perf_counter()
-    if ids_to_compute:
-        query = _get_query_for_ids(ids_to_compute)
-        with conn.cursor() as cur:
+        compute_start = time.perf_counter()
+        if ids_to_compute:
+            query = _get_query_for_ids(ids_to_compute)
             cur.execute(query)
             computed_results = {row[0]: row[1] for row in cur.fetchall()}
-    else:
-        computed_results = {}
-    compute_time = (time.perf_counter() - compute_start) * 1000
+        else:
+            computed_results = {}
+        compute_time = (time.perf_counter() - compute_start) * 1000
 
-    # 5. Cache newly computed ended leaderboards
-    for lb_id in uncached_ended_ids:
-        if lb_id in computed_results:
-            _set_cached_top_users(redis_conn, lb_id, computed_results[lb_id])
+        # 5. Cache newly computed ended leaderboards
+        for lb_id in uncached_ended_ids:
+            if lb_id in computed_results:
+                _set_cached_top_users(redis_conn, lb_id, computed_results[lb_id])
 
-    # 6. Build final response
-    with conn.cursor() as cur:
+        # 6. Get metadata for all leaderboards
         cur.execute(_get_leaderboard_metadata_query())
         metadata = {row[0]: row[1] for row in cur.fetchall()}
 
+    # 7. Build final response
     leaderboards = []
     for row in all_leaderboards:
         lb_id = row[0]
         lb_data = metadata.get(lb_id, {})
 
         # Get top_users from cache or computed results
-        lb_data["top_users"] = cached_top_users.get(lb_id, computed_results.get(lb_id))
+        lb_data["top_users"] = cached_top_users.get(
+            lb_id, computed_results.get(lb_id)
+        )
 
         if lb_data.get("gpu_types") is None:
             lb_data["gpu_types"] = []
-
         leaderboards.append(lb_data)
 
     query_time = (time.perf_counter() - query_start) * 1000
