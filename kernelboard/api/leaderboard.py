@@ -213,7 +213,7 @@ def is_result_invalid(result):
 
 
 # ai generated code hardcoded user_id
-HARDCODED_USER_ID = "205851652572315658"
+HARDCODED_USER_ID = "261278773"
 
 
 @leaderboard_bp.route("/<int:leaderboard_id>/custom_trend", methods=["GET"])
