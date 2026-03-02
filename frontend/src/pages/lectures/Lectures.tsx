@@ -198,7 +198,11 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
           size="small"
           color={hackathon.type === "in-person" ? "primary" : "secondary"}
         />
-        {ongoing && <Chip label="Ongoing" size="small" color="success" />}
+        {ongoing ? (
+          <Chip label="Ongoing" size="small" color="success" />
+        ) : (
+          <Chip label="Upcoming" size="small" color="info" />
+        )}
       </Box>
       <Typography sx={styles.cardTitle}>{hackathon.title}</Typography>
       <Typography sx={styles.cardMeta}>
@@ -210,14 +214,16 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
           {hackathon.description}
         </Typography>
       )}
-      <Link
-        href={hackathon.lumaUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        sx={styles.link}
-      >
-        Register on Luma
-      </Link>
+      {hackathon.lumaUrl && (
+        <Link
+          href={hackathon.lumaUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={styles.link}
+        >
+          Learn More
+        </Link>
+      )}
     </Box>
   );
 }
@@ -264,9 +270,11 @@ export default function Lectures() {
       });
   }, []);
 
-  const activeHackathons = hackathons.filter((h) =>
-    isOngoing(h.startDate, h.endDate),
-  );
+  const activeHackathons = hackathons.filter((h) => {
+    const now = new Date();
+    const end = new Date(h.endDate);
+    return end >= now;
+  });
 
   return (
     <Box sx={styles.container}>
