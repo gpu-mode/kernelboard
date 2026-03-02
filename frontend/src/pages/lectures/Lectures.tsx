@@ -103,10 +103,10 @@ const hackathons: Hackathon[] = [
   },
   {
     title: "FlashInfer AI Kernel Competition",
-    type: "in-person",
+    type: "digital",
     startDate: "2026-01-22",
     endDate: "2026-05-17",
-    location: "Bellevue, WA",
+    location: "Online",
     lumaUrl: "https://mlsys26.flashinfer.ai/",
     description:
       "FlashInfer AI kernel competition at MLSys 2026. Submission deadline April 24, award ceremony May 17-22.",
