@@ -52,12 +52,13 @@ export const defaultRedirectMap: Record<number, string> = {
 export function fetcherApiCallback<T, Args extends unknown[]>(
   fetcher: Fetcher<T, Args>,
   redirectMap: Record<number, string> = defaultRedirectMap,
+  { initialLoading = true }: { initialLoading?: boolean } = {},
 ) {
   const navigate = useNavigate(); // eslint-disable-line react-hooks/rules-of-hooks
   const [data, setData] = useState<T | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
   const [error, setError] = useState<string | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
   const [errorStatus, setErrorStatus] = useState<number | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
-  const [loading, setLoading] = useState(true); // eslint-disable-line react-hooks/rules-of-hooks
+  const [loading, setLoading] = useState(initialLoading); // eslint-disable-line react-hooks/rules-of-hooks
 
   const call = useCallback( // eslint-disable-line react-hooks/rules-of-hooks
     async (...params: Args) => {
@@ -77,8 +78,8 @@ export function fetcherApiCallback<T, Args extends unknown[]>(
         const msg = err.message ? err.message : "";
 
         // set and logging the error if any
-        setError(status);
-        setErrorStatus(msg);
+        setError(msg);
+        setErrorStatus(status);
         console.log(
           `error status: ${status > 0 ? status : "unkown"}, details: ${msg}`,
         );
