@@ -101,6 +101,40 @@ const hackathons: Hackathon[] = [
     lumaUrl: "https://lu.ma/9n27uem4",
     description: "Build fast NVFP4 kernels for Blackwell GPUs.",
   },
+  {
+    title: "FlashInfer AI Kernel Competition",
+    type: "in-person",
+    startDate: "2026-01-22",
+    endDate: "2026-05-17",
+    location: "Bellevue, WA",
+    lumaUrl: "https://mlsys26.flashinfer.ai/",
+    description:
+      "FlashInfer AI kernel competition at MLSys 2026. Submission deadline April 24, award ceremony May 17-22.",
+  },
+  {
+    title: "PyTorch Helion Hackathon",
+    type: "in-person",
+    startDate: "2026-03-14",
+    endDate: "2026-03-15",
+    location: "San Francisco, CA",
+    lumaUrl: "https://cerebralvalley.ai/e/helion-hackathon",
+  },
+  {
+    title: "SemiAnalysis x FluidStack Hackathon",
+    type: "in-person",
+    startDate: "2026-03-16",
+    endDate: "2026-03-16",
+    location: "San Jose, CA",
+    lumaUrl: "https://luma.com/SAxFSHack",
+  },
+  {
+    title: "NVFP4 Award Ceremony at GTC",
+    type: "in-person",
+    startDate: "2026-03-17",
+    endDate: "2026-03-17",
+    location: "San Jose, CA",
+    lumaUrl: "",
+  },
 ];
 
 function formatDate(dateString: string): string {
