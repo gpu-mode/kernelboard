@@ -48,19 +48,13 @@ export default function Home() {
   const { data, loading, error, errorStatus, call } = fetcherApiCallback<
     LeaderboardSummaries,
     [boolean, boolean]
-  >(fetchLeaderboardSummaries);
+  >(fetchLeaderboardSummaries, undefined, {
+    initialLoading: !useBeta,
+  });
 
   useEffect(() => {
     call(useBeta, forceRefresh);
   }, [call, useBeta, forceRefresh]);
-
-  if (loading) {
-    return <Loading />;
-  }
-
-  if (error) {
-    return <ErrorAlert status={errorStatus} message={error} />;
-  }
 
   const leaderboards = data?.leaderboards || [];
 
@@ -101,7 +95,11 @@ export default function Home() {
           </DialogActions>
         </Dialog>
 
-        {leaderboards.length > 0 ? (
+        {error ? (
+          <ErrorAlert status={errorStatus} message={error} />
+        ) : loading ? (
+          <Loading />
+        ) : leaderboards.length > 0 ? (
           <Grid container spacing={3}>
             {leaderboards.map((leaderboard) => (
               <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={leaderboard.id}>
