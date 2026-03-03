@@ -56,14 +56,6 @@ export default function Home() {
     call(useBeta, forceRefresh);
   }, [call, useBeta, forceRefresh]);
 
-  if (loading) {
-    return <Loading />;
-  }
-
-  if (error) {
-    return <ErrorAlert status={errorStatus} message={error} />;
-  }
-
   const leaderboards = data?.leaderboards || [];
 
   return (
