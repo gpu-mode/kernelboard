@@ -18,7 +18,7 @@ from kernelboard.api.auth import User, providers
 from kernelboard.lib import db, env, score, time
 from kernelboard.lib.logging import configure_logging
 from kernelboard.lib.rate_limiter import limiter
-from kernelboard.lib.redis_connection import create_redis_connection
+from kernelboard.lib.redis_connection import get_redis_connection
 from kernelboard.lib.status_code import http_error
 from kernelboard.og_tags import get_og_tags_for_path, inject_og_tags, is_social_crawler
 
@@ -55,7 +55,7 @@ def create_app(test_config=None):
         SESSION_TYPE="redis",
         # REDIS_SSL_CERT_REQS can be set to override SSL cert verification
         # for Redis connections (e.g., "none" for self-signed certificates).
-        SESSION_REDIS=create_redis_connection(
+        SESSION_REDIS=get_redis_connection(
             cert_reqs=os.getenv("REDIS_SSL_CERT_REQS")
         ),
         OAUTH2_PROVIDERS=providers(),
