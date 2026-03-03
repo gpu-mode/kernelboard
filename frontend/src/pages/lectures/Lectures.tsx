@@ -130,8 +130,8 @@ const hackathons: Hackathon[] = [
   {
     title: "NVFP4 Award Ceremony at GTC",
     type: "in-person",
-    startDate: "2026-03-17",
-    endDate: "2026-03-17",
+    startDate: "2026-03-16",
+    endDate: "2026-03-16",
     location: "San Jose, CA",
     lumaUrl: "https://luma.com/blast/reo09yXX6p",
   },
