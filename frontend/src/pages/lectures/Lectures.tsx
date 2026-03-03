@@ -102,16 +102,6 @@ const hackathons: Hackathon[] = [
     description: "Build fast NVFP4 kernels for Blackwell GPUs.",
   },
   {
-    title: "FlashInfer AI Kernel Competition",
-    type: "digital",
-    startDate: "2026-01-22",
-    endDate: "2026-05-17",
-    location: "Online",
-    lumaUrl: "https://mlsys26.flashinfer.ai/",
-    description:
-      "FlashInfer AI kernel competition at MLSys 2026. Submission deadline April 24, award ceremony May 17-22.",
-  },
-  {
     title: "PyTorch Helion Hackathon",
     type: "in-person",
     startDate: "2026-03-14",
