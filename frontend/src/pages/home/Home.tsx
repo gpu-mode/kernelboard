@@ -42,24 +42,19 @@ interface LeaderboardSummaries {
 export default function Home() {
   const [searchParams] = useSearchParams();
   const [isQuickStartOpen, setIsQuickStartOpen] = useState(false);
-  const useV1 = searchParams.has("v1_query");
+  const useBeta = searchParams.has("use_beta");
+  const forceRefresh = searchParams.has("force_refresh");
 
   const { data, loading, error, errorStatus, call } = fetcherApiCallback<
     LeaderboardSummaries,
-    [boolean]
-  >(fetchLeaderboardSummaries);
+    [boolean, boolean]
+  >(fetchLeaderboardSummaries, undefined, {
+    initialLoading: !useBeta,
+  });
 
   useEffect(() => {
-    call(useV1);
-  }, [call, useV1]);
-
-  if (loading) {
-    return <Loading />;
-  }
-
-  if (error) {
-    return <ErrorAlert status={errorStatus} message={error} />;
-  }
+    call(useBeta, forceRefresh);
+  }, [call, useBeta, forceRefresh]);
 
   const leaderboards = data?.leaderboards || [];
 
@@ -100,7 +95,11 @@ export default function Home() {
           </DialogActions>
         </Dialog>
 
-        {leaderboards.length > 0 ? (
+        {error ? (
+          <ErrorAlert status={errorStatus} message={error} />
+        ) : loading ? (
+          <Loading />
+        ) : leaderboards.length > 0 ? (
           <Grid container spacing={3}>
             {leaderboards.map((leaderboard) => (
               <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={leaderboard.id}>

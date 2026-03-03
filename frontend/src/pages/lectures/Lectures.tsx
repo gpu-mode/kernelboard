@@ -101,6 +101,30 @@ const hackathons: Hackathon[] = [
     lumaUrl: "https://lu.ma/9n27uem4",
     description: "Build fast NVFP4 kernels for Blackwell GPUs.",
   },
+  {
+    title: "PyTorch Helion Hackathon",
+    type: "in-person",
+    startDate: "2026-03-14",
+    endDate: "2026-03-14",
+    location: "San Francisco, CA",
+    lumaUrl: "https://cerebralvalley.ai/e/helion-hackathon",
+  },
+  {
+    title: "SemiAnalysis x FluidStack Hackathon",
+    type: "in-person",
+    startDate: "2026-03-15",
+    endDate: "2026-03-15",
+    location: "San Jose, CA",
+    lumaUrl: "https://luma.com/SAxFSHack",
+  },
+  {
+    title: "NVFP4 Award Ceremony at GTC",
+    type: "in-person",
+    startDate: "2026-03-16",
+    endDate: "2026-03-16",
+    location: "San Jose, CA",
+    lumaUrl: "https://luma.com/blast/reo09yXX6p",
+  },
 ];
 
 function formatDate(dateString: string): string {
@@ -164,7 +188,11 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
           size="small"
           color={hackathon.type === "in-person" ? "primary" : "secondary"}
         />
-        {ongoing && <Chip label="Ongoing" size="small" color="success" />}
+        {ongoing ? (
+          <Chip label="Ongoing" size="small" color="success" />
+        ) : (
+          <Chip label="Upcoming" size="small" color="info" />
+        )}
       </Box>
       <Typography sx={styles.cardTitle}>{hackathon.title}</Typography>
       <Typography sx={styles.cardMeta}>
@@ -176,14 +204,16 @@ function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
           {hackathon.description}
         </Typography>
       )}
-      <Link
-        href={hackathon.lumaUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        sx={styles.link}
-      >
-        Register on Luma
-      </Link>
+      {hackathon.lumaUrl && (
+        <Link
+          href={hackathon.lumaUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={styles.link}
+        >
+          Learn More
+        </Link>
+      )}
     </Box>
   );
 }
@@ -230,9 +260,11 @@ export default function Lectures() {
       });
   }, []);
 
-  const activeHackathons = hackathons.filter((h) =>
-    isOngoing(h.startDate, h.endDate),
-  );
+  const activeHackathons = hackathons.filter((h) => {
+    const now = new Date();
+    const end = new Date(h.endDate);
+    return end >= now;
+  });
 
   return (
     <Box sx={styles.container}>

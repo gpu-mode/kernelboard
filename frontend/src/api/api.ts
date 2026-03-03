@@ -144,11 +144,22 @@ export async function fetchAllNews(): Promise<NewsPost[]> {
   return r.data;
 }
 
-export async function fetchLeaderboardSummaries(useV1: boolean = false): Promise<LeaderboardSummariesResponse> {
+export async function fetchLeaderboardSummaries(
+  useBeta: boolean = false,
+  forceRefreshCache: boolean = false,
+): Promise<LeaderboardSummariesResponse> {
   const start = performance.now();
-  const url = useV1
-    ? "/api/leaderboard-summaries?v1_query"
+
+  // Build URL with query params
+  const params = new URLSearchParams();
+  if (useBeta) params.append("use_beta", "");
+  if (forceRefreshCache) params.append("force_refresh_cache", "");
+
+  const queryString = params.toString();
+  const url = queryString
+    ? `/api/leaderboard-summaries?${queryString}`
     : "/api/leaderboard-summaries";
+
   const res = await fetch(url);
   const fetchTime = performance.now() - start;
 
@@ -165,9 +176,9 @@ export async function fetchLeaderboardSummaries(useV1: boolean = false): Promise
   const parseTime = performance.now() - parseStart;
 
   const totalTime = performance.now() - start;
-  const version = useV1 ? "v1" : "v2";
+  const version = useBeta ? "beta" : "original";
   console.log(
-    `[Perf] fetchLeaderboardSummaries (${version}) | fetch=${fetchTime.toFixed(2)}ms | parse=${parseTime.toFixed(2)}ms | total=${totalTime.toFixed(2)}ms`,
+    `[Perf] fetchLeaderboardSummaries (${version}| ${forceRefreshCache})( | fetch=${fetchTime.toFixed(2)}ms | parse=${parseTime.toFixed(2)}ms | total=${totalTime.toFixed(2)}ms`,
   );
 
   return r.data;
