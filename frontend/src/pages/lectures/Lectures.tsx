@@ -133,7 +133,7 @@ const hackathons: Hackathon[] = [
     startDate: "2026-03-17",
     endDate: "2026-03-17",
     location: "San Jose, CA",
-    lumaUrl: "",
+    lumaUrl: "https://luma.com/blast/reo09yXX6p",
   },
 ];
 
