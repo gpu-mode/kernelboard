@@ -128,7 +128,7 @@ const hackathons: Hackathon[] = [
 ];
 
 function formatDate(dateString: string): string {
-  const date = new Date(dateString);
+  const date = parseLocalDate(dateString);
   return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -154,16 +154,21 @@ function formatEventDateTime(isoString: string): string {
   );
 }
 
+function parseLocalDate(dateString: string): Date {
+  const [year, month, day] = dateString.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
 function getDurationDays(startDate: string, endDate: string): number {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  const start = parseLocalDate(startDate);
+  const end = parseLocalDate(endDate);
   return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 function isOngoing(startDate: string, endDate: string): boolean {
   const now = new Date();
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  const start = parseLocalDate(startDate);
+  const end = parseLocalDate(endDate);
   return now >= start && now <= end;
 }
 
@@ -262,7 +267,7 @@ export default function Lectures() {
 
   const activeHackathons = hackathons.filter((h) => {
     const now = new Date();
-    const end = new Date(h.endDate);
+    const end = parseLocalDate(h.endDate);
     return end >= now;
   });
 

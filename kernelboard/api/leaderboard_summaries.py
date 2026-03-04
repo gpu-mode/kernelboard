@@ -99,9 +99,10 @@ def index():
 
     # Choose strategy based on query params
     if use_beta:
-        return _get_leaderboards_cached(total_start, force_refresh)
-    else:
+        # if use_beta is True, use the original query (will deprecate this one cached query is stable)
         return _get_leaderboards_original(total_start)
+    else:
+        return _get_leaderboards_cached(total_start, force_refresh)
 
 
 # =============================================================================
