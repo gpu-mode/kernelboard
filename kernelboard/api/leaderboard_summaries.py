@@ -17,6 +17,9 @@ leaderboard_summaries_bp = Blueprint("leaderboard_summaries_bp", __name__, url_p
 
 # Redis cache key prefix for ended leaderboard top_users
 CACHE_KEY_PREFIX = "lb_top_users:"
+# Redis cache key and TTL for full response cache
+FULL_RESPONSE_CACHE_KEY = "lb_summaries_full_response"
+FULL_RESPONSE_CACHE_TTL_SECONDS = 1
 
 
 # =============================================================================
@@ -84,11 +87,13 @@ def index():
     Query params:
         - use_beta: Use hide beta query
         - force_refresh_cache: Clear and refresh cache for ended leaderboards
+        - fast_cache: Enable full response cache (1s TTL)
     """
     total_start = time.perf_counter()
 
     use_beta = request.args.get("use_beta") is not None
     force_refresh = request.args.get("force_refresh_cache") is not None
+    fast_cache = request.args.get("fast_cache") is not None
 
     # Check if user is admin to force refresh cache
     user_id, _ = get_id_and_username_from_session()
@@ -102,7 +107,7 @@ def index():
         # if use_beta is True, use the original query (will deprecate this one cached query is stable)
         return _get_leaderboards_original(total_start)
     else:
-        return _get_leaderboards_cached(total_start, force_refresh)
+        return _get_leaderboards_cached(total_start, force_refresh, fast_cache)
 
 
 # =============================================================================
@@ -110,7 +115,7 @@ def index():
 # =============================================================================
 
 
-def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
+def _get_leaderboards_cached(total_start: float, force_refresh: bool = False, fast_cache: bool = False):
     """
     Get leaderboard summaries with Redis caching for ended leaderboards.
 
@@ -123,10 +128,25 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
     - Active leaderboards (deadline >= NOW): Compute in real-time
     - Uncached ended leaderboards: Compute and store in cache
     """
-    # 1. Database & Redis connection
+    # 0. Check full response cache (only when fast_cache is enabled)
+    redis_conn = _get_redis()
+    if fast_cache and not force_refresh and redis_conn:
+        try:
+            if cached_response := redis_conn.get(FULL_RESPONSE_CACHE_KEY):
+                total_time = (time.perf_counter() - total_start) * 1000
+                logger.info("[Perf] leaderboard_summaries (full cache hit) | total=%.2fms", total_time)
+                return http_success(
+                    {
+                        "leaderboards": json.loads(cached_response),
+                        "now": datetime.now(timezone.utc),
+                    }
+                )
+        except Exception:
+            logger.warning("Redis full response cache read failed", exc_info=True)
+
+    # 1. Database connection
     db_conn_start = time.perf_counter()
     conn = get_db_connection()
-    redis_conn = _get_redis()
     db_conn_time = (time.perf_counter() - db_conn_start) * 1000
 
     query_start = time.perf_counter()
@@ -167,7 +187,7 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
             len(cached_top_users),
             len(uncached_ended_ids),
             len(active_ids),
-            len(ids_to_compute)
+            len(ids_to_compute),
         )
 
         compute_start = time.perf_counter()
@@ -200,6 +220,15 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
         if lb_data.get("gpu_types") is None:
             lb_data["gpu_types"] = []
         leaderboards.append(lb_data)
+
+    # 8. Cache full response (only when fast_cache is enabled)
+    if fast_cache and redis_conn:
+        try:
+            redis_conn.setex(
+                FULL_RESPONSE_CACHE_KEY, FULL_RESPONSE_CACHE_TTL_SECONDS, json.dumps(leaderboards, default=str)
+            )
+        except Exception:
+            logger.warning("Redis full response cache write failed", exc_info=True)
 
     query_time = (time.perf_counter() - query_start) * 1000
     total_time = (time.perf_counter() - total_start) * 1000
