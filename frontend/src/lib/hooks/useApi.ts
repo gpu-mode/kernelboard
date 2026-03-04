@@ -53,15 +53,14 @@ export function fetcherApiCallback<T, Args extends unknown[]>(
   fetcher: Fetcher<T, Args>,
   redirectMap: Record<number, string> = defaultRedirectMap,
   {
-    initialLoading = true,
     loadingGracePeriodMs = 0,
-  }: { initialLoading?: boolean; loadingGracePeriodMs?: number } = {},
+  }: { loadingGracePeriodMs?: number } = {},
 ) {
   const navigate = useNavigate(); // eslint-disable-line react-hooks/rules-of-hooks
   const [data, setData] = useState<T | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
   const [error, setError] = useState<string | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
   const [errorStatus, setErrorStatus] = useState<number | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
-  const [loading, setLoading] = useState(initialLoading); // eslint-disable-line react-hooks/rules-of-hooks
+  const [loading, setLoading] = useState(false); // eslint-disable-line react-hooks/rules-of-hooks
   const [hasLoaded, setHasLoaded] = useState(false); // eslint-disable-line react-hooks/rules-of-hooks
   const graceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
 
