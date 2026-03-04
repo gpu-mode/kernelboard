@@ -19,6 +19,8 @@ import {
   DialogContent,
   ToggleButton,
   ToggleButtonGroup,
+  Drawer,
+  Divider,
 } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import HistoryIcon from "@mui/icons-material/History";
@@ -28,6 +30,9 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import CodeIcon from "@mui/icons-material/Code";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import TerminalIcon from "@mui/icons-material/Terminal";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -45,6 +50,7 @@ import MarkdownRenderer from "../../components/markdown-renderer/MarkdownRendere
 import { SubmissionMode } from "../../lib/types/mode";
 import { useAuthStore } from "../../lib/store/authStore";
 import SubmissionHistorySection from "./components/submission-history/SubmissionHistorySection";
+import { SubmissionRunsTable } from "./components/submission-history/SubmissionRunsTable";
 import CodeMirror from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
 import { oneDark } from "@codemirror/theme-one-dark";
@@ -124,7 +130,7 @@ const styles = {
 type SubmitStatus =
   | { kind: "idle" }
   | { kind: "submitting" }
-  | { kind: "polling"; submissionId: number }
+  | { kind: "polling"; submissionId: number; result?: SubmissionStatusResponse }
   | { kind: "done"; submissionId: number; result: SubmissionStatusResponse }
   | { kind: "error"; msg: string };
 
@@ -163,6 +169,10 @@ export default function LeaderboardEditor() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(false);
 
+  // Job result drawer
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerHeight, setDrawerHeight] = useState(300);
+
   const modes = useMemo(
     () => [SubmissionMode.LEADERBOARD, SubmissionMode.BENCHMARK, SubmissionMode.TEST],
     []
@@ -198,9 +208,9 @@ export default function LeaderboardEditor() {
           if (status.submission_done) {
             stopEditorPolling();
             setEditorStatus({ kind: "done", submissionId, result: status });
-            setRefreshFlag((f) => !f);
           } else {
-            setEditorStatus({ kind: "polling", submissionId });
+            // Show intermediate status with runs while polling
+            setEditorStatus({ kind: "polling", submissionId, result: status });
           }
         } catch (err) {
           console.error("Editor polling error:", err);
@@ -208,7 +218,7 @@ export default function LeaderboardEditor() {
       };
 
       poll();
-      editorPollingRef.current = setInterval(poll, 3000);
+      editorPollingRef.current = setInterval(poll, 5000);
     },
     [stopEditorPolling, id]
   );
@@ -233,9 +243,9 @@ export default function LeaderboardEditor() {
           if (status.submission_done) {
             stopUploadPolling();
             setUploadStatus({ kind: "done", submissionId, result: status });
-            setRefreshFlag((f) => !f);
           } else {
-            setUploadStatus({ kind: "polling", submissionId });
+            // Show intermediate status with runs while polling
+            setUploadStatus({ kind: "polling", submissionId, result: status });
           }
         } catch (err) {
           console.error("Upload polling error:", err);
@@ -243,7 +253,7 @@ export default function LeaderboardEditor() {
       };
 
       poll();
-      uploadPollingRef.current = setInterval(poll, 3000);
+      uploadPollingRef.current = setInterval(poll, 5000);
     },
     [stopUploadPolling, id]
   );
@@ -265,6 +275,7 @@ export default function LeaderboardEditor() {
     }
 
     setEditorStatus({ kind: "submitting" });
+    setDrawerOpen(true);
 
     try {
       const result = await submitCode(id, data.name, gpuType, mode, code);
@@ -287,6 +298,7 @@ export default function LeaderboardEditor() {
 
     setUploadStatus({ kind: "submitting" });
     setUploadError(null);
+    setDrawerOpen(true);
 
     try {
       const form = new FormData();
@@ -319,6 +331,10 @@ export default function LeaderboardEditor() {
   };
 
   const validateAndSetFile = (f: File) => {
+    // Clear previous errors and status
+    setUploadError(null);
+    setUploadStatus({ kind: "idle" });
+
     const name = f.name.toLowerCase();
     if (!name.endsWith(".py")) {
       setUploadError("Please select a .py file.");
@@ -331,7 +347,6 @@ export default function LeaderboardEditor() {
       return;
     }
     setFile(f);
-    setUploadError(null);
   };
 
   const handleDragEnter = (e: React.DragEvent) => {
@@ -525,7 +540,7 @@ export default function LeaderboardEditor() {
         <Card sx={styles.editorCard}>
           <CardContent>
             {/* Toggle between Editor and Upload */}
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+            <Stack direction="row" justifyContent="flex-start" alignItems="center" mb={2}>
               <ToggleButtonGroup
                 value={submitMode}
                 exclusive
@@ -541,7 +556,6 @@ export default function LeaderboardEditor() {
                   Upload File
                 </ToggleButton>
               </ToggleButtonGroup>
-              {submitMode === "editor" ? renderEditorStatusChip() : renderUploadStatusChip()}
             </Stack>
 
             {/* Editor Mode */}
@@ -554,6 +568,15 @@ export default function LeaderboardEditor() {
                     theme={resolvedMode === "dark" ? oneDark : undefined}
                     extensions={[python()]}
                     onChange={(value: string) => setCode(value)}
+                    basicSetup={{
+                      lineNumbers: true,
+                      highlightActiveLineGutter: true,
+                      highlightActiveLine: true,
+                      bracketMatching: true,
+                      closeBrackets: true,
+                      autocompletion: true,
+                      indentOnInput: true,
+                    }}
                   />
                 </Box>
 
@@ -603,11 +626,13 @@ export default function LeaderboardEditor() {
                       )
                     }
                     onClick={handleEditorSubmit}
-                    disabled={!canEditorSubmit || editorStatus.kind === "submitting"}
+                      disabled={!canEditorSubmit || editorStatus.kind === "submitting" || editorStatus.kind === "polling"}
                     sx={styles.submitBtn}
                   >
                     {editorStatus.kind === "submitting" ? "Submitting..." : "Run"}
                   </Button>
+
+                  {renderEditorStatusChip()}
 
                   {editorStatus.kind === "polling" && (
                     <Tooltip title="Refresh status">
@@ -750,11 +775,13 @@ export default function LeaderboardEditor() {
                       )
                     }
                     onClick={handleUploadSubmit}
-                    disabled={!canUploadSubmit || uploadStatus.kind === "submitting"}
+                      disabled={!canUploadSubmit || uploadStatus.kind === "submitting" || uploadStatus.kind === "polling"}
                     sx={styles.submitBtn}
                   >
                     {uploadStatus.kind === "submitting" ? "Submitting..." : "Run"}
                   </Button>
+
+                  {renderUploadStatusChip()}
 
                   {uploadStatus.kind === "polling" && (
                     <Tooltip title="Refresh status">
@@ -804,6 +831,160 @@ export default function LeaderboardEditor() {
             />
           </DialogContent>
         </Dialog>
+
+        {/* Job Result Drawer - Fixed Bottom Panel */}
+        <Drawer
+          anchor="bottom"
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          variant="persistent"
+          sx={{
+            "& .MuiDrawer-paper": {
+              height: drawerHeight,
+              borderTopLeftRadius: 12,
+              borderTopRightRadius: 12,
+              boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
+            },
+          }}
+        >
+          <Box sx={{ p: 2 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <TerminalIcon />
+                <Typography variant="h6" fontWeight="bold">
+                  Job Output
+                </Typography>
+                {(editorStatus.kind === "polling" || uploadStatus.kind === "polling") && (
+                  <Chip
+                    icon={<CircularProgress size={12} />}
+                    label="Running..."
+                    color="warning"
+                    size="small"
+                  />
+                )}
+                {(editorStatus.kind === "done" || uploadStatus.kind === "done") && (
+                  <Chip icon={<CheckCircleIcon />} label="Completed" color="success" size="small" />
+                )}
+              </Stack>
+              <Stack direction="row" spacing={1}>
+                <IconButton
+                  size="small"
+                  onClick={() => setDrawerHeight(drawerHeight === 300 ? 500 : 300)}
+                >
+                  {drawerHeight === 300 ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </IconButton>
+                <IconButton size="small" onClick={() => setDrawerOpen(false)}>
+                  <CloseIcon />
+                </IconButton>
+              </Stack>
+            </Stack>
+            <Divider sx={{ my: 1 }} />
+            <Box
+              sx={{
+                height: drawerHeight - 80,
+                overflow: "auto",
+                bgcolor: "background.paper",
+                borderRadius: 1,
+                p: 2,
+              }}
+            >
+              {/* Show current job result */}
+              {editorStatus.kind === "done" && editorStatus.result && (
+                <>
+                  <Typography variant="body2" sx={{ color: "success.main", mb: 1 }}>
+                    ✓ Submission #{editorStatus.submissionId} - {editorStatus.result.status}
+                  </Typography>
+                  {editorStatus.result.error && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                      {editorStatus.result.error}
+                    </Alert>
+                  )}
+                  {editorStatus.result.runs && editorStatus.result.runs.length > 0 && (
+                    <SubmissionRunsTable runs={editorStatus.result.runs} />
+                  )}
+                </>
+              )}
+              {uploadStatus.kind === "done" && uploadStatus.result && (
+                <>
+                  <Typography variant="body2" sx={{ color: "success.main", mb: 1 }}>
+                    ✓ Submission #{uploadStatus.submissionId} - {uploadStatus.result.status}
+                  </Typography>
+                  {uploadStatus.result.error && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                      {uploadStatus.result.error}
+                    </Alert>
+                  )}
+                  {uploadStatus.result.runs && uploadStatus.result.runs.length > 0 && (
+                    <SubmissionRunsTable runs={uploadStatus.result.runs} />
+                  )}
+                </>
+              )}
+              {(editorStatus.kind === "submitting" || uploadStatus.kind === "submitting") && (
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <CircularProgress size={16} />
+                  <Typography variant="body2" color="text.secondary">
+                    Submitting...
+                  </Typography>
+                </Stack>
+              )}
+              {(editorStatus.kind === "polling" || uploadStatus.kind === "polling") && (
+                <>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                    <CircularProgress size={16} />
+                    <Typography variant="body2" color="text.secondary">
+                      Running...
+                    </Typography>
+                  </Stack>
+                  {/* Show intermediate runs while polling */}
+                  {editorStatus.kind === "polling" && editorStatus.result?.runs && editorStatus.result.runs.length > 0 && (
+                    <SubmissionRunsTable runs={editorStatus.result.runs} />
+                  )}
+                  {uploadStatus.kind === "polling" && uploadStatus.result?.runs && uploadStatus.result.runs.length > 0 && (
+                    <SubmissionRunsTable runs={uploadStatus.result.runs} />
+                  )}
+                </>
+              )}
+              {editorStatus.kind === "idle" && uploadStatus.kind === "idle" && (
+                <Typography variant="body2" color="text.secondary">
+                  No job running. Submit code to see output here.
+                </Typography>
+              )}
+              {editorStatus.kind === "error" && (
+                <Alert severity="error">{editorStatus.msg}</Alert>
+              )}
+              {uploadStatus.kind === "error" && (
+                <Alert severity="error">{uploadStatus.msg}</Alert>
+              )}
+            </Box>
+          </Box>
+        </Drawer>
+
+        {/* Floating button to open drawer */}
+        {!drawerOpen && (editorStatus.kind !== "idle" || uploadStatus.kind !== "idle") && (
+          <Box
+            sx={{
+              position: "fixed",
+              bottom: 16,
+              right: 16,
+              zIndex: 1000,
+            }}
+          >
+            <Button
+              variant="contained"
+              startIcon={<TerminalIcon />}
+              onClick={() => setDrawerOpen(true)}
+              sx={{
+                borderRadius: 2,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+              }}
+            >
+              Job Output
+              {(editorStatus.kind === "polling" || uploadStatus.kind === "polling") && (
+                <CircularProgress size={16} sx={{ ml: 1, color: "inherit" }} />
+              )}
+            </Button>
+          </Box>
+        )}
       </Box>
     </ConstrainedContainer>
   );

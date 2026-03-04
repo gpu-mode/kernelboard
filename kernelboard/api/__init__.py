@@ -66,4 +66,5 @@ def create_api_blueprint():
     api.register_blueprint(auth_bp)
     api.register_blueprint(submission_bp)
     api.register_blueprint(events_bp)
+
     return api
