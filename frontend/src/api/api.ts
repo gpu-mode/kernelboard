@@ -229,7 +229,7 @@ export async function submitFile(form: FormData) {
 
 export async function fetchUserSubmissions(
   leaderboardId: number | string,
-  _userId: number | string,
+  userId: number | string,
   page: number = 1,
   pageSize: number = 10,
 ): Promise<UserSubmissionsResponse> {

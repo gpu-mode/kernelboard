@@ -93,7 +93,7 @@ def submission():
     leaderboard_name = request.form.get("leaderboard")
 
     # DEV: Use mock submission (writes directly to local DB)
-    if USE_MOCK_SUBMISSION:
+    if USE_MOCK_SUBMISSION == "true":
         logging.warning("[!MOCK DATA!]USE_MOCK_SUBMISSION is on! this should only be used in dev mode！")
         from kernelboard.lib.mocks.mock_submission import create_mock_submission
         files = {"file": (filename, f.stream, mime)}
