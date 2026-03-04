@@ -12,6 +12,7 @@ htmlcov/
 node_modules/
 
 .env
+.env.test
 .vscode
 *.DS_Store
 kernelboard/static/app
