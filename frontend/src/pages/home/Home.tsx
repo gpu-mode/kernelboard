@@ -44,17 +44,21 @@ export default function Home() {
   const [isQuickStartOpen, setIsQuickStartOpen] = useState(false);
   const useBeta = searchParams.has("use_beta");
   const forceRefresh = searchParams.has("force_refresh");
+  const fastCache = searchParams.has("fast_cache");
 
-  const { data, loading, error, errorStatus, call } = fetcherApiCallback<
-    LeaderboardSummaries,
-    [boolean, boolean]
-  >(fetchLeaderboardSummaries, undefined, {
-    initialLoading: !useBeta,
-  });
+  const { data, loading, hasLoaded, error, errorStatus, call } =
+    fetcherApiCallback<
+      LeaderboardSummaries,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      any[]
+    >(fetchLeaderboardSummaries, undefined, {
+      initialLoading: false,
+      loadingGracePeriodMs: 200,
+    });
 
   useEffect(() => {
-    call(useBeta, forceRefresh);
-  }, [call, useBeta, forceRefresh]);
+    call(useBeta, forceRefresh, fastCache);
+  }, [call, useBeta, forceRefresh, fastCache]);
 
   const leaderboards = data?.leaderboards || [];
 
@@ -97,6 +101,8 @@ export default function Home() {
 
         {error ? (
           <ErrorAlert status={errorStatus} message={error} />
+        ) : !hasLoaded && !loading ? (
+          null
         ) : loading ? (
           <Loading />
         ) : leaderboards.length > 0 ? (
