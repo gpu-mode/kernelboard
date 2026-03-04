@@ -52,7 +52,6 @@ export default function Home() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       any[]
     >(fetchLeaderboardSummaries, undefined, {
-      initialLoading: false,
       loadingGracePeriodMs: 200,
     });
 
