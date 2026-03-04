@@ -7,6 +7,7 @@ import {
   Tab,
   Tabs,
   Typography,
+  Button,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { memo, useCallback, useEffect, useState } from "react";
@@ -17,19 +18,18 @@ import RankingsList from "./components/RankingLists";
 import CodeBlock from "../../components/codeblock/CodeBlock";
 import MarkdownRenderer from "../../components/markdown-renderer/MarkdownRenderer";
 import { ErrorAlert } from "../../components/alert/ErrorAlert";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Loading from "../../components/common/loading";
 import { ConstrainedContainer } from "../../components/app-layout/ConstrainedContainer";
-import { SubmissionMode } from "../../lib/types/mode";
 import { useAuthStore } from "../../lib/store/authStore";
 import SubmissionHistorySection from "./components/submission-history/SubmissionHistorySection";
-import LeaderboardSubmit from "./components/LeaderboardSubmit";
 import UserTrendChart from "./components/UserTrendChart";
 import {
   SubmissionSidebarProvider,
   useSubmissionSidebarState,
 } from "./components/SubmissionSidebarContext";
 import SubmissionCodeSidebar from "./components/SubmissionCodeSidebar";
+import CodeIcon from "@mui/icons-material/Code";
 
 const DEFAULT_SIDEBAR_WIDTH = 600;
 
@@ -71,6 +71,7 @@ function TabPanel(props: {
 // Inner component
 const LeaderboardContent = memo(function LeaderboardContent() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const { data, loading, error, errorStatus, call } =
     fetcherApiCallback(fetchLeaderBoard);
@@ -96,8 +97,7 @@ const LeaderboardContent = memo(function LeaderboardContent() {
       : "rankings";
   })();
   const [tab, setTab] = useState<TabKey>(initialTabFromUrl);
-  const [refreshFlag, setRefreshFlag] = useState(false);
-  const triggerRefresh = () => setRefreshFlag((f) => !f);
+  const [refreshFlag] = useState(false);
 
   useEffect(() => {
     const current = searchParams.get("tab");
@@ -169,6 +169,7 @@ const LeaderboardContent = memo(function LeaderboardContent() {
 
   if (loading) return <Loading />;
   if (error) return <ErrorAlert status={errorStatus} message={error} />;
+  if (!data) return null;
 
   const toDeadlineUTC = (raw: string) => {
     const verb = isExpired(raw) ? "Ended" : "Ends";
@@ -183,7 +184,28 @@ const LeaderboardContent = memo(function LeaderboardContent() {
   return (
     <ConstrainedContainer>
       <Box>
-        <h1>{data.name}</h1>
+        {/* Header with title and Submit button */}
+        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+          <h1 style={{ margin: 0 }}>{data.name}</h1>
+          {isAuthed && !isExpired(data.deadline) && (
+            <Button
+              variant="contained"
+              startIcon={<CodeIcon />}
+              onClick={() => navigate(`/leaderboard/${id}/editor`)}
+              sx={{
+                borderRadius: 2,
+                px: 3,
+                py: 1,
+                fontWeight: "bold",
+                textTransform: "none",
+                background: "linear-gradient(90deg, #a5b4fc 0%, #93c5fd 100%)",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+              }}
+            >
+              Submit Code
+            </Button>
+          )}
+        </Stack>
         {/* Header info cards shown above tabs */}
         <Grid container spacing={2} marginBottom={2}>
           {info_items.map((info, idx) => (
@@ -297,19 +319,23 @@ const LeaderboardContent = memo(function LeaderboardContent() {
                   justifyContent="space-between"
                   mb={2}
                 >
-                  <CardTitle fontWeight="bold">Submission</CardTitle>
-                  <LeaderboardSubmit
-                    leaderboardId={id!}
-                    leaderboardName={data.name}
-                    gpuTypes={data.gpu_types}
-                    disabled={isExpired(data.deadline)}
-                    modes={[
-                      SubmissionMode.LEADERBOARD,
-                      SubmissionMode.BENCHMARK,
-                      SubmissionMode.TEST,
-                    ]}
-                    onSubmit={triggerRefresh}
-                  />
+                  <CardTitle fontWeight="bold">Submission History</CardTitle>
+                  {!isExpired(data.deadline) && (
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<CodeIcon />}
+                      onClick={() => navigate(`/leaderboard/${id}/editor`)}
+                      sx={{
+                        borderRadius: 2,
+                        textTransform: "none",
+                        background: "linear-gradient(90deg, #a5b4fc 0%, #93c5fd 100%)",
+                        boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
+                      }}
+                    >
+                      Submit Code
+                    </Button>
+                  )}
                 </Stack>
                 {/* Deadline Passed Message */}
                 {isExpired(data.deadline) && (
@@ -334,7 +360,6 @@ const LeaderboardContent = memo(function LeaderboardContent() {
             </Card>
           )}
         </TabPanel>
-
       </Box>
     </ConstrainedContainer>
   );

@@ -229,7 +229,7 @@ export async function submitFile(form: FormData) {
 
 export async function fetchUserSubmissions(
   leaderboardId: number | string,
-  userId: number | string,
+  _userId: number | string,
   page: number = 1,
   pageSize: number = 10,
 ): Promise<UserSubmissionsResponse> {
@@ -386,4 +386,100 @@ export async function searchUsers(
   }
   const r = await res.json();
   return r.data;
+}
+
+export interface SubmitCodeResponse {
+  submission_id: number;
+  message?: string;
+}
+
+export async function submitCode(
+  leaderboardId: string,
+  leaderboardName: string,
+  gpuType: string,
+  mode: string,
+  code: string,
+  fileName: string = "submission.py"
+): Promise<SubmitCodeResponse> {
+  const blob = new Blob([code], { type: "text/plain" });
+  const file = new File([blob], fileName, { type: "text/x-python" });
+
+  const form = new FormData();
+  form.set("leaderboard_id", leaderboardId);
+  form.set("leaderboard", leaderboardName);
+  form.set("gpu_type", gpuType);
+  form.set("submission_mode", mode);
+  form.set("file", file, fileName);
+
+  let resp: Response;
+  try {
+    resp = await fetch("/api/submission", {
+      method: "POST",
+      body: form,
+    });
+  } catch (err) {
+    throw new Error("Network error: Unable to connect to server");
+  }
+
+  const text = await resp.text();
+  if (!text) {
+    throw new Error("Server returned empty response. The submission service may be unavailable.");
+  }
+
+  let data: Record<string, unknown>;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(`Server error: ${text.slice(0, 200)}`);
+  }
+
+  if (!resp.ok) {
+    const msg = (data?.detail as string) || (data?.message as string) || "Submission failed";
+    throw new Error(msg);
+  }
+
+  return {
+    submission_id: (data.data as Record<string, unknown>)?.submission_id as number || 0,
+    message: data.message as string | undefined,
+  };
+}
+
+export interface SubmissionStatusResponse {
+  submission_id: number;
+  status: string | null;
+  submission_done: boolean;
+  file_name?: string | null;
+  submitted_at?: string;
+  error?: string | null;
+  last_heartbeat?: string | null;
+  job_created_at?: string | null;
+  runs?: Array<{
+    start_time: string;
+    end_time: string | null;
+    mode: string;
+    passed: boolean;
+    score: number | null;
+    meta: Record<string, unknown> | null;
+    report: Record<string, unknown> | null;
+  }>;
+}
+
+export async function fetchSubmissionStatus(
+  leaderboardId: number | string,
+  submissionId: number
+): Promise<SubmissionStatusResponse | null> {
+  const res = await fetch(
+    `/api/submissions?leaderboard_id=${leaderboardId}&offset=0&limit=100`
+  );
+  if (!res.ok) {
+    const json = await res.json();
+    const message = json?.message || "Unknown error";
+    throw new APIError(`Failed to fetch submission status: ${message}`, res.status);
+  }
+  const r = await res.json();
+  const items = r.data?.items || [];
+  const submission = items.find(
+    (item: SubmissionStatusResponse) => item.submission_id === submissionId
+  );
+  return submission || null;
 }
