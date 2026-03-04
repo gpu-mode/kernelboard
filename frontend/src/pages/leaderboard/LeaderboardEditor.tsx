@@ -151,6 +151,7 @@ export default function LeaderboardEditor() {
   const [code, setCode] = useState(DEFAULT_CODE);
   const [editorStatus, setEditorStatus] = useState<SubmitStatus>({ kind: "idle" });
   const editorPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const editorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Submit mode switch
   const [submitMode, setSubmitMode] = useState<SubmitMode>("editor");
@@ -162,6 +163,10 @@ export default function LeaderboardEditor() {
   const [uploadStatus, setUploadStatus] = useState<SubmitStatus>({ kind: "idle" });
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const uploadPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const uploadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Polling timeout (20 minutes)
+  const POLLING_TIMEOUT_MS = 20 * 60 * 1000;
 
   // Common state
   const [gpuType, setGpuType] = useState<string>("");
