@@ -4,142 +4,55 @@ import {
   CardContent,
   Typography,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Stack,
   Alert,
-  CircularProgress,
-  Chip,
   IconButton,
-  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
-  ToggleButton,
-  ToggleButtonGroup,
-  Drawer,
-  Divider,
+  DialogActions,
+  DialogContentText,
+  useMediaQuery,
+  useTheme,
+  Stack,
+  CircularProgress,
+  Chip,
 } from "@mui/material";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import HistoryIcon from "@mui/icons-material/History";
-import RefreshIcon from "@mui/icons-material/Refresh";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
-import CodeIcon from "@mui/icons-material/Code";
-import UploadFileIcon from "@mui/icons-material/UploadFile";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import TerminalIcon from "@mui/icons-material/Terminal";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import HistoryIcon from "@mui/icons-material/History";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   fetchLeaderBoard,
   submitCode,
-  submitFile,
   fetchSubmissionStatus,
-  type SubmissionStatusResponse,
 } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
-import { ConstrainedContainer } from "../../components/app-layout/ConstrainedContainer";
 import Loading from "../../components/common/loading";
 import { ErrorAlert } from "../../components/alert/ErrorAlert";
 import MarkdownRenderer from "../../components/markdown-renderer/MarkdownRenderer";
 import { SubmissionMode } from "../../lib/types/mode";
 import { useAuthStore } from "../../lib/store/authStore";
 import SubmissionHistorySection from "./components/submission-history/SubmissionHistorySection";
-import { SubmissionRunsTable } from "./components/submission-history/SubmissionRunsTable";
-import CodeMirror from "@uiw/react-codemirror";
-import { python } from "@codemirror/lang-python";
-import { oneDark } from "@codemirror/theme-one-dark";
 import { useThemeStore } from "../../lib/store/themeStore";
-
-const DEFAULT_CODE = "# Write your Python code here\n";
-
-const styles = {
-  root: {
-    py: 3,
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    mb: 2,
-  },
-  editorCard: {
-    mb: 2,
-  },
-  editorWrapper: {
-    border: "1px solid",
-    borderColor: "divider",
-    borderRadius: 1,
-    overflow: "hidden",
-  },
-  controlsRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 2,
-    flexWrap: "wrap",
-  },
-  submitBtn: {
-    borderRadius: 2,
-    px: 3,
-    py: 1,
-    fontWeight: "bold",
-    textTransform: "none",
-    background: "linear-gradient(90deg, #10b981 0%, #059669 100%)",
-    "&:hover": {
-      background: "linear-gradient(90deg, #059669 0%, #047857 100%)",
-    },
-  },
-  historyBtn: {
-    borderRadius: 2,
-    textTransform: "none",
-  },
-  statusCard: {
-    mt: 2,
-  },
-  statusHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    mb: 1,
-  },
-  uploadArea: {
-    border: "2px dashed",
-    borderColor: "divider",
-    borderRadius: 2,
-    p: 4,
-    textAlign: "center",
-    cursor: "pointer",
-    transition: "all 0.2s",
-    "&:hover": {
-      borderColor: "primary.main",
-      bgcolor: "action.hover",
-    },
-  },
-  uploadAreaDragging: {
-    borderColor: "primary.main",
-    bgcolor: "action.hover",
-    transform: "scale(1.01)",
-  },
-} as const;
-
-type SubmitStatus =
-  | { kind: "idle" }
-  | { kind: "submitting" }
-  | { kind: "polling"; submissionId: number; result?: SubmissionStatusResponse }
-  | { kind: "done"; submissionId: number; result: SubmissionStatusResponse }
-  | { kind: "error"; msg: string };
-
-type SubmitMode = "editor" | "upload";
+import {
+  CodeEditorPanel,
+  JobOutputPanel,
+  EditorControls,
+  ResizableSplitPanel,
+  DEFAULT_CODE,
+  editorStyles as styles,
+  type SubmitStatus,
+} from "./components/editor";
 
 export default function LeaderboardEditor() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const resolvedMode = useThemeStore((s) => s.resolvedMode);
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
   const { data, loading, error, errorStatus, call } =
     fetcherApiCallback(fetchLeaderBoard);
@@ -147,23 +60,18 @@ export default function LeaderboardEditor() {
   const isAuthed = !!(me && me.authenticated);
   const userId = me?.user?.identity ?? null;
 
+  // Resizable side panel state (for desktop)
+  const [sidePanelWidth, setSidePanelWidth] = useState(400);
+  const [isResizing, setIsResizing] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
   // Editor state
   const [code, setCode] = useState(DEFAULT_CODE);
+  const [isEditorDirty, setIsEditorDirty] = useState(true);
   const [editorStatus, setEditorStatus] = useState<SubmitStatus>({ kind: "idle" });
   const editorPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const editorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Submit mode switch
-  const [submitMode, setSubmitMode] = useState<SubmitMode>("editor");
-
-  // Upload state
-  const [file, setFile] = useState<File | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadStatus, setUploadStatus] = useState<SubmitStatus>({ kind: "idle" });
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const uploadPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const uploadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Polling timeout (20 minutes)
   const POLLING_TIMEOUT_MS = 20 * 60 * 1000;
@@ -172,16 +80,56 @@ export default function LeaderboardEditor() {
   const [gpuType, setGpuType] = useState<string>("");
   const [mode, setMode] = useState<string>(SubmissionMode.LEADERBOARD);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [refreshFlag, setRefreshFlag] = useState(false);
-
-  // Job result drawer
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerHeight, setDrawerHeight] = useState(300);
+  const [refreshFlag] = useState(false);
+  const [confirmSubmitOpen, setConfirmSubmitOpen] = useState(false);
 
   const modes = useMemo(
     () => [SubmissionMode.LEADERBOARD, SubmissionMode.BENCHMARK, SubmissionMode.TEST],
     []
   );
+
+  // Handle panel resize
+  const handleMouseDown = useCallback(() => {
+    setIsResizing(true);
+  }, []);
+
+  useEffect(() => {
+    let rafId: number | null = null;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing || !containerRef.current) return;
+
+      if (rafId) cancelAnimationFrame(rafId);
+
+      rafId = requestAnimationFrame(() => {
+        if (!containerRef.current) return;
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const newWidth = e.clientX - containerRect.left;
+        // Clamp between 250 and 600
+        setSidePanelWidth(Math.max(250, Math.min(600, newWidth)));
+      });
+    };
+
+    const handleMouseUp = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      setIsResizing(false);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+
+    if (isResizing) {
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing]);
 
   useEffect(() => {
     if (id) call(id);
@@ -198,6 +146,10 @@ export default function LeaderboardEditor() {
     if (editorPollingRef.current) {
       clearInterval(editorPollingRef.current);
       editorPollingRef.current = null;
+    }
+    if (editorTimeoutRef.current) {
+      clearTimeout(editorTimeoutRef.current);
+      editorTimeoutRef.current = null;
     }
   }, []);
 
@@ -222,56 +174,29 @@ export default function LeaderboardEditor() {
         }
       };
 
+      // Set timeout (20 minutes)
+      editorTimeoutRef.current = setTimeout(() => {
+        stopEditorPolling();
+        setEditorStatus({
+          kind: "error",
+          msg: "Job timed out after 20 minutes. Please try again.",
+        });
+      }, POLLING_TIMEOUT_MS);
+
       poll();
       editorPollingRef.current = setInterval(poll, 5000);
     },
-    [stopEditorPolling, id]
-  );
-
-  // Upload polling
-  const stopUploadPolling = useCallback(() => {
-    if (uploadPollingRef.current) {
-      clearInterval(uploadPollingRef.current);
-      uploadPollingRef.current = null;
-    }
-  }, []);
-
-  const startUploadPolling = useCallback(
-    (submissionId: number) => {
-      if (!id) return;
-      stopUploadPolling();
-
-      const poll = async () => {
-        try {
-          const status = await fetchSubmissionStatus(id, submissionId);
-          if (!status) return;
-          if (status.submission_done) {
-            stopUploadPolling();
-            setUploadStatus({ kind: "done", submissionId, result: status });
-          } else {
-            // Show intermediate status with runs while polling
-            setUploadStatus({ kind: "polling", submissionId, result: status });
-          }
-        } catch (err) {
-          console.error("Upload polling error:", err);
-        }
-      };
-
-      poll();
-      uploadPollingRef.current = setInterval(poll, 5000);
-    },
-    [stopUploadPolling, id]
-  );
+    [stopEditorPolling, id, POLLING_TIMEOUT_MS]
+    );
 
   useEffect(() => {
     return () => {
       stopEditorPolling();
-      stopUploadPolling();
     };
-  }, [stopEditorPolling, stopUploadPolling]);
+  }, [stopEditorPolling]);
 
-  // Editor submit
-  const handleEditorSubmit = async () => {
+  // Editor submit - check if job is running first
+  const handleEditorSubmitClick = () => {
     if (!data || !id) return;
 
     if (!code.trim()) {
@@ -279,12 +204,26 @@ export default function LeaderboardEditor() {
       return;
     }
 
+    // If a job is currently running, show confirmation dialog
+    if (editorStatus.kind === "polling") {
+      setConfirmSubmitOpen(true);
+      return;
+    }
+
+    // Otherwise, submit directly
+    doEditorSubmit();
+  };
+
+  const doEditorSubmit = async () => {
+    if (!data || !id) return;
+
+    setConfirmSubmitOpen(false);
     setEditorStatus({ kind: "submitting" });
-    setDrawerOpen(true);
 
     try {
       const result = await submitCode(id, data.name, gpuType, mode, code);
       if (result?.submission_id) {
+        setIsEditorDirty(false);
         startEditorPolling(result.submission_id);
       } else {
         setEditorStatus({ kind: "error", msg: "Submission accepted but no ID returned." });
@@ -295,174 +234,15 @@ export default function LeaderboardEditor() {
         msg: err instanceof Error ? err.message : "Submission failed",
       });
     }
-  };
-
-  // Upload submit
-  const handleUploadSubmit = async () => {
-    if (!data || !id || !file) return;
-
-    setUploadStatus({ kind: "submitting" });
-    setUploadError(null);
-    setDrawerOpen(true);
-
-    try {
-      const form = new FormData();
-      form.set("leaderboard_id", id);
-      form.set("leaderboard", data.name);
-      form.set("gpu_type", gpuType);
-      form.set("submission_mode", mode);
-      form.set("file", file, file.name);
-      const res = await submitFile(form);
-      const submissionId = (res.data as Record<string, unknown>)?.submission_id as number ||
-                           (res as Record<string, unknown>)?.submission_id as number || 0;
-
-      if (submissionId) {
-        startUploadPolling(submissionId);
-      } else {
-        setUploadStatus({ kind: "error", msg: "Submission accepted but no ID returned." });
-      }
-    } catch (err) {
-      setUploadStatus({
-        kind: "error",
-        msg: err instanceof Error ? err.message : "Submission failed",
-      });
-    }
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0] ?? null;
-    if (!f) return;
-    validateAndSetFile(f);
-  };
-
-  const validateAndSetFile = (f: File) => {
-    // Clear previous errors and status
-    setUploadError(null);
-    setUploadStatus({ kind: "idle" });
-
-    const name = f.name.toLowerCase();
-    if (!name.endsWith(".py")) {
-      setUploadError("Please select a .py file.");
-      setFile(null);
-      return;
-    }
-    if (f.size > 1 * 1024 * 1024) {
-      setUploadError("File too large (> 1 MB)");
-      setFile(null);
-      return;
-    }
-    setFile(f);
-  };
-
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      validateAndSetFile(files[0]);
-    }
-  };
+    };
 
   const canEditorSubmit = useMemo(() => {
     if (!gpuType || !mode) return false;
-    return code.trim().length > 0;
-  }, [code, gpuType, mode]);
-
-  const canUploadSubmit = useMemo(() => {
-    if (!gpuType || !mode) return false;
-    return !!file;
-  }, [file, gpuType, mode]);
-
-  const renderEditorStatusChip = () => {
-    switch (editorStatus.kind) {
-      case "submitting":
-        return (
-          <Chip
-            icon={<CircularProgress size={14} />}
-            label="Submitting..."
-            color="info"
-            size="small"
-          />
-        );
-      case "polling":
-        return (
-          <Chip
-            icon={<HourglassEmptyIcon />}
-            label="Running..."
-            color="warning"
-            size="small"
-          />
-        );
-      case "done":
-        return (
-          <Chip
-            icon={<CheckCircleIcon />}
-            label="Completed"
-            color="success"
-            size="small"
-          />
-        );
-      case "error":
-        return <Chip label="Error" color="error" size="small" />;
-      default:
-        return null;
-    }
-  };
-
-  const renderUploadStatusChip = () => {
-    switch (uploadStatus.kind) {
-      case "submitting":
-        return (
-          <Chip
-            icon={<CircularProgress size={14} />}
-            label="Submitting..."
-            color="info"
-            size="small"
-          />
-        );
-      case "polling":
-        return (
-          <Chip
-            icon={<HourglassEmptyIcon />}
-            label="Running..."
-            color="warning"
-            size="small"
-          />
-        );
-      case "done":
-        return (
-          <Chip
-            icon={<CheckCircleIcon />}
-            label="Completed"
-            color="success"
-            size="small"
-          />
-        );
-      case "error":
-        return <Chip label="Error" color="error" size="small" />;
-      default:
-        return null;
-    }
-  };
+    if (!code.trim()) return false;
+    // Only enable if editor has been modified
+    if (!isEditorDirty) return false;
+    return true;
+  }, [code, gpuType, mode, isEditorDirty]);
 
   if (loading) return <Loading />;
   if (error) return <ErrorAlert status={errorStatus} message={error} />;
@@ -470,7 +250,7 @@ export default function LeaderboardEditor() {
 
   if (!isAuthed) {
     return (
-      <ConstrainedContainer>
+      <Box sx={{ width: "100%", px: { xs: 2, sm: 3, lg: 4 } }}>
         <Box sx={{ ...styles.root, textAlign: "center", py: 8 }}>
           <Typography variant="h5" gutterBottom>
             Submit Code
@@ -479,13 +259,13 @@ export default function LeaderboardEditor() {
             Please login to submit your code.
           </Alert>
         </Box>
-      </ConstrainedContainer>
+      </Box>
     );
   }
 
   return (
-    <ConstrainedContainer>
-      <Box sx={styles.root}>
+    <Box sx={{ width: "100%", px: { xs: 2, sm: 3, lg: 4 } }}>
+      <Box sx={styles.root} ref={containerRef}>
         {/* Header */}
         <Box sx={styles.header}>
           <Box>
@@ -496,323 +276,193 @@ export default function LeaderboardEditor() {
               Submit your Python code
             </Typography>
           </Box>
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            {/* Show user's best rank and score */}
+            {(() => {
+              const priorityGpu = data.gpu_types?.[0] || "";
+              const rankings = data.rankings?.[priorityGpu] || [];
+              const myBest = rankings.find(
+                (r) => r.user_name === me?.user?.display_name
+              );
+              if (myBest) {
+                return (
+                  <Chip
+                    icon={<EmojiEventsIcon />}
+                    label={`Rank #${myBest.rank} • Score: ${myBest.score.toFixed(2)}`}
+                    color="primary"
+                    variant="outlined"
+                  />
+                );
+              }
+              return null;
+            })()}
             <Button
               variant="outlined"
               startIcon={<HistoryIcon />}
               onClick={() => setHistoryOpen(true)}
               sx={styles.historyBtn}
+              size="small"
             >
               History
             </Button>
-            <Button variant="outlined" onClick={() => navigate(`/leaderboard/${id}`)}>
+            <Button variant="outlined" onClick={() => navigate(`/leaderboard/${id}`)} size="small">
               Back
             </Button>
           </Stack>
         </Box>
 
-        {/* Description */}
-        <Card sx={{ mb: 2 }}>
-          <CardContent>
-            <details>
-              <summary style={{ cursor: "pointer", fontWeight: "bold", fontSize: "1.1rem" }}>
-                Challenge Description
-              </summary>
-              <MarkdownRenderer content={data.description} />
-              {data.benchmarks && data.benchmarks.length > 0 && (
-                <details>
-                  <summary style={{ cursor: "pointer", fontWeight: "bold", marginTop: 16 }}>
-                    Benchmark Shapes
-                  </summary>
-                  <ul>
-                    {data.benchmarks.map((b, i) => (
-                      <li key={i}>
-                        <code>
-                          {JSON.stringify(
-                            Object.fromEntries(Object.entries(b).filter(([k]) => k !== "seed"))
-                          )}
-                        </code>
-                      </li>
-                    ))}
-                </ul>
-                </details>
-              )}
-            </details>
-          </CardContent>
-        </Card>
-
-        {/* Submission Section with Toggle */}
-        <Card sx={styles.editorCard}>
-          <CardContent>
-            {/* Toggle between Editor and Upload */}
-            <Stack direction="row" justifyContent="flex-start" alignItems="center" mb={2}>
-              <ToggleButtonGroup
-                value={submitMode}
-                exclusive
-                onChange={(_, v) => v && setSubmitMode(v)}
-                size="small"
-              >
-                <ToggleButton value="editor">
-                  <CodeIcon sx={{ mr: 0.5 }} />
-                  Code Editor
-                </ToggleButton>
-                <ToggleButton value="upload">
-                  <UploadFileIcon sx={{ mr: 0.5 }} />
-                  Upload File
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Stack>
-
-            {/* Editor Mode */}
-            {submitMode === "editor" && (
-              <>
-                <Box sx={styles.editorWrapper}>
-                  <CodeMirror
-                    value={code}
-                    height="400px"
-                    theme={resolvedMode === "dark" ? oneDark : undefined}
-                    extensions={[python()]}
-                    onChange={(value: string) => setCode(value)}
-                    basicSetup={{
-                      lineNumbers: true,
-                      highlightActiveLineGutter: true,
-                      highlightActiveLine: true,
-                      bracketMatching: true,
-                      closeBrackets: true,
-                      autocompletion: true,
-                      indentOnInput: true,
-                    }}
-                  />
-                </Box>
-
-                {/* Editor Controls */}
-                <Stack direction="row" spacing={2} sx={{ mt: 2 }} alignItems="center">
-                  <FormControl size="small" sx={{ width: 180 }}>
-                    <InputLabel id="editor-gpu-type-label">GPU Type</InputLabel>
-                    <Select
-                      labelId="editor-gpu-type-label"
-                      value={gpuType}
-                      label="GPU Type"
-                      onChange={(e) => setGpuType(e.target.value)}
-                      MenuProps={{ disableScrollLock: true }}
-                    >
-                      {data.gpu_types.map((g) => (
-                        <MenuItem key={g} value={g}>
-                          {g}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-
-                  <FormControl size="small" sx={{ width: 180 }}>
-                    <InputLabel id="editor-mode-label">Mode</InputLabel>
-                    <Select
-                      labelId="editor-mode-label"
-                      value={mode}
-                      label="Mode"
-                      onChange={(e) => setMode(e.target.value)}
-                      MenuProps={{ disableScrollLock: true }}
-                    >
-                      {modes.map((m) => (
-                        <MenuItem key={m} value={m}>
-                          {m}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-
-                  <Button
-                    variant="contained"
-                    startIcon={
-                      editorStatus.kind === "submitting" ? (
-                        <CircularProgress size={18} color="inherit" />
-                      ) : (
-                        <PlayArrowIcon />
-                      )
-                    }
-                    onClick={handleEditorSubmit}
-                      disabled={!canEditorSubmit || editorStatus.kind === "submitting" || editorStatus.kind === "polling"}
-                    sx={styles.submitBtn}
-                  >
-                    {editorStatus.kind === "submitting" ? "Submitting..." : "Run"}
-                  </Button>
-
-                  {renderEditorStatusChip()}
-
-                  {editorStatus.kind === "polling" && (
-                    <Tooltip title="Refresh status">
-                      <IconButton size="small" onClick={() => startEditorPolling(editorStatus.submissionId)}>
-                        <RefreshIcon />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                </Stack>
-
-                {/* Editor Status Messages */}
-                {editorStatus.kind === "error" && (
-                  <Alert severity="error" sx={{ mt: 2 }}>
-                    {editorStatus.msg}
-                  </Alert>
-                )}
-
-                {editorStatus.kind === "done" && (
-                  <Alert severity="success" sx={{ mt: 2 }}>
-                    Submission completed! Check the history for results.
-                  </Alert>
-                )}
-              </>
-            )}
-
-            {/* Upload Mode */}
-            {submitMode === "upload" && (
-              <>
-                {file ? (
-                  <Box
-                    sx={{
-                      border: "1px solid",
-                      borderColor: "divider",
-                      borderRadius: 2,
-                      p: 2,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Stack direction="row" alignItems="center" spacing={2}>
-                      <UploadFileIcon sx={{ color: "primary.main" }} />
-                      <Box>
-                        <Typography variant="body1">{file.name}</Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {(file.size / 1024).toFixed(1)} KB
-                        </Typography>
-                      </Box>
-                    </Stack>
-                    <IconButton
-                      size="small"
-                      onClick={() => {
-                        setFile(null);
-                        setUploadError(null);
-                        if (fileInputRef.current) {
-                          fileInputRef.current.value = "";
-                        }
-                      }}
-                      sx={{ color: "text.secondary" }}
-                    >
-                      <CloseIcon />
-                    </IconButton>
-                  </Box>
-                ) : (
-                  <Box
-                    sx={{
-                      ...styles.uploadArea,
-                      ...(isDragging ? styles.uploadAreaDragging : {}),
-                    }}
-                    onClick={() => fileInputRef.current?.click()}
-                    onDragEnter={handleDragEnter}
-                    onDragLeave={handleDragLeave}
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                  >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".py"
-                      hidden
-                      onChange={handleFileSelect}
-                    />
-                    <UploadFileIcon sx={{ fontSize: 48, color: "text.secondary", mb: 1 }} />
-                    <Typography variant="body1" color="text.secondary">
-                      Drag & drop or click to select a .py file
+        {/* Main Content - Side by side on desktop, stacked on mobile */}
+        <Box sx={{
+          display: "flex",
+          flexDirection: isDesktop ? "row" : "column",
+          gap: 2,
+          position: "relative",
+        }}>
+          {/* Description Panel */}
+          <Box sx={{
+            width: isDesktop ? sidePanelWidth : "100%",
+            minWidth: isDesktop ? 250 : undefined,
+            maxWidth: isDesktop ? 600 : undefined,
+            flexShrink: 0,
+          }}>
+            <Card sx={{ height: isDesktop ? "calc(100vh - 200px)" : "auto", overflow: "auto" }}>
+              <CardContent>
+                <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
+                  Challenge Description
+                </Typography>
+                <MarkdownRenderer content={data.description} />
+                {data.benchmarks && data.benchmarks.length > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                      Benchmark Shapes
                     </Typography>
+                    <ul style={{ margin: 0, paddingLeft: 20 }}>
+                      {data.benchmarks.map((b, i) => (
+                        <li key={i}>
+                          <code>
+                            {JSON.stringify(
+                              Object.fromEntries(Object.entries(b).filter(([k]) => k !== "seed"))
+                            )}
+                          </code>
+                        </li>
+                      ))}
+                    </ul>
                   </Box>
                 )}
+              </CardContent>
+            </Card>
+          </Box>
 
-                {/* Upload Error */}
-                {uploadError && (
-                  <Alert severity="error" sx={{ mt: 2 }}>
-                    {uploadError}
-                  </Alert>
-                )}
+          {/* Resize Handle (desktop only) */}
+          {isDesktop && (
+            <Box
+              onMouseDown={handleMouseDown}
+              sx={{
+                width: 8,
+                cursor: "col-resize",
+                bgcolor: isResizing ? "primary.main" : "transparent",
+                "&:hover": {
+                  bgcolor: "action.hover",
+                },
+                borderRadius: 1,
+                transition: "background-color 0.2s",
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Box sx={{
+                width: 4,
+                height: 40,
+                bgcolor: "divider",
+                borderRadius: 1,
+              }} />
+            </Box>
+          )}
 
-                {/* Upload Controls */}
-                <Stack direction="row" spacing={2} sx={{ mt: 2 }} alignItems="center">
-                  <FormControl size="small" sx={{ width: 180 }}>
-                    <InputLabel id="upload-gpu-type-label">GPU Type</InputLabel>
-                    <Select
-                      labelId="upload-gpu-type-label"
-                      value={gpuType}
-                      label="GPU Type"
-                      onChange={(e) => setGpuType(e.target.value)}
-                      MenuProps={{ disableScrollLock: true }}
-                    >
-                      {data.gpu_types.map((g) => (
-                        <MenuItem key={g} value={g}>
-                          {g}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-
-                  <FormControl size="small" sx={{ width: 180 }}>
-                    <InputLabel id="upload-mode-label">Mode</InputLabel>
-                    <Select
-                      labelId="upload-mode-label"
-                      value={mode}
-                      label="Mode"
-                      onChange={(e) => setMode(e.target.value)}
-                      MenuProps={{ disableScrollLock: true }}
-                    >
-                      {modes.map((m) => (
-                        <MenuItem key={m} value={m}>
-                          {m}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-
-                  <Button
-                    variant="contained"
-                    startIcon={
-                      uploadStatus.kind === "submitting" ? (
-                        <CircularProgress size={18} color="inherit" />
-                      ) : (
-                        <PlayArrowIcon />
-                      )
+          {/* Editor Panel */}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            {/* Submission Section */}
+            <Card sx={styles.editorCard}>
+              <CardContent>
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".py"
+                  hidden
+                  onChange={(e) => {
+                    const selectedFile = e.target.files?.[0];
+                    if (!selectedFile) return;
+                    if (!selectedFile.name.endsWith(".py")) {
+                      setEditorStatus({ kind: "error", msg: "Please select a .py file" });
+                      return;
                     }
-                    onClick={handleUploadSubmit}
-                      disabled={!canUploadSubmit || uploadStatus.kind === "submitting" || uploadStatus.kind === "polling"}
-                    sx={styles.submitBtn}
-                  >
-                    {uploadStatus.kind === "submitting" ? "Submitting..." : "Run"}
-                  </Button>
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      const content = event.target?.result as string;
+                      setCode(content);
+                      setIsEditorDirty(true);
+                    };
+                    reader.onerror = () => {
+                      setEditorStatus({ kind: "error", msg: "Failed to read file" });
+                    };
+                    reader.readAsText(selectedFile);
+                  }}
+                />
 
-                  {renderUploadStatusChip()}
+            {/* Editor + Output split panel */}
+            <ResizableSplitPanel
+              topPanel={
+                <CodeEditorPanel
+                  code={code}
+                  onChange={(value: string) => {
+                    setCode(value);
+                    setIsEditorDirty(true);
+                  }}
+                  resolvedMode={resolvedMode}
+                />
+              }
+              bottomPanel={
+                <JobOutputPanel
+                  editorStatus={editorStatus}
+                  uploadStatus={{ kind: "idle" }}
+                />
+              }
+            />
 
-                  {uploadStatus.kind === "polling" && (
-                    <Tooltip title="Refresh status">
-                      <IconButton size="small" onClick={() => startUploadPolling(uploadStatus.submissionId)}>
-                        <RefreshIcon />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                </Stack>
+            {/* Controls */}
+            <EditorControls
+              gpuType={gpuType}
+              setGpuType={setGpuType}
+              gpuTypes={data.gpu_types}
+              mode={mode}
+              setMode={setMode}
+              modes={modes}
+              canSubmit={canEditorSubmit}
+              isSubmitting={editorStatus.kind === "submitting"}
+              onSubmit={handleEditorSubmitClick}
+              onHistoryClick={() => setHistoryOpen(true)}
+              onUploadClick={() => fileInputRef.current?.click()}
+            />
 
-                {/* Upload Status Messages */}
-                {uploadStatus.kind === "error" && (
-                  <Alert severity="error" sx={{ mt: 2 }}>
-                    {uploadStatus.msg}
-                  </Alert>
-                )}
+            {/* Status Messages */}
+            {editorStatus.kind === "error" && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {editorStatus.msg}
+              </Alert>
+            )}
 
-                {uploadStatus.kind === "done" && (
-                  <Alert severity="success" sx={{ mt: 2 }}>
-                    Submission completed! Check the history for results.
-                  </Alert>
-                )}
-              </>
+            {editorStatus.kind === "done" && (
+              <Alert severity="success" sx={{ mt: 2 }}>
+                Submission completed!
+              </Alert>
             )}
           </CardContent>
         </Card>
+        </Box>
+        </Box>
 
         {/* History Dialog */}
         <Dialog
@@ -837,160 +487,26 @@ export default function LeaderboardEditor() {
           </DialogContent>
         </Dialog>
 
-        {/* Job Result Drawer - Fixed Bottom Panel */}
-        <Drawer
-          anchor="bottom"
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          variant="persistent"
-          sx={{
-            "& .MuiDrawer-paper": {
-              height: drawerHeight,
-              borderTopLeftRadius: 12,
-              borderTopRightRadius: 12,
-              boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
-            },
-          }}
+        {/* Confirm Submit Dialog */}
+        <Dialog
+          open={confirmSubmitOpen}
+          onClose={() => setConfirmSubmitOpen(false)}
         >
-          <Box sx={{ p: 2 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <TerminalIcon />
-                <Typography variant="h6" fontWeight="bold">
-                  Job Output
-                </Typography>
-                {(editorStatus.kind === "polling" || uploadStatus.kind === "polling") && (
-                  <Chip
-                    icon={<CircularProgress size={12} />}
-                    label="Running..."
-                    color="warning"
-                    size="small"
-                  />
-                )}
-                {(editorStatus.kind === "done" || uploadStatus.kind === "done") && (
-                  <Chip icon={<CheckCircleIcon />} label="Completed" color="success" size="small" />
-                )}
-              </Stack>
-              <Stack direction="row" spacing={1}>
-                <IconButton
-                  size="small"
-                  onClick={() => setDrawerHeight(drawerHeight === 300 ? 500 : 300)}
-                >
-                  {drawerHeight === 300 ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </IconButton>
-                <IconButton size="small" onClick={() => setDrawerOpen(false)}>
-                  <CloseIcon />
-                </IconButton>
-              </Stack>
-            </Stack>
-            <Divider sx={{ my: 1 }} />
-            <Box
-              sx={{
-                height: drawerHeight - 80,
-                overflow: "auto",
-                bgcolor: "background.paper",
-                borderRadius: 1,
-                p: 2,
-              }}
-            >
-              {/* Show current job result */}
-              {editorStatus.kind === "done" && editorStatus.result && (
-                <>
-                  <Typography variant="body2" sx={{ color: "success.main", mb: 1 }}>
-                    ✓ Submission #{editorStatus.submissionId} - {editorStatus.result.status}
-                  </Typography>
-                  {editorStatus.result.error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                      {editorStatus.result.error}
-                    </Alert>
-                  )}
-                  {editorStatus.result.runs && editorStatus.result.runs.length > 0 && (
-                    <SubmissionRunsTable runs={editorStatus.result.runs} />
-                  )}
-                </>
-              )}
-              {uploadStatus.kind === "done" && uploadStatus.result && (
-                <>
-                  <Typography variant="body2" sx={{ color: "success.main", mb: 1 }}>
-                    ✓ Submission #{uploadStatus.submissionId} - {uploadStatus.result.status}
-                  </Typography>
-                  {uploadStatus.result.error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                      {uploadStatus.result.error}
-                    </Alert>
-                  )}
-                  {uploadStatus.result.runs && uploadStatus.result.runs.length > 0 && (
-                    <SubmissionRunsTable runs={uploadStatus.result.runs} />
-                  )}
-                </>
-              )}
-              {(editorStatus.kind === "submitting" || uploadStatus.kind === "submitting") && (
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <CircularProgress size={16} />
-                  <Typography variant="body2" color="text.secondary">
-                    Submitting...
-                  </Typography>
-                </Stack>
-              )}
-              {(editorStatus.kind === "polling" || uploadStatus.kind === "polling") && (
-                <>
-                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                    <CircularProgress size={16} />
-                    <Typography variant="body2" color="text.secondary">
-                      Running...
-                    </Typography>
-                  </Stack>
-                  {/* Show intermediate runs while polling */}
-                  {editorStatus.kind === "polling" && editorStatus.result?.runs && editorStatus.result.runs.length > 0 && (
-                    <SubmissionRunsTable runs={editorStatus.result.runs} />
-                  )}
-                  {uploadStatus.kind === "polling" && uploadStatus.result?.runs && uploadStatus.result.runs.length > 0 && (
-                    <SubmissionRunsTable runs={uploadStatus.result.runs} />
-                  )}
-                </>
-              )}
-              {editorStatus.kind === "idle" && uploadStatus.kind === "idle" && (
-                <Typography variant="body2" color="text.secondary">
-                  No job running. Submit code to see output here.
-                </Typography>
-              )}
-              {editorStatus.kind === "error" && (
-                <Alert severity="error">{editorStatus.msg}</Alert>
-              )}
-              {uploadStatus.kind === "error" && (
-                <Alert severity="error">{uploadStatus.msg}</Alert>
-              )}
-            </Box>
-          </Box>
-        </Drawer>
-
-        {/* Floating button to open drawer */}
-        {!drawerOpen && (editorStatus.kind !== "idle" || uploadStatus.kind !== "idle") && (
-          <Box
-            sx={{
-              position: "fixed",
-              bottom: 16,
-              right: 16,
-              zIndex: 1000,
-            }}
-          >
-            <Button
-              variant="contained"
-              startIcon={<TerminalIcon />}
-              onClick={() => setDrawerOpen(true)}
-              sx={{
-                borderRadius: 2,
-                boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-              }}
-            >
-              Job Output
-              {(editorStatus.kind === "polling" || uploadStatus.kind === "polling") && (
-                <CircularProgress size={16} sx={{ ml: 1, color: "inherit" }} />
-              )}
+          <DialogTitle>Submit New Code?</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              A job is currently running. Are you sure you want to submit new code?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setConfirmSubmitOpen(false)}>Cancel</Button>
+            <Button onClick={doEditorSubmit} variant="contained" autoFocus>
+              Submit Anyway
             </Button>
-          </Box>
-        )}
+          </DialogActions>
+        </Dialog>
+
       </Box>
-    </ConstrainedContainer>
+    </Box>
   );
 }
