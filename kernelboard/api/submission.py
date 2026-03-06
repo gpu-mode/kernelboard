@@ -92,8 +92,10 @@ def submission():
     submission_mode = request.form.get("submission_mode")
     leaderboard_name = request.form.get("leaderboard")
 
+    logger.info(f"USE_MOCK_SUBMISSION: {USE_MOCK_SUBMISSION}, leaderboard_name: {leaderboard_name},submission_mode {submission_mode}, gpu_type {gpu_type}")
+
     # DEV: Use mock submission (writes directly to local DB)
-    if USE_MOCK_SUBMISSION == "true":
+    if USE_MOCK_SUBMISSION:
         logging.warning("[!MOCK DATA!]USE_MOCK_SUBMISSION is on! this should only be used in dev mode！")
         from kernelboard.lib.mocks.mock_submission import create_mock_submission
         files = {"file": (filename, f.stream, mime)}
@@ -105,6 +107,8 @@ def submission():
             submission_mode=submission_mode,
             failure_mode=MOCK_FAILURE_MODE,
         )
+    else:
+        logger.info(f"USE_MOCK_SUBMISSION {USE_MOCK_SUBMISSION}send submission request to cluster-management api")
 
     base = get_cluster_manager_endpoint()
     url = f"{base}/submission/{leaderboard_name}/{gpu_type}/{submission_mode}"
