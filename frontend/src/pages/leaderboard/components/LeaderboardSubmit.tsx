@@ -48,6 +48,8 @@ export default function LeaderboardSubmit({
   modes,
   disabled = false,
   onSubmit,
+  open: externalOpen,
+  onClose: externalOnClose,
 }: {
   leaderboardId: string;
   leaderboardName: string;
@@ -55,8 +57,17 @@ export default function LeaderboardSubmit({
   modes: string[];
   disabled?: boolean;
   onSubmit?: () => void;
+  open?: boolean;
+  onClose?: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = externalOpen !== undefined;
+  const open = isControlled ? externalOpen : internalOpen;
+  const setOpen = isControlled
+    ? (val: boolean) => {
+        if (!val && externalOnClose) externalOnClose();
+      }
+    : setInternalOpen;
   const [gpuType, setGpuType] = useState<string>(gpuTypes?.[0] ?? "");
   const [mode, setMode] = useState<string>(modes?.[0] ?? "");
   const [file, setFile] = useState<File | null>(null);
@@ -137,22 +148,27 @@ export default function LeaderboardSubmit({
     }
   }, [status]);
 
-  const renderSubmitButton = () => (
-    <Button
-      variant="contained"
-      size="small"
-      startIcon={<UploadFileIcon />}
-      onClick={(e) => {
-        (e.currentTarget as HTMLButtonElement).blur();
-        setOpen(true);
-      }}
-      data-testid="leaderboard-submit-btn"
-      sx={styles.submitBtn}
-      disabled={disabled}
-    >
-      Submit
-    </Button>
-  );
+  const renderSubmitButton = () => {
+    if (isControlled) {
+      return null;
+    }
+    return (
+      <Button
+        variant="contained"
+        size="small"
+        startIcon={<UploadFileIcon />}
+        onClick={(e) => {
+          (e.currentTarget as HTMLButtonElement).blur();
+          setInternalOpen(true);
+        }}
+        data-testid="leaderboard-submit-btn"
+        sx={styles.submitBtn}
+        disabled={disabled}
+      >
+        Submit
+      </Button>
+    );
+  };
   return (
     <>
       <AlertBar
