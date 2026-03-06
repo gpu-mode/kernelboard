@@ -45,12 +45,14 @@ export default function Home() {
   const useBeta = searchParams.has("use_beta");
   const forceRefresh = searchParams.has("force_refresh");
 
-  const { data, loading, error, errorStatus, call } = fetcherApiCallback<
-    LeaderboardSummaries,
-    [boolean, boolean]
-  >(fetchLeaderboardSummaries, undefined, {
-    initialLoading: !useBeta,
-  });
+  const { data, loading, hasLoaded, error, errorStatus, call } =
+    fetcherApiCallback<
+      LeaderboardSummaries,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      any[]
+    >(fetchLeaderboardSummaries, undefined, {
+      loadingGracePeriodMs: 200,
+    });
 
   useEffect(() => {
     call(useBeta, forceRefresh);
@@ -97,6 +99,8 @@ export default function Home() {
 
         {error ? (
           <ErrorAlert status={errorStatus} message={error} />
+        ) : !hasLoaded && !loading ? (
+          null
         ) : loading ? (
           <Loading />
         ) : leaderboards.length > 0 ? (
