@@ -275,25 +275,6 @@ export default function LeaderboardEditor() {
             </Typography>
           </Box>
           <Stack direction="row" spacing={1} alignItems="center">
-            {/* Show user's best rank and score */}
-            {(() => {
-              const priorityGpu = data.gpu_types?.[0] || "";
-              const rankings = data.rankings?.[priorityGpu] || [];
-              const myBest = rankings.find(
-                (r) => r.user_name === me?.user?.display_name
-              );
-              if (myBest) {
-                return (
-                  <Chip
-                    icon={<EmojiEventsIcon />}
-                    label={`Rank #${myBest.rank} • Score: ${myBest.score.toFixed(2)}`}
-                    color="primary"
-                    variant="outlined"
-                  />
-                );
-              }
-              return null;
-            })()}
             <Button
               variant="outlined"
               startIcon={<HistoryIcon />}

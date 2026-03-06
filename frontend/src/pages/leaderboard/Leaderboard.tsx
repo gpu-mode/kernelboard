@@ -221,6 +221,7 @@ const LeaderboardContent = memo(function LeaderboardContent() {
                 onClick={() => navigate(`/leaderboard/${id}/editor`)}
                 sx={{
                   borderRadius: 2,
+                  fontWeight: "bold",
                   textTransform: "none",
                 }}
               >
