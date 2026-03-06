@@ -6,6 +6,7 @@ import AppLayout from "./components/app-layout/AppLayout";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { createAppTheme } from "./components/common/styles/theme";
 import Leaderboard from "./pages/leaderboard/Leaderboard";
+import LeaderboardEditor from "./pages/leaderboard/LeaderboardEditor";
 import Home from "./pages/home/Home";
 import News from "./pages/news/News";
 import WorkingGroups from "./pages/working-groups/WorkingGroups";
@@ -68,6 +69,7 @@ function App() {
             <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/home" element={<Home />} />
             <Route path="/leaderboard/:id" element={<Leaderboard />} />
+            <Route path="/leaderboard/:id/editor" element={<LeaderboardEditor />} />
             <Route path="/news" element={<News />} />
             <Route path="/news/:slug" element={<News />} />
             <Route path="/working-groups" element={<WorkingGroups />} />

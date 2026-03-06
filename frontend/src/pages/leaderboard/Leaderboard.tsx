@@ -7,6 +7,7 @@ import {
   Tab,
   Tabs,
   Typography,
+  Button,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { memo, useCallback, useEffect, useState } from "react";
@@ -17,19 +18,28 @@ import RankingsList from "./components/RankingLists";
 import CodeBlock from "../../components/codeblock/CodeBlock";
 import MarkdownRenderer from "../../components/markdown-renderer/MarkdownRenderer";
 import { ErrorAlert } from "../../components/alert/ErrorAlert";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Loading from "../../components/common/loading";
 import { ConstrainedContainer } from "../../components/app-layout/ConstrainedContainer";
-import { SubmissionMode } from "../../lib/types/mode";
 import { useAuthStore } from "../../lib/store/authStore";
 import SubmissionHistorySection from "./components/submission-history/SubmissionHistorySection";
-import LeaderboardSubmit from "./components/LeaderboardSubmit";
 import UserTrendChart from "./components/UserTrendChart";
 import {
   SubmissionSidebarProvider,
   useSubmissionSidebarState,
 } from "./components/SubmissionSidebarContext";
 import SubmissionCodeSidebar from "./components/SubmissionCodeSidebar";
+import CodeIcon from "@mui/icons-material/Code";
+import TerminalIcon from "@mui/icons-material/Terminal";
+import LeaderboardSubmit from "./components/LeaderboardSubmit";
+import { SubmissionMode } from "../../lib/types/mode";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
+import quickStartMarkdown from "../home/quick-start.md?raw";
 
 const DEFAULT_SIDEBAR_WIDTH = 600;
 
@@ -71,6 +81,7 @@ function TabPanel(props: {
 // Inner component
 const LeaderboardContent = memo(function LeaderboardContent() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const { data, loading, error, errorStatus, call } =
     fetcherApiCallback(fetchLeaderBoard);
@@ -97,7 +108,7 @@ const LeaderboardContent = memo(function LeaderboardContent() {
   })();
   const [tab, setTab] = useState<TabKey>(initialTabFromUrl);
   const [refreshFlag, setRefreshFlag] = useState(false);
-  const triggerRefresh = () => setRefreshFlag((f) => !f);
+  const [isQuickStartOpen, setIsQuickStartOpen] = useState(false);
 
   useEffect(() => {
     const current = searchParams.get("tab");
@@ -169,6 +180,7 @@ const LeaderboardContent = memo(function LeaderboardContent() {
 
   if (loading || !data) return <Loading />;
   if (error) return <ErrorAlert status={errorStatus} message={error} />;
+  if (!data) return null;
 
   const toDeadlineUTC = (raw: string) => {
     const verb = isExpired(raw) ? "Ended" : "Ends";
@@ -183,7 +195,57 @@ const LeaderboardContent = memo(function LeaderboardContent() {
   return (
     <ConstrainedContainer>
       <Box>
-        <h1>{data.name}</h1>
+        {/* Header with title and Submit button */}
+        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+          <h1 style={{ margin: 0 }}>{data.name}</h1>
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="outlined"
+              startIcon={<TerminalIcon />}
+              onClick={() => setIsQuickStartOpen(true)}
+              sx={{
+                borderRadius: 2,
+                px: 2,
+                py: 1,
+                fontWeight: "bold",
+                textTransform: "none",
+              }}
+            >
+              Submit via CLI
+            </Button>
+            {searchParams.has("editor") && (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<CodeIcon />}
+                onClick={() => navigate(`/leaderboard/${id}/editor`)}
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: "bold",
+                  textTransform: "none",
+                }}
+              >
+                Code Editor (Beta)
+              </Button>
+            )}
+          </Stack>
+        </Stack>
+
+        {/* Quick Start Dialog */}
+        <Dialog
+          open={isQuickStartOpen}
+          onClose={() => setIsQuickStartOpen(false)}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>Submit Your First Kernel</DialogTitle>
+          <DialogContent dividers>
+            <MarkdownRenderer content={quickStartMarkdown} />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setIsQuickStartOpen(false)}>Close</Button>
+          </DialogActions>
+        </Dialog>
         {/* Header info cards shown above tabs */}
         <Grid container spacing={2} marginBottom={2}>
           {info_items.map((info, idx) => (
@@ -259,13 +321,23 @@ const LeaderboardContent = memo(function LeaderboardContent() {
                 </Card>
               </>
             ) : (
-              <Box display="flex" flexDirection="column" alignItems="center">
+              <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
                 <Typography variant="h6" fontWeight="bold">
                   No Submission Yet
                 </Typography>
                 <Typography variant="body1">
                   Be the first to submit a solution for this challenge!
                 </Typography>
+                <Button
+                  variant="outlined"
+                  onClick={() => window.open("https://github.com/gpu-mode/kernelboard-cli", "_blank")}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: "none",
+                  }}
+                >
+                  Submit via CLI
+                </Button>
               </Box>
             )}
           </Box>
@@ -297,19 +369,16 @@ const LeaderboardContent = memo(function LeaderboardContent() {
                   justifyContent="space-between"
                   mb={2}
                 >
-                  <CardTitle fontWeight="bold">Submission</CardTitle>
-                  <LeaderboardSubmit
-                    leaderboardId={id!}
-                    leaderboardName={data.name}
-                    gpuTypes={data.gpu_types}
-                    disabled={isExpired(data.deadline)}
-                    modes={[
-                      SubmissionMode.LEADERBOARD,
-                      SubmissionMode.BENCHMARK,
-                      SubmissionMode.TEST,
-                    ]}
-                    onSubmit={triggerRefresh}
-                  />
+                  <CardTitle fontWeight="bold">Submission History</CardTitle>
+                  {!isExpired(data.deadline) && (
+                    <LeaderboardSubmit
+                      leaderboardId={id!}
+                      leaderboardName={data.name}
+                      gpuTypes={data.gpu_types}
+                      modes={[SubmissionMode.LEADERBOARD, SubmissionMode.BENCHMARK, SubmissionMode.TEST]}
+                      onSubmit={() => setRefreshFlag((f) => !f)}
+                    />
+                  )}
                 </Stack>
                 {/* Deadline Passed Message */}
                 {isExpired(data.deadline) && (
@@ -334,7 +403,6 @@ const LeaderboardContent = memo(function LeaderboardContent() {
             </Card>
           )}
         </TabPanel>
-
       </Box>
     </ConstrainedContainer>
   );
