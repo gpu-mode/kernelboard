@@ -3,4 +3,4 @@ export { JobOutputPanel } from "./JobOutputPanel";
 export { EditorControls } from "./EditorControls";
 export { ChallengeDescriptionPanel } from "./ChallengeDescriptionPanel";
 export { ResizableSplitPanel } from "./ResizableSplitPanel";
-export { DEFAULT_CODE, editorStyles, type SubmitStatus } from "./types";
+export { editorStyles, type SubmitStatus } from "./types";

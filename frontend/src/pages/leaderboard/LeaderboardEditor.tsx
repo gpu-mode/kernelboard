@@ -66,7 +66,7 @@ export default function LeaderboardEditor() {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Editor state
-  const [code, setCode] = useState(DEFAULT_CODE);
+  const [code, setCode] = useState("");
   const [isEditorDirty, setIsEditorDirty] = useState(true);
   const [editorStatus, setEditorStatus] = useState<SubmitStatus>({ kind: "idle" });
   const editorPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
