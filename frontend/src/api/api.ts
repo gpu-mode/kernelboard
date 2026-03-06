@@ -147,7 +147,6 @@ export async function fetchAllNews(): Promise<NewsPost[]> {
 export async function fetchLeaderboardSummaries(
   useBeta: boolean = false,
   forceRefreshCache: boolean = false,
-  fastCache: boolean = false,
 ): Promise<LeaderboardSummariesResponse> {
   const start = performance.now();
 
@@ -155,7 +154,6 @@ export async function fetchLeaderboardSummaries(
   const params = new URLSearchParams();
   if (useBeta) params.append("use_beta", "");
   if (forceRefreshCache) params.append("force_refresh_cache", "");
-  if (fastCache) params.append("fast_cache", "");
 
   const queryString = params.toString();
   const url = queryString
