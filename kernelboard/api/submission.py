@@ -129,6 +129,7 @@ def submission():
         payload = resp.json()
         message = payload.get("message") or payload.get("detail") or resp.reason
         if resp.status_code == 200:
+            logger.info(f"submission success with resp: {payload}")
             return http_success(
                 message="submission success, please refresh submission history",
                 data=payload,

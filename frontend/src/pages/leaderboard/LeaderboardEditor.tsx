@@ -218,9 +218,9 @@ export default function LeaderboardEditor() {
 
     try {
       const result = await submitCode(id, data.name, gpuType, mode, code);
-      if (result?.submission_id) {
+      if (result?.sub_id) {
         setIsEditorDirty(false);
-        startEditorPolling(result.submission_id);
+        startEditorPolling(result.sub_id);
       } else {
         setEditorStatus({ kind: "error", msg: "Submission accepted but no ID returned." });
       }
