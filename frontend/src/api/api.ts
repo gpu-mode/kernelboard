@@ -438,6 +438,8 @@ export async function submitCode(
     throw new Error(msg);
   }
 
+  console.log("Submission successful with data", data);
+
   return {
     sub_id: (data?.detail as Record<string, unknown>)?.sub_id as number || 0,
     message: data.message as string | undefined,
