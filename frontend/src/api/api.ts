@@ -389,7 +389,7 @@ export async function searchUsers(
 }
 
 export interface SubmitCodeResponse {
-  submission_id: number;
+  sub_id: number;
   message?: string;
 }
 
@@ -439,7 +439,7 @@ export async function submitCode(
   }
 
   return {
-    submission_id: (data.data as Record<string, unknown>)?.submission_id as number || 0,
+    sub_id: (data?.detail as Record<string, unknown>)?.sub_id as number || 0,
     message: data.message as string | undefined,
   };
 }
