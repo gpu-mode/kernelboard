@@ -125,11 +125,12 @@ def submission():
         logger.error(f"forward failed: {e}")
         return jsonify({"error": f"forward failed: {e}"}), 502
 
+    logger.info("submission request is sent")
     try:
         payload = resp.json()
+        logger.info("submission resp is %s", payload)
         message = payload.get("message") or payload.get("detail") or resp.reason
         if resp.status_code == 200:
-            logger.info(f"submission success with resp: {payload}")
             return http_success(
                 message="submission success, please refresh submission history",
                 data=payload,
