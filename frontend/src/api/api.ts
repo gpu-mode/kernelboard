@@ -439,7 +439,7 @@ export async function submitCode(
   }
 
   return {
-    sub_id: (data.data as Record<string, unknown>)?.sub_id as number || 0,
+    sub_id: (data?.detail as Record<string, unknown>)?.sub_id as number || 0,
     message: data.message as string | undefined,
   };
 }
