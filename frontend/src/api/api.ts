@@ -461,7 +461,6 @@ export async function submitCode(
   const sub_id = (payload?.data?.details?.id as number) || 0;
   return {
     sub_id: sub_id,
-    message: payload.message as string | undefined,
   };
 }
 
