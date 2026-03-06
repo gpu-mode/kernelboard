@@ -417,7 +417,7 @@ export async function submitCode(
       method: "POST",
       body: form,
     });
-  } catch (err) {
+  } catch (_err) {
     throw new Error("Network error: Unable to connect to server");
   }
 

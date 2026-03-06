@@ -14,7 +14,6 @@ import {
   useMediaQuery,
   useTheme,
   Stack,
-  Chip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import HistoryIcon from "@mui/icons-material/History";
