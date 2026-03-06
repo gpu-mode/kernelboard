@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 type Fetcher<T, Args extends unknown[]> = (...args: Args) => Promise<T>;
@@ -52,21 +52,34 @@ export const defaultRedirectMap: Record<number, string> = {
 export function fetcherApiCallback<T, Args extends unknown[]>(
   fetcher: Fetcher<T, Args>,
   redirectMap: Record<number, string> = defaultRedirectMap,
-  { initialLoading = true }: { initialLoading?: boolean } = {},
+  {
+    loadingGracePeriodMs = 0,
+  }: { loadingGracePeriodMs?: number } = {},
 ) {
   const navigate = useNavigate(); // eslint-disable-line react-hooks/rules-of-hooks
   const [data, setData] = useState<T | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
   const [error, setError] = useState<string | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
   const [errorStatus, setErrorStatus] = useState<number | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
-  const [loading, setLoading] = useState(initialLoading); // eslint-disable-line react-hooks/rules-of-hooks
+  const [loading, setLoading] = useState(false); // eslint-disable-line react-hooks/rules-of-hooks
+  const [hasLoaded, setHasLoaded] = useState(false); // eslint-disable-line react-hooks/rules-of-hooks
+  const graceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
 
   const call = useCallback( // eslint-disable-line react-hooks/rules-of-hooks
     async (...params: Args) => {
-      setLoading(true);
-
       // reset error and status for incoming data
       setError(null);
       setErrorStatus(null);
+
+      // If grace period is set, delay showing the spinner.
+      // If data arrives before the timer fires, the spinner never appears.
+      if (loadingGracePeriodMs > 0) {
+        if (graceTimerRef.current) clearTimeout(graceTimerRef.current);
+        graceTimerRef.current = setTimeout(() => {
+          setLoading(true);
+        }, loadingGracePeriodMs);
+      } else {
+        setLoading(true);
+      }
 
       try {
         const result = await fetcher(...params);
@@ -91,13 +104,19 @@ export function fetcherApiCallback<T, Args extends unknown[]>(
           navigate(redirectPath);
         }
       } finally {
+        // Cancel grace timer if data arrived before it fired
+        if (graceTimerRef.current) {
+          clearTimeout(graceTimerRef.current);
+          graceTimerRef.current = null;
+        }
         // notice navigate() is non-blocking, React will still complete the current
         // render/update cycle unless the route changes synchronously.
         setLoading(false);
+        setHasLoaded(true);
       }
     },
-    [fetcher, navigate, redirectMap],
+    [fetcher, navigate, redirectMap, loadingGracePeriodMs],
   );
 
-  return { data, error, errorStatus, loading, call };
+  return { data, error, errorStatus, loading, hasLoaded, call };
 }
