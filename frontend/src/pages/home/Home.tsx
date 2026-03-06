@@ -44,7 +44,6 @@ export default function Home() {
   const [isQuickStartOpen, setIsQuickStartOpen] = useState(false);
   const useBeta = searchParams.has("use_beta");
   const forceRefresh = searchParams.has("force_refresh");
-  const fastCache = searchParams.has("fast_cache");
 
   const { data, loading, hasLoaded, error, errorStatus, call } =
     fetcherApiCallback<
@@ -56,8 +55,8 @@ export default function Home() {
     });
 
   useEffect(() => {
-    call(useBeta, forceRefresh, fastCache);
-  }, [call, useBeta, forceRefresh, fastCache]);
+    call(useBeta, forceRefresh);
+  }, [call, useBeta, forceRefresh]);
 
   const leaderboards = data?.leaderboards || [];
 
