@@ -390,7 +390,6 @@ export async function searchUsers(
 
 export interface SubmitCodeResponse {
   sub_id: number;
-  message?: string;
 }
 
 export async function submitCode(
@@ -426,23 +425,33 @@ export async function submitCode(
     throw new Error("Server returned empty response. The submission service may be unavailable.");
   }
 
-  let data: Record<string, unknown>;
+  let payload: any;
   try {
-    data = JSON.parse(text);
+    payload = JSON.parse(text);
   } catch {
     throw new Error(`Server error: ${text.slice(0, 200)}`);
   }
 
   if (!resp.ok) {
-    const msg = (data?.detail as string) || (data?.message as string) || "Submission failed";
+    const msg =
+      (payload?.message != null
+        ? typeof payload.message === "string"
+          ? payload.message
+          : JSON.stringify(payload.message)
+        : null) ||
+      (payload?.data?.detail != null
+        ? typeof payload?.data?.detail === "string"
+          ? payload?.data?.detail
+          : JSON.stringify(payload?.data?.detail)
+        : null) ||
+      "Submission failed";
     throw new Error(msg);
   }
 
-  console.log("Submission successful with data", data);
-
+  const sub_id = (payload?.data?.details?.id as number) || 0;
+  console.log("Submission successful with sub_id", sub_id);
   return {
-    sub_id: (data?.detail as Record<string, unknown>)?.sub_id as number || 0,
-    message: data.message as string | undefined,
+    sub_id
   };
 }
 
