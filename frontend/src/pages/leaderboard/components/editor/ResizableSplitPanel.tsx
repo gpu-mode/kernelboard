@@ -29,18 +29,34 @@ export function ResizableSplitPanel({
   const startRatio = useRef<number>(0);
 
   const handleResizeStart = useCallback(
-    (e: React.MouseEvent) => {
-      startY.current = e.clientY;
+    (clientY: number) => {
+      startY.current = clientY;
       startRatio.current = ratio;
       setIsResizing(true);
     },
     [ratio]
   );
 
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      handleResizeStart(e.clientY);
+    },
+    [handleResizeStart]
+  );
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 1) {
+        handleResizeStart(e.touches[0].clientY);
+      }
+    },
+    [handleResizeStart]
+  );
+
   useEffect(() => {
     let rafId: number | null = null;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMove = (clientY: number) => {
       if (!isResizing || !panelRef.current) return;
 
       if (rafId) cancelAnimationFrame(rafId);
@@ -48,14 +64,24 @@ export function ResizableSplitPanel({
       rafId = requestAnimationFrame(() => {
         if (!panelRef.current) return;
         const panelRect = panelRef.current.getBoundingClientRect();
-        const deltaY = e.clientY - startY.current;
+        const deltaY = clientY - startY.current;
         const deltaRatio = deltaY / panelRect.height;
         const newRatio = startRatio.current + deltaRatio;
         setRatio(Math.max(minRatio, Math.min(maxRatio, newRatio)));
       });
     };
 
-    const handleMouseUp = () => {
+    const handleMouseMove = (e: MouseEvent) => {
+      handleMove(e.clientY);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        handleMove(e.touches[0].clientY);
+      }
+    };
+
+    const handleEnd = () => {
       if (rafId) cancelAnimationFrame(rafId);
       setIsResizing(false);
       document.body.style.cursor = "";
@@ -66,13 +92,19 @@ export function ResizableSplitPanel({
       document.body.style.cursor = "row-resize";
       document.body.style.userSelect = "none";
       document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
+      document.addEventListener("mouseup", handleEnd);
+      document.addEventListener("touchmove", handleTouchMove, { passive: true });
+      document.addEventListener("touchend", handleEnd);
+      document.addEventListener("touchcancel", handleEnd);
     }
 
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
       document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("mouseup", handleEnd);
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleEnd);
+      document.removeEventListener("touchcancel", handleEnd);
     };
   }, [isResizing, minRatio, maxRatio]);
 
@@ -93,9 +125,10 @@ export function ResizableSplitPanel({
       <Box sx={{ flexShrink: 0, py: 1 }}>
         {middleContent}
         <Box
-          onMouseDown={handleResizeStart}
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
           sx={{
-            height: 10,
+            height: 24,
             cursor: "row-resize",
             bgcolor: isResizing ? "primary.main" : "transparent",
             "&:hover": { bgcolor: "action.hover" },
@@ -104,6 +137,7 @@ export function ResizableSplitPanel({
             alignItems: "center",
             justifyContent: "center",
             mt: 1,
+            touchAction: "none",
           }}
         >
           <Box sx={{ width: 60, height: 4, bgcolor: "divider", borderRadius: 1 }} />
