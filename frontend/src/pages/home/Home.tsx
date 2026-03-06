@@ -99,9 +99,7 @@ export default function Home() {
 
         {error ? (
           <ErrorAlert status={errorStatus} message={error} />
-        ) : !hasLoaded && !loading ? (
-          null
-        ) : loading ? (
+        ) : !hasLoaded && !loading ? null : loading ? (
           <Loading />
         ) : leaderboards.length > 0 ? (
           <Grid container spacing={3}>

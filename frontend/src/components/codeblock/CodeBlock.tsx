@@ -69,7 +69,10 @@ const styles = {
   },
 };
 
-export default React.memo(function CodeBlock({ code, bordered = false }: CodeBlockProps) {
+export default React.memo(function CodeBlock({
+  code,
+  bordered = false,
+}: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const [highlighted, setHighlighted] = useState(false);
   const theme = useTheme();
@@ -90,8 +93,7 @@ export default React.memo(function CodeBlock({ code, bordered = false }: CodeBlo
     return count;
   }, [code]);
 
-  const canVirtualize =
-    !bordered && lineCount > VIRTUALIZATION_LINE_THRESHOLD;
+  const canVirtualize = !bordered && lineCount > VIRTUALIZATION_LINE_THRESHOLD;
   const shouldVirtualize = canVirtualize && containerHeight > 0;
 
   const handleCopy = () => {
@@ -120,13 +122,7 @@ export default React.memo(function CodeBlock({ code, bordered = false }: CodeBlo
         width="100%"
         style={{ paddingTop: 12, boxSizing: "content-box" }}
       >
-        {({
-          index,
-          style,
-        }: {
-          index: number;
-          style: React.CSSProperties;
-        }) => (
+        {({ index, style }: { index: number; style: React.CSSProperties }) => (
           <div
             style={{
               ...style,

@@ -8,15 +8,26 @@ interface JobOutputPanelProps {
   uploadStatus: SubmitStatus;
 }
 
-export function JobOutputPanel({ editorStatus, uploadStatus }: JobOutputPanelProps) {
+export function JobOutputPanel({
+  editorStatus,
+  uploadStatus,
+}: JobOutputPanelProps) {
   return (
-    <Box sx={{ flex: 1, minHeight: 80, display: "flex", flexDirection: "column" }}>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1, flexShrink: 0 }}>
+    <Box
+      sx={{ flex: 1, minHeight: 80, display: "flex", flexDirection: "column" }}
+    >
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={1}
+        sx={{ mb: 1, flexShrink: 0 }}
+      >
         <TerminalIcon sx={{ fontSize: 18 }} />
         <Typography variant="subtitle2" fontWeight="bold">
           Job Output
         </Typography>
-        {(editorStatus.kind === "polling" || uploadStatus.kind === "polling") && (
+        {(editorStatus.kind === "polling" ||
+          uploadStatus.kind === "polling") && (
           <Chip
             icon={<CircularProgress size={10} />}
             label="Running"
@@ -52,7 +63,8 @@ export function JobOutputPanel({ editorStatus, uploadStatus }: JobOutputPanelPro
           <div style={{ color: "#808080" }}>$ waiting for submission...</div>
         )}
 
-        {(editorStatus.kind === "submitting" || uploadStatus.kind === "submitting") && (
+        {(editorStatus.kind === "submitting" ||
+          uploadStatus.kind === "submitting") && (
           <div style={{ color: "#569cd6" }}>Submitting code...</div>
         )}
 
@@ -64,7 +76,9 @@ export function JobOutputPanel({ editorStatus, uploadStatus }: JobOutputPanelPro
             {editorStatus.result?.runs?.map((run, i) => (
               <Box key={i} sx={{ mt: 1 }}>
                 <div>
-                  <span style={{ color: "#dcdcaa" }}>[{run.mode.toUpperCase()}]</span>{" "}
+                  <span style={{ color: "#dcdcaa" }}>
+                    [{run.mode.toUpperCase()}]
+                  </span>{" "}
                   <span
                     style={{
                       color: run.passed ? "#4ec9b0" : "#f14c4c",
@@ -83,8 +97,14 @@ export function JobOutputPanel({ editorStatus, uploadStatus }: JobOutputPanelPro
                 {run.meta && Object.keys(run.meta).length > 0 && (
                   <Box sx={{ ml: 2 }}>
                     {Object.entries(run.meta).map(([key, value]) => (
-                      <div key={key} style={{ color: "#808080", fontSize: "0.75rem" }}>
-                        {key}: {typeof value === "object" ? JSON.stringify(value) : String(value)}
+                      <div
+                        key={key}
+                        style={{ color: "#808080", fontSize: "0.75rem" }}
+                      >
+                        {key}:{" "}
+                        {typeof value === "object"
+                          ? JSON.stringify(value)
+                          : String(value)}
                       </div>
                     ))}
                   </Box>
@@ -92,8 +112,14 @@ export function JobOutputPanel({ editorStatus, uploadStatus }: JobOutputPanelPro
                 {run.report && Object.keys(run.report).length > 0 && (
                   <Box sx={{ ml: 2 }}>
                     {Object.entries(run.report).map(([key, value]) => (
-                      <div key={key} style={{ color: "#808080", fontSize: "0.75rem" }}>
-                        {key}: {typeof value === "object" ? JSON.stringify(value) : String(value)}
+                      <div
+                        key={key}
+                        style={{ color: "#808080", fontSize: "0.75rem" }}
+                      >
+                        {key}:{" "}
+                        {typeof value === "object"
+                          ? JSON.stringify(value)
+                          : String(value)}
                       </div>
                     ))}
                   </Box>
@@ -113,12 +139,16 @@ export function JobOutputPanel({ editorStatus, uploadStatus }: JobOutputPanelPro
               Submission #{editorStatus.submissionId} completed
             </div>
             {editorStatus.result.error && (
-              <div style={{ color: "#f14c4c" }}>[ERROR] {editorStatus.result.error}</div>
+              <div style={{ color: "#f14c4c" }}>
+                [ERROR] {editorStatus.result.error}
+              </div>
             )}
             {editorStatus.result.runs?.map((run, i) => (
               <Box key={i} sx={{ mt: 1 }}>
                 <div>
-                  <span style={{ color: "#dcdcaa" }}>[{run.mode.toUpperCase()}]</span>{" "}
+                  <span style={{ color: "#dcdcaa" }}>
+                    [{run.mode.toUpperCase()}]
+                  </span>{" "}
                   <span
                     style={{
                       color: run.passed ? "#4ec9b0" : "#f14c4c",
@@ -137,8 +167,14 @@ export function JobOutputPanel({ editorStatus, uploadStatus }: JobOutputPanelPro
                 {run.meta && Object.keys(run.meta).length > 0 && (
                   <Box sx={{ ml: 2 }}>
                     {Object.entries(run.meta).map(([key, value]) => (
-                      <div key={key} style={{ color: "#808080", fontSize: "0.75rem" }}>
-                        {key}: {typeof value === "object" ? JSON.stringify(value) : String(value)}
+                      <div
+                        key={key}
+                        style={{ color: "#808080", fontSize: "0.75rem" }}
+                      >
+                        {key}:{" "}
+                        {typeof value === "object"
+                          ? JSON.stringify(value)
+                          : String(value)}
                       </div>
                     ))}
                   </Box>
@@ -146,8 +182,14 @@ export function JobOutputPanel({ editorStatus, uploadStatus }: JobOutputPanelPro
                 {run.report && Object.keys(run.report).length > 0 && (
                   <Box sx={{ ml: 2 }}>
                     {Object.entries(run.report).map(([key, value]) => (
-                      <div key={key} style={{ color: "#808080", fontSize: "0.75rem" }}>
-                        {key}: {typeof value === "object" ? JSON.stringify(value) : String(value)}
+                      <div
+                        key={key}
+                        style={{ color: "#808080", fontSize: "0.75rem" }}
+                      >
+                        {key}:{" "}
+                        {typeof value === "object"
+                          ? JSON.stringify(value)
+                          : String(value)}
                       </div>
                     ))}
                   </Box>

@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+} from "react";
 import ReactECharts from "echarts-for-react";
 import {
   Box,
@@ -29,12 +35,12 @@ import {
   type UserSearchResult,
 } from "../../../api/api";
 import { isExpired } from "../../../lib/date/utils";
-import { formatMicrosecondsNum, formatMicroseconds } from "../../../lib/utils/ranking";
+import {
+  formatMicrosecondsNum,
+  formatMicroseconds,
+} from "../../../lib/utils/ranking";
 import { useThemeStore } from "../../../lib/store/themeStore";
-import type {
-  NavigationItem,
-  SelectedSubmission,
-} from "./submissionTypes";
+import type { NavigationItem, SelectedSubmission } from "./submissionTypes";
 import { useSubmissionSidebarActions } from "./SubmissionSidebarContext";
 
 // Display name prefix for custom (KernelAgent) entries
@@ -90,9 +96,15 @@ function hashStringToColor(str: string): string {
 // Convert data points to daily best-so-far series
 // Creates a data point at midnight for each day from first submission to last submission
 // If globalEndDate is provided and later than last submission, adds a final point to extend the line flat
-function toDailyBestSeries<T extends { value: [number, number]; gpu_type?: string | null; user_name?: string | null }>(
+function toDailyBestSeries<
+  T extends {
+    value: [number, number];
+    gpu_type?: string | null;
+    user_name?: string | null;
+  },
+>(
   dataPoints: T[],
-  globalEndDate?: Date
+  globalEndDate?: Date,
 ): (T & { originalTimestamp?: number })[] {
   if (dataPoints.length === 0) return [];
 
@@ -104,11 +116,27 @@ function toDailyBestSeries<T extends { value: [number, number]; gpu_type?: strin
   const userLastDate = new Date(sorted[sorted.length - 1].value[0]);
 
   // Normalize to midnight UTC
-  const startMidnight = new Date(Date.UTC(firstDate.getUTCFullYear(), firstDate.getUTCMonth(), firstDate.getUTCDate()));
-  const userEndMidnight = new Date(Date.UTC(userLastDate.getUTCFullYear(), userLastDate.getUTCMonth(), userLastDate.getUTCDate()));
+  const startMidnight = new Date(
+    Date.UTC(
+      firstDate.getUTCFullYear(),
+      firstDate.getUTCMonth(),
+      firstDate.getUTCDate(),
+    ),
+  );
+  const userEndMidnight = new Date(
+    Date.UTC(
+      userLastDate.getUTCFullYear(),
+      userLastDate.getUTCMonth(),
+      userLastDate.getUTCDate(),
+    ),
+  );
 
   // Build a map of timestamp -> data point for quick lookup
-  const submissionsByTime = sorted.map(p => ({ time: p.value[0], score: p.value[1], point: p }));
+  const submissionsByTime = sorted.map((p) => ({
+    time: p.value[0],
+    score: p.value[1],
+    point: p,
+  }));
 
   const result: (T & { originalTimestamp?: number })[] = [];
   let runningMin = Infinity;
@@ -122,7 +150,10 @@ function toDailyBestSeries<T extends { value: [number, number]; gpu_type?: strin
     const dayEnd = currentDate.getTime() + 24 * 60 * 60 * 1000; // End of this day
 
     // Process all submissions up to this day's end
-    while (submissionIndex < submissionsByTime.length && submissionsByTime[submissionIndex].time < dayEnd) {
+    while (
+      submissionIndex < submissionsByTime.length &&
+      submissionsByTime[submissionIndex].time < dayEnd
+    ) {
       if (submissionsByTime[submissionIndex].score < runningMin) {
         runningMin = submissionsByTime[submissionIndex].score;
         currentBestPoint = submissionsByTime[submissionIndex].point; // Update the record holder
@@ -148,7 +179,13 @@ function toDailyBestSeries<T extends { value: [number, number]; gpu_type?: strin
 
   // If globalEndDate is provided and later than user's last submission, add a single point to extend flat
   if (globalEndDate && runningMin !== Infinity) {
-    const globalEndMidnight = new Date(Date.UTC(globalEndDate.getUTCFullYear(), globalEndDate.getUTCMonth(), globalEndDate.getUTCDate()));
+    const globalEndMidnight = new Date(
+      Date.UTC(
+        globalEndDate.getUTCFullYear(),
+        globalEndDate.getUTCMonth(),
+        globalEndDate.getUTCDate(),
+      ),
+    );
     if (globalEndMidnight.getTime() > userEndMidnight.getTime()) {
       result.push({
         ...currentBestPoint,
@@ -161,7 +198,13 @@ function toDailyBestSeries<T extends { value: [number, number]; gpu_type?: strin
   return result;
 }
 
-export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpuType, rankings, deadline }: UserTrendChartProps) {
+export default function UserTrendChart({
+  leaderboardId,
+  defaultUsers,
+  defaultGpuType,
+  rankings,
+  deadline,
+}: UserTrendChartProps) {
   // Code viewing is allowed for closed contests (mirrors RankingLists logic)
   // Backend enforces BLOCKED_CODE_LEADERBOARD_LIST for blocked contests
   const isContestClosed = !!deadline && isExpired(deadline);
@@ -171,11 +214,16 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   const { openSubmission } = useSubmissionSidebarActions();
 
   const [data, setData] = useState<UserTrendResponse | null>(null);
-  const [customData, setCustomData] = useState<CustomTrendResponse | null>(null);
-  const [fastestTrendData, setFastestTrendData] = useState<FastestTrendResponse | null>(null);
+  const [customData, setCustomData] = useState<CustomTrendResponse | null>(
+    null,
+  );
+  const [fastestTrendData, setFastestTrendData] =
+    useState<FastestTrendResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedGpuType, setSelectedGpuType] = useState<string>(defaultGpuType || "");
+  const [selectedGpuType, setSelectedGpuType] = useState<string>(
+    defaultGpuType || "",
+  );
   const [resetting, setResetting] = useState(false);
   const resolvedMode = useThemeStore((state) => state.resolvedMode);
   const isDark = resolvedMode === "dark";
@@ -197,7 +245,9 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   const [displayMode, setDisplayMode] = useState<"all" | "best">("best");
 
   const chartRef = useRef<ReactECharts>(null);
-  const [zoomState, setZoomState] = useState<Array<{ startValue?: number; endValue?: number }>>([]);
+  const [zoomState, setZoomState] = useState<
+    Array<{ startValue?: number; endValue?: number }>
+  >([]);
 
   // Local state for axis input fields (not applied until button clicked)
   const [xStartInput, setXStartInput] = useState("");
@@ -209,24 +259,36 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   const onDataZoom = useCallback(() => {
     const chartInstance = chartRef.current?.getEchartsInstance();
     if (chartInstance) {
-      const opt = chartInstance.getOption() as { dataZoom?: Array<{ startValue?: number; endValue?: number }> };
+      const opt = chartInstance.getOption() as {
+        dataZoom?: Array<{ startValue?: number; endValue?: number }>;
+      };
       if (opt.dataZoom) {
-        setZoomState(opt.dataZoom.map((dz) => ({
-          startValue: dz.startValue,
-          endValue: dz.endValue,
-        })));
+        setZoomState(
+          opt.dataZoom.map((dz) => ({
+            startValue: dz.startValue,
+            endValue: dz.endValue,
+          })),
+        );
         // Sync input fields with current zoom
         if (opt.dataZoom[0]?.startValue) {
-          setXStartInput(new Date(opt.dataZoom[0].startValue).toISOString().split("T")[0]);
+          setXStartInput(
+            new Date(opt.dataZoom[0].startValue).toISOString().split("T")[0],
+          );
         }
         if (opt.dataZoom[0]?.endValue) {
-          setXEndInput(new Date(opt.dataZoom[0].endValue).toISOString().split("T")[0]);
+          setXEndInput(
+            new Date(opt.dataZoom[0].endValue).toISOString().split("T")[0],
+          );
         }
         if (opt.dataZoom[1]?.startValue !== undefined) {
-          setYMinInput(formatMicrosecondsNum(opt.dataZoom[1].startValue).toString());
+          setYMinInput(
+            formatMicrosecondsNum(opt.dataZoom[1].startValue).toString(),
+          );
         }
         if (opt.dataZoom[1]?.endValue !== undefined) {
-          setYMaxInput(formatMicrosecondsNum(opt.dataZoom[1].endValue).toString());
+          setYMaxInput(
+            formatMicrosecondsNum(opt.dataZoom[1].endValue).toString(),
+          );
         }
       }
     }
@@ -243,10 +305,22 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
 
   // Memoize effectiveGpuType for the click handler - defined before onChartClick uses it
   const effectiveGpuType = useMemo(() => {
-    const fastestTrendGpuTypes = fastestTrendData?.time_series ? Object.keys(fastestTrendData.time_series) : [];
-    const gpuTypesFromUsers = data?.time_series ? Object.keys(data.time_series) : [];
-    const gpuTypesFromCustom = customData?.time_series ? Object.keys(customData.time_series) : [];
-    const allGpuTypes = [...new Set([...gpuTypesFromUsers, ...gpuTypesFromCustom, ...fastestTrendGpuTypes])];
+    const fastestTrendGpuTypes = fastestTrendData?.time_series
+      ? Object.keys(fastestTrendData.time_series)
+      : [];
+    const gpuTypesFromUsers = data?.time_series
+      ? Object.keys(data.time_series)
+      : [];
+    const gpuTypesFromCustom = customData?.time_series
+      ? Object.keys(customData.time_series)
+      : [];
+    const allGpuTypes = [
+      ...new Set([
+        ...gpuTypesFromUsers,
+        ...gpuTypesFromCustom,
+        ...fastestTrendGpuTypes,
+      ]),
+    ];
     return selectedGpuType || allGpuTypes[0] || "";
   }, [selectedGpuType, data, customData, fastestTrendData]);
 
@@ -279,63 +353,65 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       }>;
       const clickedSeries = allSeries?.[params.seriesIndex];
 
-          if (clickedSeries?.data) {
-            // Build navigation items from all points in this series (preserve original order)
-            const navItems: NavigationItem[] = clickedSeries.data
-              .filter(
-                (d): d is ChartDataPoint & { submission_id: number } =>
-                  typeof d.submission_id === "number"
-              )
-              .map((d) => ({
-                submissionId: d.submission_id,
-                userName: d.user_name || params.seriesName || "Unknown",
-                fileName: `submission_${d.submission_id}.py`,
-                timestamp: d.value[0],
-                score: d.value[1],
-                originalTimestamp: d.originalTimestamp,
-              }));
+      if (clickedSeries?.data) {
+        // Build navigation items from all points in this series (preserve original order)
+        const navItems: NavigationItem[] = clickedSeries.data
+          .filter(
+            (d): d is ChartDataPoint & { submission_id: number } =>
+              typeof d.submission_id === "number",
+          )
+          .map((d) => ({
+            submissionId: d.submission_id,
+            userName: d.user_name || params.seriesName || "Unknown",
+            fileName: `submission_${d.submission_id}.py`,
+            timestamp: d.value[0],
+            score: d.value[1],
+            originalTimestamp: d.originalTimestamp,
+          }));
 
-            // Use dataIndex directly since it corresponds to the clicked point's position
-            const clickedIndex = params.dataIndex;
+        // Use dataIndex directly since it corresponds to the clicked point's position
+        const clickedIndex = params.dataIndex;
 
-            // Set the selected submission using the navItem at clicked index
-            if (clickedIndex >= 0 && clickedIndex < navItems.length) {
-              const item = navItems[clickedIndex];
-              const submission: SelectedSubmission = {
-                submissionId: item.submissionId,
-                userName: item.userName,
-                fileName: item.fileName,
-                isFastest,
-                timestamp: item.timestamp,
-                score: item.score,
-                originalTimestamp: item.originalTimestamp,
-              };
-              openSubmission(submission, navItems, clickedIndex, leaderboardId);
-              return;
-            }
-          }
-
-          // Fallback: create a single-item navigation
-          const fallbackSubmission: SelectedSubmission = {
-            submissionId: params.data.submission_id,
-            userName: params.data.user_name || params.seriesName || "Unknown",
-            fileName: `submission_${params.data.submission_id}.py`,
+        // Set the selected submission using the navItem at clicked index
+        if (clickedIndex >= 0 && clickedIndex < navItems.length) {
+          const item = navItems[clickedIndex];
+          const submission: SelectedSubmission = {
+            submissionId: item.submissionId,
+            userName: item.userName,
+            fileName: item.fileName,
             isFastest,
-            timestamp: params.value[0],
-            score: params.value[1],
-            originalTimestamp: params.data.originalTimestamp,
+            timestamp: item.timestamp,
+            score: item.score,
+            originalTimestamp: item.originalTimestamp,
           };
-          const fallbackNavItems: NavigationItem[] = [{
-            submissionId: params.data.submission_id,
-            userName: params.data.user_name || params.seriesName || "Unknown",
-            fileName: `submission_${params.data.submission_id}.py`,
-            timestamp: params.value[0],
-            score: params.value[1],
-            originalTimestamp: params.data.originalTimestamp,
-          }];
-          openSubmission(fallbackSubmission, fallbackNavItems, 0, leaderboardId);
+          openSubmission(submission, navItems, clickedIndex, leaderboardId);
+          return;
+        }
+      }
+
+      // Fallback: create a single-item navigation
+      const fallbackSubmission: SelectedSubmission = {
+        submissionId: params.data.submission_id,
+        userName: params.data.user_name || params.seriesName || "Unknown",
+        fileName: `submission_${params.data.submission_id}.py`,
+        isFastest,
+        timestamp: params.value[0],
+        score: params.value[1],
+        originalTimestamp: params.data.originalTimestamp,
+      };
+      const fallbackNavItems: NavigationItem[] = [
+        {
+          submissionId: params.data.submission_id,
+          userName: params.data.user_name || params.seriesName || "Unknown",
+          fileName: `submission_${params.data.submission_id}.py`,
+          timestamp: params.value[0],
+          score: params.value[1],
+          originalTimestamp: params.data.originalTimestamp,
+        },
+      ];
+      openSubmission(fallbackSubmission, fallbackNavItems, 0, leaderboardId);
     },
-    [isCodeViewingAllowed, leaderboardId, openSubmission]
+    [isCodeViewingAllowed, leaderboardId, openSubmission],
   );
 
   const chartEvents = useMemo(
@@ -344,7 +420,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       restore: onRestore,
       ...(isCodeViewingAllowed && { click: onChartClick }),
     }),
-    [onDataZoom, onRestore, isCodeViewingAllowed, onChartClick]
+    [onDataZoom, onRestore, isCodeViewingAllowed, onChartClick],
   );
 
   // Fetch custom trend data on mount
@@ -423,7 +499,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
         setLoading(false);
       }
     },
-    [leaderboardId, selectedGpuType]
+    [leaderboardId, selectedGpuType],
   );
 
   // Load initial suggestions on mount (first 5 alphabetically)
@@ -446,17 +522,21 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   useEffect(() => {
     if (defaultUsers && defaultUsers.length > 0) {
       // Update selected options when defaults arrive
-      setSelectedOptions(defaultUsers.map((user) => ({
-        id: user.userId,
-        label: user.username,
-      })));
+      setSelectedOptions(
+        defaultUsers.map((user) => ({
+          id: user.userId,
+          label: user.username,
+        })),
+      );
       // Fetch data for the default users
       const userIds = defaultUsers.map((u) => u.userId);
-      fetchUserTrend(leaderboardId, userIds).then((result) => {
-        setData(result);
-      }).catch((err) => {
-        console.error("Failed to load default users data:", err);
-      });
+      fetchUserTrend(leaderboardId, userIds)
+        .then((result) => {
+          setData(result);
+        })
+        .catch((err) => {
+          console.error("Failed to load default users data:", err);
+        });
     }
   }, [defaultUsers, leaderboardId]);
 
@@ -489,7 +569,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
 
   const handleOptionSelectionChange = (
     _event: React.SyntheticEvent,
-    newValue: TrendOption[]
+    newValue: TrendOption[],
   ) => {
     setSelectedOptions(newValue);
     const userIds = newValue
@@ -517,7 +597,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
 
       // Search for each user by username to get their user_id
       const userPromises = topUserNames.map((userName: string) =>
-        searchUsers(leaderboardId, userName, 1)
+        searchUsers(leaderboardId, userName, 1),
       );
       const results = await Promise.all(userPromises);
 
@@ -540,16 +620,27 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
 
   // Get selected users and custom entries separately
   const selectedUsers = selectedOptions.filter((opt) => !isCustomEntry(opt));
-  const selectedCustomEntries = selectedOptions.filter((opt) => isCustomEntry(opt));
+  const selectedCustomEntries = selectedOptions.filter((opt) =>
+    isCustomEntry(opt),
+  );
 
   // GPU types from user data or custom data
-  const gpuTypesFromUsers = data?.time_series ? Object.keys(data.time_series) : [];
-  const gpuTypesFromCustom = customData?.time_series ? Object.keys(customData.time_series) : [];
+  const gpuTypesFromUsers = data?.time_series
+    ? Object.keys(data.time_series)
+    : [];
+  const gpuTypesFromCustom = customData?.time_series
+    ? Object.keys(customData.time_series)
+    : [];
   const gpuTypes = [...new Set([...gpuTypesFromUsers, ...gpuTypesFromCustom])];
 
   // Apply axis range from input fields
   const handleApplyAxisRange = () => {
-    const newZoomState: Array<{ startValue?: number; endValue?: number }> = [{}, {}, {}, {}];
+    const newZoomState: Array<{ startValue?: number; endValue?: number }> = [
+      {},
+      {},
+      {},
+      {},
+    ];
 
     // Apply X-axis values
     if (xStartInput) {
@@ -625,12 +716,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
           value.map((option, index) => {
             const { key, ...tagProps } = getTagProps({ index });
             return (
-              <Chip
-                key={key}
-                label={option.label}
-                size="small"
-                {...tagProps}
-              />
+              <Chip key={key} label={option.label} size="small" {...tagProps} />
             );
           })
         }
@@ -675,24 +761,24 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
           {resetting ? "Loading..." : " Load Top 5 "}
         </Button>
       )}
-        <RadioGroup
-          value={displayMode}
-          onChange={(e) => setDisplayMode(e.target.value as "all" | "best")}
-          sx={{ ml: 1 }}
-        >
-          <FormControlLabel
-            value="best"
-            control={<Radio size="small" sx={{ p: 0.5 }} />}
-            label="Best Over Time"
-            slotProps={{ typography: { variant: "body2" } }}
-          />
-          <FormControlLabel
-            value="all"
-            control={<Radio size="small" sx={{ p: 0.5 }} />}
-            label="Raw Submissions"
-            slotProps={{ typography: { variant: "body2" } }}
-          />
-        </RadioGroup>
+      <RadioGroup
+        value={displayMode}
+        onChange={(e) => setDisplayMode(e.target.value as "all" | "best")}
+        sx={{ ml: 1 }}
+      >
+        <FormControlLabel
+          value="best"
+          control={<Radio size="small" sx={{ p: 0.5 }} />}
+          label="Best Over Time"
+          slotProps={{ typography: { variant: "body2" } }}
+        />
+        <FormControlLabel
+          value="all"
+          control={<Radio size="small" sx={{ p: 0.5 }} />}
+          label="Raw Submissions"
+          slotProps={{ typography: { variant: "body2" } }}
+        />
+      </RadioGroup>
       <Box sx={{ display: "flex", flexDirection: "column", ml: 1 }}>
         <FormControlLabel
           control={
@@ -709,7 +795,11 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     </Box>
   );
 
-  if (selectedUsers.length === 0 && selectedCustomEntries.length === 0 && !fastestTrendData) {
+  if (
+    selectedUsers.length === 0 &&
+    selectedCustomEntries.length === 0 &&
+    !fastestTrendData
+  ) {
     return (
       <Box>
         {renderSearchInput()}
@@ -760,7 +850,8 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   }
 
   // When only custom entries are selected, we don't need user data
-  const hasUserData = data?.time_series && Object.keys(data.time_series).length > 0;
+  const hasUserData =
+    data?.time_series && Object.keys(data.time_series).length > 0;
   const hasCustomSelection = selectedCustomEntries.length > 0;
 
   if (!hasUserData && !hasCustomSelection && !fastestTrendData) {
@@ -784,7 +875,11 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   // effectiveGpuType is already defined via useMemo at the top of the component
   const gpuData = data?.time_series?.[effectiveGpuType] || {};
 
-  if (Object.keys(gpuData).length === 0 && !hasCustomSelection && !fastestTrendData) {
+  if (
+    Object.keys(gpuData).length === 0 &&
+    !hasCustomSelection &&
+    !fastestTrendData
+  ) {
     return (
       <Box>
         {renderSearchInput()}
@@ -820,7 +915,10 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     });
 
     // Check custom data
-    if (selectedCustomEntries.length > 0 && customData?.time_series?.[effectiveGpuType]) {
+    if (
+      selectedCustomEntries.length > 0 &&
+      customData?.time_series?.[effectiveGpuType]
+    ) {
       const customGpuData = customData.time_series[effectiveGpuType];
       selectedCustomEntries.forEach((opt) => {
         const model = opt.id.replace("custom_", "");
@@ -845,7 +943,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     const sortedData = [...dataPoints].sort(
       (a, b) =>
         new Date(a.submission_time).getTime() -
-        new Date(b.submission_time).getTime()
+        new Date(b.submission_time).getTime(),
     );
 
     const displayName = sortedData[0]?.user_name || userId;
@@ -884,7 +982,10 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   });
 
   // Add custom entry series if selected
-  if (selectedCustomEntries.length > 0 && customData?.time_series?.[effectiveGpuType]) {
+  if (
+    selectedCustomEntries.length > 0 &&
+    customData?.time_series?.[effectiveGpuType]
+  ) {
     const customGpuData = customData.time_series[effectiveGpuType];
 
     selectedCustomEntries.forEach((opt) => {
@@ -895,7 +996,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       const sortedCustomData = [...customDataPoints].sort(
         (a, b) =>
           new Date(a.submission_time).getTime() -
-          new Date(b.submission_time).getTime()
+          new Date(b.submission_time).getTime(),
       );
 
       const displayName = `${CUSTOM_ENTRY_PREFIX} - ${model}`;
@@ -943,17 +1044,17 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       const sortedFastestData = [...fastestDataPoints].sort(
         (a, b) =>
           new Date(a.submission_time).getTime() -
-          new Date(b.submission_time).getTime()
+          new Date(b.submission_time).getTime(),
       );
 
       const displayName = FASTEST_TREND_LABEL;
       const color = "#FFD700"; // Gold color for the fastest trend
 
       let chartData = sortedFastestData.map((point) => ({
-        value: [
-          new Date(point.submission_time).getTime(),
-          point.score,
-        ] as [number, number],
+        value: [new Date(point.submission_time).getTime(), point.score] as [
+          number,
+          number,
+        ],
         gpu_type: point.gpu_type,
         user_name: point.user_name,
         record_holder: point.user_name,
@@ -987,7 +1088,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
 
   const chartTitle = `Performance Trend (${selectedGpuType})`;
 
-  const filterMode = clipOffscreen ? "filter" as const : "none" as const;
+  const filterMode = clipOffscreen ? ("filter" as const) : ("none" as const);
 
   // Build dataZoom with preserved zoom state
   const dataZoom = [
@@ -995,15 +1096,23 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       type: "inside" as const,
       xAxisIndex: 0,
       filterMode,
-      ...(zoomState[0]?.startValue !== undefined && { startValue: zoomState[0].startValue }),
-      ...(zoomState[0]?.endValue !== undefined && { endValue: zoomState[0].endValue }),
+      ...(zoomState[0]?.startValue !== undefined && {
+        startValue: zoomState[0].startValue,
+      }),
+      ...(zoomState[0]?.endValue !== undefined && {
+        endValue: zoomState[0].endValue,
+      }),
     },
     {
       type: "inside" as const,
       yAxisIndex: 0,
       filterMode,
-      ...(zoomState[1]?.startValue !== undefined && { startValue: zoomState[1].startValue }),
-      ...(zoomState[1]?.endValue !== undefined && { endValue: zoomState[1].endValue }),
+      ...(zoomState[1]?.startValue !== undefined && {
+        startValue: zoomState[1].startValue,
+      }),
+      ...(zoomState[1]?.endValue !== undefined && {
+        endValue: zoomState[1].endValue,
+      }),
     },
     {
       type: "slider" as const,
@@ -1020,8 +1129,12 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       textStyle: {
         color: textColor,
       },
-      ...(zoomState[2]?.startValue !== undefined && { startValue: zoomState[2].startValue }),
-      ...(zoomState[2]?.endValue !== undefined && { endValue: zoomState[2].endValue }),
+      ...(zoomState[2]?.startValue !== undefined && {
+        startValue: zoomState[2].startValue,
+      }),
+      ...(zoomState[2]?.endValue !== undefined && {
+        endValue: zoomState[2].endValue,
+      }),
     },
     {
       type: "slider" as const,
@@ -1038,8 +1151,12 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       textStyle: {
         color: textColor,
       },
-      ...(zoomState[3]?.startValue !== undefined && { startValue: zoomState[3].startValue }),
-      ...(zoomState[3]?.endValue !== undefined && { endValue: zoomState[3].endValue }),
+      ...(zoomState[3]?.startValue !== undefined && {
+        startValue: zoomState[3].startValue,
+      }),
+      ...(zoomState[3]?.endValue !== undefined && {
+        endValue: zoomState[3].endValue,
+      }),
     },
   ];
 
@@ -1075,7 +1192,11 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     },
     tooltip: {
       trigger: "item",
-      formatter: (params: { value: [number, number]; data: { gpu_type?: string | null; user_name?: string | null }; seriesName: string }) => {
+      formatter: (params: {
+        value: [number, number];
+        data: { gpu_type?: string | null; user_name?: string | null };
+        seriesName: string;
+      }) => {
         const date = new Date(params.value[0]);
         const score = formatMicroseconds(params.value[1]);
         const gpuType = params.data.gpu_type || "Unknown";
@@ -1160,7 +1281,11 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
         notMerge={false}
         onEvents={chartEvents}
       />
-      <Stack direction="row" spacing={2} sx={{ mt: 2, alignItems: "center", flexWrap: "wrap" }}>
+      <Stack
+        direction="row"
+        spacing={2}
+        sx={{ mt: 2, alignItems: "center", flexWrap: "wrap" }}
+      >
         <Typography variant="body2" color="text.secondary">
           X-Axis (Date):
         </Typography>

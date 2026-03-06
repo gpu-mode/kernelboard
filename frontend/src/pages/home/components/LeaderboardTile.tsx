@@ -1,4 +1,11 @@
-import { Box, Card, CardContent, Chip, type Theme, Typography } from "@mui/material";
+import {
+  Box,
+  Card,
+  CardContent,
+  Chip,
+  type Theme,
+  Typography,
+} from "@mui/material";
 import { Link } from "react-router-dom";
 import { getMedalIcon } from "../../../components/common/medal.tsx";
 import { getTimeLeft } from "../../../lib/date/utils.ts";

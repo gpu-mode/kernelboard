@@ -64,7 +64,9 @@ export default function LeaderboardEditor() {
   // Editor state
   const [code, setCode] = useState(DEFAULT_CODE);
   const [isEditorDirty, setIsEditorDirty] = useState(true);
-  const [editorStatus, setEditorStatus] = useState<SubmitStatus>({ kind: "idle" });
+  const [editorStatus, setEditorStatus] = useState<SubmitStatus>({
+    kind: "idle",
+  });
   const editorPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const editorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -80,8 +82,12 @@ export default function LeaderboardEditor() {
   const [confirmSubmitOpen, setConfirmSubmitOpen] = useState(false);
 
   const modes = useMemo(
-    () => [SubmissionMode.LEADERBOARD, SubmissionMode.BENCHMARK, SubmissionMode.TEST],
-    []
+    () => [
+      SubmissionMode.LEADERBOARD,
+      SubmissionMode.BENCHMARK,
+      SubmissionMode.TEST,
+    ],
+    [],
   );
 
   // Handle panel resize
@@ -182,8 +188,8 @@ export default function LeaderboardEditor() {
       poll();
       editorPollingRef.current = setInterval(poll, 5000);
     },
-    [stopEditorPolling, id, POLLING_TIMEOUT_MS]
-    );
+    [stopEditorPolling, id, POLLING_TIMEOUT_MS],
+  );
 
   useEffect(() => {
     return () => {
@@ -196,7 +202,10 @@ export default function LeaderboardEditor() {
     if (!data || !id) return;
 
     if (!code.trim()) {
-      setEditorStatus({ kind: "error", msg: "Please write some code before submitting." });
+      setEditorStatus({
+        kind: "error",
+        msg: "Please write some code before submitting.",
+      });
       return;
     }
 
@@ -222,7 +231,10 @@ export default function LeaderboardEditor() {
         setIsEditorDirty(false);
         startEditorPolling(result.sub_id);
       } else {
-        setEditorStatus({ kind: "error", msg: "Submission accepted but no ID returned." });
+        setEditorStatus({
+          kind: "error",
+          msg: "Submission accepted but no ID returned.",
+        });
       }
     } catch (err) {
       setEditorStatus({
@@ -230,7 +242,7 @@ export default function LeaderboardEditor() {
         msg: err instanceof Error ? err.message : "Submission failed",
       });
     }
-    };
+  };
 
   const canEditorSubmit = useMemo(() => {
     if (!gpuType || !mode) return false;
@@ -282,27 +294,40 @@ export default function LeaderboardEditor() {
             >
               History
             </Button>
-            <Button variant="outlined" onClick={() => navigate(`/leaderboard/${id}`)} size="small">
+            <Button
+              variant="outlined"
+              onClick={() => navigate(`/leaderboard/${id}`)}
+              size="small"
+            >
               Back
             </Button>
           </Stack>
         </Box>
 
         {/* Main Content - Side by side on desktop, stacked on mobile */}
-        <Box sx={{
-          display: "flex",
-          flexDirection: isDesktop ? "row" : "column",
-          gap: 2,
-          position: "relative",
-        }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: isDesktop ? "row" : "column",
+            gap: 2,
+            position: "relative",
+          }}
+        >
           {/* Description Panel */}
-          <Box sx={{
-            width: isDesktop ? sidePanelWidth : "100%",
-            minWidth: isDesktop ? 250 : undefined,
-            maxWidth: isDesktop ? 600 : undefined,
-            flexShrink: 0,
-          }}>
-            <Card sx={{ height: isDesktop ? "calc(100vh - 200px)" : "auto", overflow: "auto" }}>
+          <Box
+            sx={{
+              width: isDesktop ? sidePanelWidth : "100%",
+              minWidth: isDesktop ? 250 : undefined,
+              maxWidth: isDesktop ? 600 : undefined,
+              flexShrink: 0,
+            }}
+          >
+            <Card
+              sx={{
+                height: isDesktop ? "calc(100vh - 200px)" : "auto",
+                overflow: "auto",
+              }}
+            >
               <CardContent>
                 <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
                   Challenge Description
@@ -310,7 +335,11 @@ export default function LeaderboardEditor() {
                 <MarkdownRenderer content={data.description} />
                 {data.benchmarks && data.benchmarks.length > 0 && (
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="bold"
+                      sx={{ mb: 1 }}
+                    >
                       Benchmark Shapes
                     </Typography>
                     <ul style={{ margin: 0, paddingLeft: 20 }}>
@@ -318,7 +347,9 @@ export default function LeaderboardEditor() {
                         <li key={i}>
                           <code>
                             {JSON.stringify(
-                              Object.fromEntries(Object.entries(b).filter(([k]) => k !== "seed"))
+                              Object.fromEntries(
+                                Object.entries(b).filter(([k]) => k !== "seed"),
+                              ),
                             )}
                           </code>
                         </li>
@@ -349,12 +380,14 @@ export default function LeaderboardEditor() {
                 justifyContent: "center",
               }}
             >
-              <Box sx={{
-                width: 4,
-                height: 40,
-                bgcolor: "divider",
-                borderRadius: 1,
-              }} />
+              <Box
+                sx={{
+                  width: 4,
+                  height: 40,
+                  bgcolor: "divider",
+                  borderRadius: 1,
+                }}
+              />
             </Box>
           )}
 
@@ -373,7 +406,10 @@ export default function LeaderboardEditor() {
                     const selectedFile = e.target.files?.[0];
                     if (!selectedFile) return;
                     if (!selectedFile.name.endsWith(".py")) {
-                      setEditorStatus({ kind: "error", msg: "Please select a .py file" });
+                      setEditorStatus({
+                        kind: "error",
+                        msg: "Please select a .py file",
+                      });
                       return;
                     }
                     const reader = new FileReader();
@@ -383,60 +419,63 @@ export default function LeaderboardEditor() {
                       setIsEditorDirty(true);
                     };
                     reader.onerror = () => {
-                      setEditorStatus({ kind: "error", msg: "Failed to read file" });
+                      setEditorStatus({
+                        kind: "error",
+                        msg: "Failed to read file",
+                      });
                     };
                     reader.readAsText(selectedFile);
                   }}
                 />
 
-            {/* Editor + Controls + Output - all fit screen */}
-            <ResizableSplitPanel
-              topPanel={
-                <CodeEditorPanel
-                  code={code}
-                  onChange={(value: string) => {
-                    setCode(value);
-                    setIsEditorDirty(true);
-                  }}
-                  resolvedMode={resolvedMode}
+                {/* Editor + Controls + Output - all fit screen */}
+                <ResizableSplitPanel
+                  topPanel={
+                    <CodeEditorPanel
+                      code={code}
+                      onChange={(value: string) => {
+                        setCode(value);
+                        setIsEditorDirty(true);
+                      }}
+                      resolvedMode={resolvedMode}
+                    />
+                  }
+                  middleContent={
+                    <>
+                      <EditorControls
+                        gpuType={gpuType}
+                        setGpuType={setGpuType}
+                        gpuTypes={data.gpu_types}
+                        mode={mode}
+                        setMode={setMode}
+                        modes={modes}
+                        canSubmit={canEditorSubmit}
+                        isSubmitting={editorStatus.kind === "submitting"}
+                        onSubmit={handleEditorSubmitClick}
+                        onUploadClick={() => fileInputRef.current?.click()}
+                      />
+                      {editorStatus.kind === "error" && (
+                        <Alert severity="error" sx={{ mt: 1 }}>
+                          {editorStatus.msg}
+                        </Alert>
+                      )}
+                      {editorStatus.kind === "done" && (
+                        <Alert severity="success" sx={{ mt: 1 }}>
+                          Submission completed!
+                        </Alert>
+                      )}
+                    </>
+                  }
+                  bottomPanel={
+                    <JobOutputPanel
+                      editorStatus={editorStatus}
+                      uploadStatus={{ kind: "idle" }}
+                    />
+                  }
                 />
-              }
-              middleContent={
-                <>
-                  <EditorControls
-                    gpuType={gpuType}
-                    setGpuType={setGpuType}
-                    gpuTypes={data.gpu_types}
-                    mode={mode}
-                    setMode={setMode}
-                    modes={modes}
-                    canSubmit={canEditorSubmit}
-                    isSubmitting={editorStatus.kind === "submitting"}
-                    onSubmit={handleEditorSubmitClick}
-                    onUploadClick={() => fileInputRef.current?.click()}
-                  />
-                  {editorStatus.kind === "error" && (
-                    <Alert severity="error" sx={{ mt: 1 }}>
-                      {editorStatus.msg}
-                    </Alert>
-                  )}
-                  {editorStatus.kind === "done" && (
-                    <Alert severity="success" sx={{ mt: 1 }}>
-                      Submission completed!
-                    </Alert>
-                  )}
-                </>
-              }
-              bottomPanel={
-                <JobOutputPanel
-                  editorStatus={editorStatus}
-                  uploadStatus={{ kind: "idle" }}
-                />
-              }
-            />
-          </CardContent>
-        </Card>
-        </Box>
+              </CardContent>
+            </Card>
+          </Box>
         </Box>
 
         {/* History Dialog */}
@@ -446,7 +485,13 @@ export default function LeaderboardEditor() {
           maxWidth="md"
           fullWidth
         >
-          <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <DialogTitle
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             Submission History
             <IconButton onClick={() => setHistoryOpen(false)}>
               <CloseIcon />
@@ -470,7 +515,8 @@ export default function LeaderboardEditor() {
           <DialogTitle>Submit New Code?</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              A job is currently running. Are you sure you want to submit new code?
+              A job is currently running. Are you sure you want to submit new
+              code?
             </DialogContentText>
           </DialogContent>
           <DialogActions>
@@ -480,7 +526,6 @@ export default function LeaderboardEditor() {
             </Button>
           </DialogActions>
         </Dialog>
-
       </Box>
     </Box>
   );

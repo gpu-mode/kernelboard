@@ -52,7 +52,9 @@ export default function Login() {
       const msg =
         typeof message === "string"
           ? message
-          : (message instanceof Error ? message.message : "Unknown error");
+          : message instanceof Error
+            ? message.message
+            : "Unknown error";
       const t = title ?? "Error";
       setErr({ open: true, message: msg, status, title: t });
     },

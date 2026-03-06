@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import CodeBlock from "./CodeBlock";
 
@@ -113,9 +119,7 @@ describe("CodeBlock", () => {
       });
 
       // Should not have a FixedSizeList container
-      const listContainer = document.querySelector(
-        '[style*="height: 600px"]',
-      );
+      const listContainer = document.querySelector('[style*="height: 600px"]');
       expect(listContainer).not.toBeInTheDocument();
     });
 
