@@ -91,9 +91,15 @@ export function EditorControls({
       </Button>
 
       <Tooltip title="Load .py file">
-        <IconButton onClick={onUploadClick} size="small">
-          <UploadFileIcon />
-        </IconButton>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<UploadFileIcon />}
+          onClick={onUploadClick}
+          sx={{ textTransform: "none" }}
+        >
+          Upload
+        </Button>
       </Tooltip>
     </Stack>
   );

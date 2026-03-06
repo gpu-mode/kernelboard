@@ -198,37 +198,35 @@ const LeaderboardContent = memo(function LeaderboardContent() {
         {/* Header with title and Submit button */}
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
           <h1 style={{ margin: 0 }}>{data.name}</h1>
-          {isAuthed && !isExpired(data.deadline) && (
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant="outlined"
-                startIcon={<TerminalIcon />}
-                onClick={() => setIsQuickStartOpen(true)}
-                sx={{
-                  borderRadius: 2,
-                  px: 2,
-                  py: 1,
-                  fontWeight: "bold",
-                  textTransform: "none",
-                }}
-              >
-                Submit via CLI
-              </Button>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<CodeIcon />}
-                onClick={() => navigate(`/leaderboard/${id}/editor`)}
-                sx={{
-                  borderRadius: 2,
-                  fontWeight: "bold",
-                  textTransform: "none",
-                }}
-              >
-                Code Editor (Beta)
-              </Button>
-            </Stack>
-          )}
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="outlined"
+              startIcon={<TerminalIcon />}
+              onClick={() => setIsQuickStartOpen(true)}
+              sx={{
+                borderRadius: 2,
+                px: 2,
+                py: 1,
+                fontWeight: "bold",
+                textTransform: "none",
+              }}
+            >
+              Submit via CLI
+            </Button>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<CodeIcon />}
+              onClick={() => navigate(`/leaderboard/${id}/editor`)}
+              sx={{
+                borderRadius: 2,
+                fontWeight: "bold",
+                textTransform: "none",
+              }}
+            >
+              Code Editor (Beta)
+            </Button>
+          </Stack>
         </Stack>
 
         {/* Quick Start Dialog */}
