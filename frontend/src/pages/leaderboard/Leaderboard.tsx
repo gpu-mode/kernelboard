@@ -213,19 +213,21 @@ const LeaderboardContent = memo(function LeaderboardContent() {
             >
               Submit via CLI
             </Button>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<CodeIcon />}
-              onClick={() => navigate(`/leaderboard/${id}/editor`)}
-              sx={{
-                borderRadius: 2,
-                fontWeight: "bold",
-                textTransform: "none",
-              }}
-            >
-              Code Editor (Beta)
-            </Button>
+            {searchParams.has("editor") && (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<CodeIcon />}
+                onClick={() => navigate(`/leaderboard/${id}/editor`)}
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: "bold",
+                  textTransform: "none",
+                }}
+              >
+                Code Editor (Beta)
+              </Button>
+            )}
           </Stack>
         </Stack>
 
