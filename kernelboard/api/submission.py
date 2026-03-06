@@ -32,22 +32,27 @@ REQUIRED_SUBMISSION_REQUEST_FIELDS = [
     "submission_mode",
 ]
 
-
 WEB_AUTH_HEADER = "X-Web-Auth-Id"
 MAX_CONTENT_LENGTH = 1 * 1024 * 1024  # 1MB max file size
 
-# This blocks the leaderboard to show all the ranking codes when the leaderboard is ended, since
-# some of those competition codes can be affect the upcoming competition results
+# This blocks the leaderboard to show all the ranking codes when the leaderboard is ended
 BLOCKED_CODE_LEADERBOARD_LIST: list[str] = ["598"]  # leaderboard id to block show
+
+
+USE_MOCK_SUBMISSION: bool = os.environ.get(
+    "USE_MOCK_SUBMISSION", ""
+).lower() == "true"
+MOCK_FAILURE_MODE: str | None = os.environ.get("MOCK_FAILURE_MODE") or None
+# ============================================================================
+
 
 @submission_bp.route("/submission", methods=["POST"])
 @login_required
 @limiter.limit(
     "60 per minute",
-    exempt_when=lambda: not current_user.is_authenticated,  # ignore unauthenticated, since they won't hit the api
+    exempt_when=lambda: not current_user.is_authenticated,
 )
 def submission():
-    # make sure user is logged in
     logger.info("submission received")
     user_id, username = get_id_and_username_from_session()
     log_rate_limit()
@@ -86,6 +91,23 @@ def submission():
     gpu_type = request.form.get("gpu_type")
     submission_mode = request.form.get("submission_mode")
     leaderboard_name = request.form.get("leaderboard")
+
+    # DEV: Use mock submission (writes directly to local DB)
+    if USE_MOCK_SUBMISSION:
+        logging.warning("[!MOCK DATA!]USE_MOCK_SUBMISSION is on! this should only be used in dev mode！")
+        from kernelboard.lib.mocks.mock_submission import create_mock_submission
+        files = {"file": (filename, f.stream, mime)}
+        return create_mock_submission(
+            user_id=str(user_id),
+            leaderboard_name=leaderboard_name,
+            file_name=filename,
+            files=files,
+            submission_mode=submission_mode,
+            failure_mode=MOCK_FAILURE_MODE,
+        )
+    else:
+        logger.info(f"USE_MOCK_SUBMISSION {USE_MOCK_SUBMISSION}send submission request to cluster-management api")
+
     base = get_cluster_manager_endpoint()
     url = f"{base}/submission/{leaderboard_name}/{gpu_type}/{submission_mode}"
     files = {
