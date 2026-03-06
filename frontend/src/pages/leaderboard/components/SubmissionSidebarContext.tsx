@@ -1,4 +1,10 @@
-import { createContext, useState, useCallback, useContext, useRef } from "react";
+import {
+  createContext,
+  useState,
+  useCallback,
+  useContext,
+  useRef,
+} from "react";
 import type { NavigationItem, SelectedSubmission } from "./submissionTypes";
 import { fetchCodes } from "../../../api/api";
 
@@ -8,7 +14,7 @@ interface SubmissionSidebarActionsType {
     submission: SelectedSubmission,
     navItems: NavigationItem[],
     navIndex: number,
-    leaderboardId: string | number
+    leaderboardId: string | number,
   ) => void;
 }
 
@@ -49,7 +55,7 @@ export function SubmissionSidebarProvider({
       submission: SelectedSubmission,
       navItems: NavigationItem[],
       navIndex: number,
-      leaderboardId: string | number
+      leaderboardId: string | number,
     ) => {
       // Immediately show sidebar
       setSelectedSubmission(submission);
@@ -81,7 +87,7 @@ export function SubmissionSidebarProvider({
           });
       }
     },
-    []
+    [],
   );
 
   const navigate = useCallback((newIndex: number, item: NavigationItem) => {
@@ -97,7 +103,7 @@ export function SubmissionSidebarProvider({
             score: item.score,
             originalTimestamp: item.originalTimestamp,
           }
-        : null
+        : null,
     );
   }, []);
 
@@ -131,7 +137,7 @@ export function useSubmissionSidebarActions(): SubmissionSidebarActionsType {
   const context = useContext(SubmissionSidebarActionsContext);
   if (!context) {
     throw new Error(
-      "useSubmissionSidebarActions must be used within SubmissionSidebarProvider"
+      "useSubmissionSidebarActions must be used within SubmissionSidebarProvider",
     );
   }
   return context;
@@ -143,7 +149,7 @@ export function useSubmissionSidebarState(): SubmissionSidebarStateType {
   const context = useContext(SubmissionSidebarStateContext);
   if (!context) {
     throw new Error(
-      "useSubmissionSidebarState must be used within SubmissionSidebarProvider"
+      "useSubmissionSidebarState must be used within SubmissionSidebarProvider",
     );
   }
   return context;

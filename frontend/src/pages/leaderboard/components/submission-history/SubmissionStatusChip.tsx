@@ -26,12 +26,7 @@ function SubmissionStatusChip({ status }: { status?: string | null }) {
 
   return (
     <Tooltip title={title} arrow>
-      <Chip
-        size="small"
-        variant="outlined"
-        color={color}
-        label={label}
-      />
+      <Chip size="small" variant="outlined" color={color} label={label} />
     </Tooltip>
   );
 }

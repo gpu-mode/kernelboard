@@ -48,12 +48,16 @@ export function SubmissionRunsTable({ runs }: { runs: SubmissionRun[] }) {
             success: (r.meta as Record<string, unknown>)?.success,
             exit_code: (r.meta as Record<string, unknown>)?.exit_code,
             exit_code_info: (r.meta as Record<string, unknown>)?.exit_code
-              ? getExitCodeMessage((r.meta as Record<string, unknown>)?.exit_code as number)
+              ? getExitCodeMessage(
+                  (r.meta as Record<string, unknown>)?.exit_code as number,
+                )
               : null,
             duration: (r.meta as Record<string, unknown>)?.duration,
           };
 
-          const report = (r.report as Record<string, unknown>)?.log as string | undefined;
+          const report = (r.report as Record<string, unknown>)?.log as
+            | string
+            | undefined;
 
           return (
             <TableRow key={`${r.start_time}-${idx}`}>

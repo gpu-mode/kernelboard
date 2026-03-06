@@ -69,7 +69,10 @@ function App() {
             <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/home" element={<Home />} />
             <Route path="/leaderboard/:id" element={<Leaderboard />} />
-            <Route path="/leaderboard/:id/editor" element={<LeaderboardEditor />} />
+            <Route
+              path="/leaderboard/:id/editor"
+              element={<LeaderboardEditor />}
+            />
             <Route path="/news" element={<News />} />
             <Route path="/news/:slug" element={<News />} />
             <Route path="/working-groups" element={<WorkingGroups />} />

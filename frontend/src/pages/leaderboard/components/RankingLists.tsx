@@ -12,10 +12,7 @@ import RankingTitleBadge from "./RankingTitleBadge";
 
 import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
 import { getMedalIcon } from "../../../components/common/medal.tsx";
-import type {
-  NavigationItem,
-  SelectedSubmission,
-} from "./submissionTypes";
+import type { NavigationItem, SelectedSubmission } from "./submissionTypes";
 import { useSubmissionSidebarActions } from "./SubmissionSidebarContext";
 import { isExpired } from "../../../lib/date/utils.ts";
 import { useAuthStore } from "../../../lib/store/authStore.ts";
@@ -95,9 +92,7 @@ export default function RankingsList({
   const me = useAuthStore((s) => s.me);
   const isAdmin = !!me?.user?.is_admin;
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [colorHash] = useState<string>(
-    Math.random().toString(36).slice(2, 8),
-  );
+  const [colorHash] = useState<string>(Math.random().toString(36).slice(2, 8));
   const { openSubmission } = useSubmissionSidebarActions();
 
   const toggleExpanded = (field: string) => {
@@ -139,7 +134,12 @@ export default function RankingsList({
         : undefined,
     };
     if (leaderboardId) {
-      openSubmission(submission, navItems, index >= 0 ? index : 0, leaderboardId);
+      openSubmission(
+        submission,
+        navItems,
+        index >= 0 ? index : 0,
+        leaderboardId,
+      );
     }
   };
 

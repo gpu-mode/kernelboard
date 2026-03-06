@@ -52,9 +52,7 @@ export const defaultRedirectMap: Record<number, string> = {
 export function fetcherApiCallback<T, Args extends unknown[]>(
   fetcher: Fetcher<T, Args>,
   redirectMap: Record<number, string> = defaultRedirectMap,
-  {
-    loadingGracePeriodMs = 0,
-  }: { loadingGracePeriodMs?: number } = {},
+  { loadingGracePeriodMs = 0 }: { loadingGracePeriodMs?: number } = {},
 ) {
   const navigate = useNavigate(); // eslint-disable-line react-hooks/rules-of-hooks
   const [data, setData] = useState<T | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
@@ -64,7 +62,8 @@ export function fetcherApiCallback<T, Args extends unknown[]>(
   const [hasLoaded, setHasLoaded] = useState(false); // eslint-disable-line react-hooks/rules-of-hooks
   const graceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null); // eslint-disable-line react-hooks/rules-of-hooks
 
-  const call = useCallback( // eslint-disable-line react-hooks/rules-of-hooks
+  const call = useCallback(
+    // eslint-disable-line react-hooks/rules-of-hooks
     async (...params: Args) => {
       // reset error and status for incoming data
       setError(null);

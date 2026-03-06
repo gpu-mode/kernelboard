@@ -138,7 +138,10 @@ export default function LeaderboardSubmit({
         resetForm();
       }, 100);
     } catch (e: unknown) {
-      setStatus({ kind: "error", msg: e instanceof Error ? e.message : "Submission failed" });
+      setStatus({
+        kind: "error",
+        msg: e instanceof Error ? e.message : "Submission failed",
+      });
     }
   }
 

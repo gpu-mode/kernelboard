@@ -64,7 +64,7 @@ export default function SubmissionCodeSidebar({
       document.body.style.cursor = "col-resize";
       document.body.style.userSelect = "none";
     },
-    [onWidthChange]
+    [onWidthChange],
   );
 
   useEffect(() => {
@@ -220,7 +220,7 @@ export default function SubmissionCodeSidebar({
                         </Typography>
                         <Typography variant="body2">
                           {new Date(
-                            selectedSubmission.timestamp
+                            selectedSubmission.timestamp,
                           ).toLocaleDateString(undefined, { timeZone: "UTC" })}
                         </Typography>
                       </Box>
@@ -236,7 +236,7 @@ export default function SubmissionCodeSidebar({
                       </Typography>
                       <Typography variant="body2">
                         {new Date(
-                          selectedSubmission.originalTimestamp
+                          selectedSubmission.originalTimestamp,
                         ).toLocaleString(undefined, { timeZone: "UTC" })}{" "}
                         UTC
                       </Typography>
@@ -251,7 +251,10 @@ export default function SubmissionCodeSidebar({
                       >
                         Speed
                       </Typography>
-                      <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+                      <Typography
+                        variant="body2"
+                        sx={{ fontFamily: "monospace" }}
+                      >
                         {formatMicroseconds(selectedSubmission.score)}
                       </Typography>
                     </Box>
@@ -295,9 +298,7 @@ export default function SubmissionCodeSidebar({
                   </Typography>
                 </Box>
               ) : codes.get(selectedSubmission.submissionId) ? (
-                <CodeBlock
-                  code={codes.get(selectedSubmission.submissionId)!}
-                />
+                <CodeBlock code={codes.get(selectedSubmission.submissionId)!} />
               ) : (
                 <Box
                   display="flex"

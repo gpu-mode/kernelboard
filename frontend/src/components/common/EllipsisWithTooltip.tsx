@@ -1,8 +1,4 @@
-import {
-  Tooltip,
-  Typography,
-  type TypographyVariant,
-} from "@mui/material";
+import { Tooltip, Typography, type TypographyVariant } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 
 interface Props {

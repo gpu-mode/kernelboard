@@ -1,5 +1,11 @@
 import { Box } from "@mui/material";
-import { useRef, useState, useCallback, useEffect, type ReactNode } from "react";
+import {
+  useRef,
+  useState,
+  useCallback,
+  useEffect,
+  type ReactNode,
+} from "react";
 
 interface ResizableSplitPanelProps {
   topPanel: ReactNode;
@@ -34,14 +40,14 @@ export function ResizableSplitPanel({
       startRatio.current = ratio;
       setIsResizing(true);
     },
-    [ratio]
+    [ratio],
   );
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
       handleResizeStart(e.clientY);
     },
-    [handleResizeStart]
+    [handleResizeStart],
   );
 
   const handleTouchStart = useCallback(
@@ -50,7 +56,7 @@ export function ResizableSplitPanel({
         handleResizeStart(e.touches[0].clientY);
       }
     },
-    [handleResizeStart]
+    [handleResizeStart],
   );
 
   useEffect(() => {
@@ -93,7 +99,9 @@ export function ResizableSplitPanel({
       document.body.style.userSelect = "none";
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleEnd);
-      document.addEventListener("touchmove", handleTouchMove, { passive: true });
+      document.addEventListener("touchmove", handleTouchMove, {
+        passive: true,
+      });
       document.addEventListener("touchend", handleEnd);
       document.addEventListener("touchcancel", handleEnd);
     }
@@ -119,7 +127,9 @@ export function ResizableSplitPanel({
       }}
     >
       {/* Top panel (Editor) */}
-      <Box sx={{ flex: ratio, minHeight: 100, overflow: "hidden" }}>{topPanel}</Box>
+      <Box sx={{ flex: ratio, minHeight: 100, overflow: "hidden" }}>
+        {topPanel}
+      </Box>
 
       {/* Middle content (Controls) + Resize handle */}
       <Box sx={{ flexShrink: 0, py: 1 }}>
@@ -140,12 +150,21 @@ export function ResizableSplitPanel({
             touchAction: "none",
           }}
         >
-          <Box sx={{ width: 60, height: 4, bgcolor: "divider", borderRadius: 1 }} />
+          <Box
+            sx={{ width: 60, height: 4, bgcolor: "divider", borderRadius: 1 }}
+          />
         </Box>
       </Box>
 
       {/* Bottom panel (Output) */}
-      <Box sx={{ flex: 1 - ratio, minHeight: 80, display: "flex", flexDirection: "column" }}>
+      <Box
+        sx={{
+          flex: 1 - ratio,
+          minHeight: 80,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         {bottomPanel}
       </Box>
     </Box>

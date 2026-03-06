@@ -158,7 +158,7 @@ const LeaderboardContent = memo(function LeaderboardContent() {
       try {
         // Search for each user by username to get their user_id
         const userPromises = topUserNames.map((userName: string) =>
-          searchUsers(id, userName, 1)
+          searchUsers(id, userName, 1),
         );
         const results = await Promise.all(userPromises);
 
@@ -196,7 +196,12 @@ const LeaderboardContent = memo(function LeaderboardContent() {
     <ConstrainedContainer>
       <Box>
         {/* Header with title and Submit button */}
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={2}
+        >
           <h1 style={{ margin: 0 }}>{data.name}</h1>
           <Stack direction="row" spacing={1}>
             <Button
@@ -263,19 +268,37 @@ const LeaderboardContent = memo(function LeaderboardContent() {
           <Card>
             <CardContent>
               <details>
-                <summary style={{ cursor: "pointer", fontWeight: "bold", fontSize: "1.5rem" }}>
+                <summary
+                  style={{
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                    fontSize: "1.5rem",
+                  }}
+                >
                   Description
                 </summary>
                 <MarkdownRenderer content={data.description} />
                 {data.benchmarks && data.benchmarks.length > 0 && (
                   <details>
-                    <summary style={{ cursor: "pointer", fontWeight: "bold", marginTop: 16 }}>
+                    <summary
+                      style={{
+                        cursor: "pointer",
+                        fontWeight: "bold",
+                        marginTop: 16,
+                      }}
+                    >
                       Benchmark Shapes
                     </summary>
                     <ul>
                       {data.benchmarks.map((b, i) => (
                         <li key={i}>
-                          <code>{JSON.stringify(Object.fromEntries(Object.entries(b).filter(([k]) => k !== "seed")))}</code>
+                          <code>
+                            {JSON.stringify(
+                              Object.fromEntries(
+                                Object.entries(b).filter(([k]) => k !== "seed"),
+                              ),
+                            )}
+                          </code>
                         </li>
                       ))}
                     </ul>
@@ -316,12 +339,23 @@ const LeaderboardContent = memo(function LeaderboardContent() {
                 <Card>
                   <CardContent>
                     <CardTitle fontWeight="bold">Performance Trend</CardTitle>
-                    <UserTrendChart leaderboardId={id!} defaultUsers={defaultUsers} defaultGpuType={defaultGpuType} rankings={data.rankings} deadline={data.deadline} />
+                    <UserTrendChart
+                      leaderboardId={id!}
+                      defaultUsers={defaultUsers}
+                      defaultGpuType={defaultGpuType}
+                      rankings={data.rankings}
+                      deadline={data.deadline}
+                    />
                   </CardContent>
                 </Card>
               </>
             ) : (
-              <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+              <Box
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+                gap={2}
+              >
                 <Typography variant="h6" fontWeight="bold">
                   No Submission Yet
                 </Typography>
@@ -330,7 +364,12 @@ const LeaderboardContent = memo(function LeaderboardContent() {
                 </Typography>
                 <Button
                   variant="outlined"
-                  onClick={() => window.open("https://github.com/gpu-mode/kernelboard-cli", "_blank")}
+                  onClick={() =>
+                    window.open(
+                      "https://github.com/gpu-mode/kernelboard-cli",
+                      "_blank",
+                    )
+                  }
                   sx={{
                     borderRadius: 2,
                     textTransform: "none",
@@ -375,7 +414,11 @@ const LeaderboardContent = memo(function LeaderboardContent() {
                       leaderboardId={id!}
                       leaderboardName={data.name}
                       gpuTypes={data.gpu_types}
-                      modes={[SubmissionMode.LEADERBOARD, SubmissionMode.BENCHMARK, SubmissionMode.TEST]}
+                      modes={[
+                        SubmissionMode.LEADERBOARD,
+                        SubmissionMode.BENCHMARK,
+                        SubmissionMode.TEST,
+                      ]}
                       onSubmit={() => setRefreshFlag((f) => !f)}
                     />
                   )}

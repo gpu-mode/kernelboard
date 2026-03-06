@@ -220,7 +220,10 @@ export async function submitFile(form: FormData) {
   }
 
   if (!resp.ok) {
-    const msg = (data?.detail as string) || (data?.message as string) || "Submission failed";
+    const msg =
+      (data?.detail as string) ||
+      (data?.message as string) ||
+      "Submission failed";
     throw new Error(msg);
   }
 
@@ -292,7 +295,9 @@ export interface CustomTrendResponse {
   time_series: CustomTrendTimeSeries;
 }
 
-export async function fetchCustomTrend(leaderboardId: string): Promise<CustomTrendResponse> {
+export async function fetchCustomTrend(
+  leaderboardId: string,
+): Promise<CustomTrendResponse> {
   const res = await fetch(`/api/leaderboard/${leaderboardId}/custom_trend`);
   if (!res.ok) {
     const json = await res.json();
@@ -323,7 +328,9 @@ export interface FastestTrendResponse {
   time_series: FastestTrendTimeSeries;
 }
 
-export async function fetchFastestTrend(leaderboardId: string): Promise<FastestTrendResponse> {
+export async function fetchFastestTrend(
+  leaderboardId: string,
+): Promise<FastestTrendResponse> {
   const res = await fetch(`/api/leaderboard/${leaderboardId}/fastest_trend`);
   if (!res.ok) {
     const json = await res.json();
@@ -342,7 +349,7 @@ export interface UserTrendResponse {
 
 export async function fetchUserTrend(
   leaderboardId: string,
-  userIds: string[]
+  userIds: string[],
 ): Promise<UserTrendResponse> {
   if (!userIds || userIds.length === 0) {
     throw new Error("At least one user ID is required");
@@ -371,7 +378,7 @@ export interface SearchUsersResponse {
 export async function searchUsers(
   leaderboardId: string,
   query: string = "",
-  limit?: number
+  limit?: number,
 ): Promise<SearchUsersResponse> {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
@@ -399,7 +406,7 @@ export async function submitCode(
   gpuType: string,
   mode: string,
   code: string,
-  fileName: string = "submission.py"
+  fileName: string = "submission.py",
 ): Promise<SubmitCodeResponse> {
   const blob = new Blob([code], { type: "text/plain" });
   const file = new File([blob], fileName, { type: "text/x-python" });
@@ -423,26 +430,38 @@ export async function submitCode(
 
   const text = await resp.text();
   if (!text) {
-    throw new Error("Server returned empty response. The submission service may be unavailable.");
+    throw new Error(
+      "Server returned empty response. The submission service may be unavailable.",
+    );
   }
 
-  let data: Record<string, unknown>;
+  let payload: any;
   try {
-    data = JSON.parse(text);
+    payload = JSON.parse(text);
   } catch {
     throw new Error(`Server error: ${text.slice(0, 200)}`);
   }
 
   if (!resp.ok) {
-    const msg = (data?.detail as string) || (data?.message as string) || "Submission failed";
+    const msg =
+      (payload?.message != null
+        ? typeof payload.message === "string"
+          ? payload.message
+          : JSON.stringify(payload.message)
+        : null) ||
+      (payload?.data?.detail != null
+        ? typeof payload?.data?.detail === "string"
+          ? payload?.data?.detail
+          : JSON.stringify(payload?.data?.detail)
+        : null) ||
+      "Submission failed";
     throw new Error(msg);
   }
 
-  console.log("Submission successful with data", data);
-
+  const sub_id = (payload?.data?.id as number) || 0;
   return {
-    sub_id: (data?.detail as Record<string, unknown>)?.sub_id as number || 0,
-    message: data.message as string | undefined,
+    sub_id: sub_id,
+    message: payload.message as string | undefined,
   };
 }
 
@@ -468,20 +487,23 @@ export interface SubmissionStatusResponse {
 
 export async function fetchSubmissionStatus(
   leaderboardId: number | string,
-  submissionId: number
+  submissionId: number,
 ): Promise<SubmissionStatusResponse | null> {
   const res = await fetch(
-    `/api/submissions?leaderboard_id=${leaderboardId}&offset=0&limit=100`
+    `/api/submissions?leaderboard_id=${leaderboardId}&offset=0&limit=100`,
   );
   if (!res.ok) {
     const json = await res.json();
     const message = json?.message || "Unknown error";
-    throw new APIError(`Failed to fetch submission status: ${message}`, res.status);
+    throw new APIError(
+      `Failed to fetch submission status: ${message}`,
+      res.status,
+    );
   }
   const r = await res.json();
   const items = r.data?.items || [];
   const submission = items.find(
-    (item: SubmissionStatusResponse) => item.submission_id === submissionId
+    (item: SubmissionStatusResponse) => item.submission_id === submissionId,
   );
   return submission || null;
 }

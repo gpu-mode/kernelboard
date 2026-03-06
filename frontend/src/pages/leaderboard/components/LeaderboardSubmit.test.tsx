@@ -17,7 +17,13 @@ vi.mock("../../../api/api", () => ({
 // Make AlertBar deterministic and closable
 vi.mock("../../../components/alert/AlertBar", () => ({
   __esModule: true,
-  default: ({ notice, onClose }: { notice: { open: boolean; title?: string; message?: string }; onClose: () => void }) =>
+  default: ({
+    notice,
+    onClose,
+  }: {
+    notice: { open: boolean; title?: string; message?: string };
+    onClose: () => void;
+  }) =>
     notice?.open ? (
       <div data-testid="alertbar">
         <div data-testid="alertbar-title">{notice.title}</div>

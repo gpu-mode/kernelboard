@@ -25,7 +25,7 @@ export function ChallengeDescriptionPanel({
   return (
     <Card
       sx={{
-        height: isDesktop ? height ?? "calc(100vh - 200px)" : "auto",
+        height: isDesktop ? (height ?? "calc(100vh - 200px)") : "auto",
         overflow: "auto",
       }}
     >
@@ -45,7 +45,11 @@ export function ChallengeDescriptionPanel({
 
         {benchmarkShapes && benchmarkShapes.length > 0 && (
           <Box sx={{ mt: 3 }}>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+            <Typography
+              variant="subtitle2"
+              color="text.secondary"
+              sx={{ mb: 1 }}
+            >
               Benchmark Shapes
             </Typography>
             <Stack direction="row" flexWrap="wrap" gap={1}>
