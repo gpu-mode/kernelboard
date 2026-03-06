@@ -7,16 +7,6 @@ export type SubmitStatus =
   | { kind: "done"; submissionId: number; result: SubmissionStatusResponse }
   | { kind: "error"; msg: string };
 
-export const DEFAULT_CODE = `import torch
-from task import input_t, output_t
-
-
-def custom_kernel(data: input_t) -> output_t:
-    # Your implementation here
-    # Example: return torch.nn.functional.softmax(data, dim=-1)
-    pass
-`;
-
 export const editorStyles = {
   root: {
     py: 3,
