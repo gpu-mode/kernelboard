@@ -1,5 +1,4 @@
 import {
-  Box,
   Stack,
   Button,
   FormControl,
@@ -11,7 +10,6 @@ import {
   CircularProgress,
 } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import HistoryIcon from "@mui/icons-material/History";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { editorStyles } from "./types";
 
@@ -25,7 +23,6 @@ interface EditorControlsProps {
   canSubmit: boolean;
   isSubmitting: boolean;
   onSubmit: () => void;
-  onHistoryClick: () => void;
   onUploadClick: () => void;
 }
 
@@ -39,7 +36,6 @@ export function EditorControls({
   canSubmit,
   isSubmitting,
   onSubmit,
-  onHistoryClick,
   onUploadClick,
 }: EditorControlsProps) {
   return (
@@ -94,22 +90,11 @@ export function EditorControls({
         {isSubmitting ? "Submitting..." : "Submit"}
       </Button>
 
-      <Box sx={{ flex: 1 }} />
-
-      <Tooltip title="Upload .py file">
+      <Tooltip title="Load .py file">
         <IconButton onClick={onUploadClick} size="small">
           <UploadFileIcon />
         </IconButton>
       </Tooltip>
-
-      <Button
-        variant="outlined"
-        startIcon={<HistoryIcon />}
-        onClick={onHistoryClick}
-        sx={editorStyles.historyBtn}
-      >
-        History
-      </Button>
     </Stack>
   );
 }

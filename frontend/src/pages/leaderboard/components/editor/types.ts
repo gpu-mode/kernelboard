@@ -5,7 +5,8 @@ export type SubmitStatus =
   | { kind: "submitting" }
   | { kind: "polling"; submissionId: number; result?: SubmissionStatusResponse }
   | { kind: "done"; submissionId: number; result: SubmissionStatusResponse }
-  | { kind: "error"; msg: string };
+  | { kind: "error"; msg: string }
+  | { kind: "warning"; msg: string };
 
 export const editorStyles = {
   root: {

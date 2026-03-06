@@ -14,12 +14,9 @@ import {
   useMediaQuery,
   useTheme,
   Stack,
-  CircularProgress,
   Chip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import HistoryIcon from "@mui/icons-material/History";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -42,10 +39,11 @@ import {
   JobOutputPanel,
   EditorControls,
   ResizableSplitPanel,
-  DEFAULT_CODE,
   editorStyles as styles,
   type SubmitStatus,
 } from "./components/editor";
+
+const DEFAULT_CODE = `# Write your code here`;
 
 export default function LeaderboardEditor() {
   const { id } = useParams<{ id: string }>();
@@ -66,15 +64,15 @@ export default function LeaderboardEditor() {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   // Editor state
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(DEFAULT_CODE);
   const [isEditorDirty, setIsEditorDirty] = useState(true);
   const [editorStatus, setEditorStatus] = useState<SubmitStatus>({ kind: "idle" });
   const editorPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const editorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Polling timeout (20 minutes)
-  const POLLING_TIMEOUT_MS = 20 * 60 * 1000;
+  // Polling timeout (15 minutes)
+  const POLLING_TIMEOUT_MS = 15 * 60 * 1000;
 
   // Common state
   const [gpuType, setGpuType] = useState<string>("");
@@ -179,7 +177,7 @@ export default function LeaderboardEditor() {
         stopEditorPolling();
         setEditorStatus({
           kind: "error",
-          msg: "Job timed out after 20 minutes. Please try again.",
+          msg: "Job timed out after 15 minutes. Please try again or refresh it manually.",
         });
       }, POLLING_TIMEOUT_MS);
 
@@ -412,7 +410,7 @@ export default function LeaderboardEditor() {
                   }}
                 />
 
-            {/* Editor + Output split panel */}
+            {/* Editor + Controls + Output - all fit screen */}
             <ResizableSplitPanel
               topPanel={
                 <CodeEditorPanel
@@ -424,6 +422,32 @@ export default function LeaderboardEditor() {
                   resolvedMode={resolvedMode}
                 />
               }
+              middleContent={
+                <>
+                  <EditorControls
+                    gpuType={gpuType}
+                    setGpuType={setGpuType}
+                    gpuTypes={data.gpu_types}
+                    mode={mode}
+                    setMode={setMode}
+                    modes={modes}
+                    canSubmit={canEditorSubmit}
+                    isSubmitting={editorStatus.kind === "submitting"}
+                    onSubmit={handleEditorSubmitClick}
+                    onUploadClick={() => fileInputRef.current?.click()}
+                  />
+                  {editorStatus.kind === "error" && (
+                    <Alert severity="error" sx={{ mt: 1 }}>
+                      {editorStatus.msg}
+                    </Alert>
+                  )}
+                  {editorStatus.kind === "done" && (
+                    <Alert severity="success" sx={{ mt: 1 }}>
+                      Submission completed!
+                    </Alert>
+                  )}
+                </>
+              }
               bottomPanel={
                 <JobOutputPanel
                   editorStatus={editorStatus}
@@ -431,34 +455,6 @@ export default function LeaderboardEditor() {
                 />
               }
             />
-
-            {/* Controls */}
-            <EditorControls
-              gpuType={gpuType}
-              setGpuType={setGpuType}
-              gpuTypes={data.gpu_types}
-              mode={mode}
-              setMode={setMode}
-              modes={modes}
-              canSubmit={canEditorSubmit}
-              isSubmitting={editorStatus.kind === "submitting"}
-              onSubmit={handleEditorSubmitClick}
-              onHistoryClick={() => setHistoryOpen(true)}
-              onUploadClick={() => fileInputRef.current?.click()}
-            />
-
-            {/* Status Messages */}
-            {editorStatus.kind === "error" && (
-              <Alert severity="error" sx={{ mt: 2 }}>
-                {editorStatus.msg}
-              </Alert>
-            )}
-
-            {editorStatus.kind === "done" && (
-              <Alert severity="success" sx={{ mt: 2 }}>
-                Submission completed!
-              </Alert>
-            )}
           </CardContent>
         </Card>
         </Box>

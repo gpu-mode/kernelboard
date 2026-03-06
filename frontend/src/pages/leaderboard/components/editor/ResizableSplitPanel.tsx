@@ -4,6 +4,7 @@ import { useRef, useState, useCallback, useEffect, type ReactNode } from "react"
 interface ResizableSplitPanelProps {
   topPanel: ReactNode;
   bottomPanel: ReactNode;
+  middleContent?: ReactNode;
   initialRatio?: number;
   minRatio?: number;
   maxRatio?: number;
@@ -14,6 +15,7 @@ interface ResizableSplitPanelProps {
 export function ResizableSplitPanel({
   topPanel,
   bottomPanel,
+  middleContent,
   initialRatio = 0.6,
   minRatio = 0.2,
   maxRatio = 0.8,
@@ -87,23 +89,25 @@ export function ResizableSplitPanel({
       {/* Top panel (Editor) */}
       <Box sx={{ flex: ratio, minHeight: 100, overflow: "hidden" }}>{topPanel}</Box>
 
-      {/* Resize handle */}
-      <Box
-        onMouseDown={handleResizeStart}
-        sx={{
-          height: 10,
-          cursor: "row-resize",
-          bgcolor: isResizing ? "primary.main" : "transparent",
-          "&:hover": { bgcolor: "action.hover" },
-          borderRadius: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          my: 0.5,
-        }}
-      >
-        <Box sx={{ width: 60, height: 4, bgcolor: "divider", borderRadius: 1 }} />
+      {/* Middle content (Controls) + Resize handle */}
+      <Box sx={{ flexShrink: 0, py: 1 }}>
+        {middleContent}
+        <Box
+          onMouseDown={handleResizeStart}
+          sx={{
+            height: 10,
+            cursor: "row-resize",
+            bgcolor: isResizing ? "primary.main" : "transparent",
+            "&:hover": { bgcolor: "action.hover" },
+            borderRadius: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mt: 1,
+          }}
+        >
+          <Box sx={{ width: 60, height: 4, bgcolor: "divider", borderRadius: 1 }} />
+        </Box>
       </Box>
 
       {/* Bottom panel (Output) */}
