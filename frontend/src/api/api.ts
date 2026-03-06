@@ -389,7 +389,7 @@ export async function searchUsers(
 }
 
 export interface SubmitCodeResponse {
-  submission_id: number;
+  sub_id: number;
   message?: string;
 }
 
