@@ -92,8 +92,6 @@ def submission():
     submission_mode = request.form.get("submission_mode")
     leaderboard_name = request.form.get("leaderboard")
 
-    logger.info(f"USE_MOCK_SUBMISSION: {USE_MOCK_SUBMISSION}, leaderboard_name: {leaderboard_name},submission_mode {submission_mode}, gpu_type {gpu_type}")
-
     # DEV: Use mock submission (writes directly to local DB)
     if USE_MOCK_SUBMISSION:
         logging.warning("[!MOCK DATA!]USE_MOCK_SUBMISSION is on! this should only be used in dev mode！")
