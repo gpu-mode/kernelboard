@@ -167,7 +167,7 @@ const LeaderboardContent = memo(function LeaderboardContent() {
     findTopUsers();
   }, [id, data?.rankings]);
 
-  if (loading) return <Loading />;
+  if (loading || !data) return <Loading />;
   if (error) return <ErrorAlert status={errorStatus} message={error} />;
 
   const toDeadlineUTC = (raw: string) => {
