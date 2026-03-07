@@ -55,7 +55,7 @@ export default function NavBar() {
 
   const links: NavLink[] = [
     { label: "News", href: "/news" },
-    { label: "Events", href: "/lectures" },
+    { label: "Events", href: "/events" },
     { label: "Projects", href: "/working-groups" },
     {
       label: "Resources",
