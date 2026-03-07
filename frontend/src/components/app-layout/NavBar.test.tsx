@@ -22,7 +22,7 @@ describe("NavBar", () => {
 
     const links = screen.getAllByRole("link");
     const navigationLinks = links.filter((link) =>
-      ["News", "Working Groups", "Lectures", "Resources", "Docs"].includes(
+      ["News", "Working Groups", "Events", "Resources", "Docs"].includes(
         link.textContent || "",
       ),
     );
@@ -30,7 +30,7 @@ describe("NavBar", () => {
     expect(navigationLinks).toHaveLength(5);
     expect(navigationLinks[0]).toHaveTextContent("News");
     expect(navigationLinks[1]).toHaveTextContent("Working Groups");
-    expect(navigationLinks[2]).toHaveTextContent("Lectures");
+    expect(navigationLinks[2]).toHaveTextContent("Events");
     expect(navigationLinks[3]).toHaveTextContent("Resources");
     expect(navigationLinks[4]).toHaveTextContent("Docs");
   });
