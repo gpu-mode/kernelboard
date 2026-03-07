@@ -102,6 +102,14 @@ const hackathons: Hackathon[] = [
     description: "Build fast NVFP4 kernels for Blackwell GPUs.",
   },
   {
+    title: "GPU MODE x Diffusion Meetup",
+    type: "in-person",
+    startDate: "2026-03-11",
+    endDate: "2026-03-11",
+    location: "San Francisco, California",
+    lumaUrl: "https://luma.com/gpumodexdiffusion",
+  },
+  {
     title: "PyTorch Helion Hackathon",
     type: "in-person",
     startDate: "2026-03-14",
