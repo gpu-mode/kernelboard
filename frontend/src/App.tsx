@@ -73,6 +73,7 @@ function App() {
             <Route path="/news" element={<News />} />
             <Route path="/news/:slug" element={<News />} />
             <Route path="/working-groups" element={<WorkingGroups />} />
+            <Route path="/events" element={<Lectures />} />
             <Route path="/lectures" element={<Lectures />} />
             <Route path="/login" element={<Login />} />
             {/* error handling page */}
