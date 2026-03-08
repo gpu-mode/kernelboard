@@ -115,6 +115,7 @@ def get_whitelist(leaderboard_id: str = "") -> set[str]:
         "557943190045327360",
         "1394757548833509408",
         "268205958637944832",
+        "1354693822055055441",
     ]
 
     whitelist = GPU_TEAM_WHITE_LIST
