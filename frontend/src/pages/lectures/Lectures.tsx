@@ -78,7 +78,15 @@ const styles = {
   },
 };
 
-interface EventItem {
+interface InPersonEvent {
+  title: string;
+  date: string;
+  location: string;
+  lumaUrl: string;
+  description?: string;
+}
+
+interface Competition {
   title: string;
   startDate: string;
   endDate: string;
@@ -89,32 +97,28 @@ interface EventItem {
 
 // Edit these lists to add/remove events
 
-const inPersonEvents: EventItem[] = [
+const inPersonEvents: InPersonEvent[] = [
   {
     title: "GPU MODE x Diffusion Meetup",
-    startDate: "2026-03-11",
-    endDate: "2026-03-11",
+    date: "2026-03-11",
     location: "San Francisco, California",
     lumaUrl: "https://luma.com/gpumodexdiffusion",
   },
   {
     title: "PyTorch Helion Hackathon",
-    startDate: "2026-03-14",
-    endDate: "2026-03-14",
+    date: "2026-03-14",
     location: "San Francisco, CA",
     lumaUrl: "https://cerebralvalley.ai/e/helion-hackathon",
   },
   {
     title: "SemiAnalysis x FluidStack Hackathon",
-    startDate: "2026-03-15",
-    endDate: "2026-03-15",
+    date: "2026-03-15",
     location: "San Jose, CA",
     lumaUrl: "https://luma.com/SAxFSHack",
   },
   {
     title: "NVFP4 Award Ceremony at GTC",
-    startDate: "2026-03-16",
-    endDate: "2026-03-16",
+    date: "2026-03-16",
     location: "San Jose, CA",
     lumaUrl: "https://luma.com/blast/reo09yXX6p",
   },
@@ -192,7 +196,40 @@ function isEventUpcoming(event: DiscordEvent): boolean {
   return eventEnd >= now;
 }
 
-function EventCard({ event }: { event: EventItem }) {
+function InPersonEventCard({ event }: { event: InPersonEvent }) {
+  const today = isOngoing(event.date, event.date);
+
+  return (
+    <Box sx={styles.card}>
+      <Box sx={styles.chipContainer}>
+        {today ? (
+          <Chip label="Today" size="small" color="success" />
+        ) : (
+          <Chip label="Upcoming" size="small" color="info" />
+        )}
+      </Box>
+      <Typography sx={styles.cardTitle}>{event.title}</Typography>
+      <Typography sx={styles.cardMeta}>
+        {formatDate(event.date)} · {event.location}
+      </Typography>
+      {event.description && (
+        <Typography sx={styles.cardDescription}>
+          {event.description}
+        </Typography>
+      )}
+      <Link
+        href={event.lumaUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        sx={styles.link}
+      >
+        Learn More
+      </Link>
+    </Box>
+  );
+}
+
+function CompetitionCard({ event }: { event: Competition }) {
   const ongoing = isOngoing(event.startDate, event.endDate);
   const duration = getDurationDays(event.startDate, event.endDate);
 
@@ -215,16 +252,14 @@ function EventCard({ event }: { event: EventItem }) {
           {event.description}
         </Typography>
       )}
-      {event.lumaUrl && (
-        <Link
-          href={event.lumaUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          sx={styles.link}
-        >
-          Learn More
-        </Link>
-      )}
+      <Link
+        href={event.lumaUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        sx={styles.link}
+      >
+        Learn More
+      </Link>
     </Box>
   );
 }
@@ -271,15 +306,13 @@ export default function Lectures() {
       });
   }, []);
 
-  const filterActive = (items: EventItem[]) =>
-    items.filter((item) => {
-      const now = new Date();
-      const end = parseLocalDate(item.endDate);
-      return end >= now;
-    });
-
-  const activeInPerson = filterActive(inPersonEvents);
-  const activeCompetitions = filterActive(kernelCompetitions);
+  const now = new Date();
+  const activeInPerson = inPersonEvents.filter(
+    (e) => parseLocalDate(e.date) >= now,
+  );
+  const activeCompetitions = kernelCompetitions.filter(
+    (e) => parseLocalDate(e.endDate) >= now,
+  );
 
   return (
     <Box sx={styles.container}>
@@ -301,7 +334,7 @@ export default function Lectures() {
           </Typography>
         ) : (
           activeInPerson.map((event) => (
-            <EventCard key={event.title} event={event} />
+            <InPersonEventCard key={event.title} event={event} />
           ))
         )}
       </Box>
@@ -315,7 +348,7 @@ export default function Lectures() {
           </Typography>
         ) : (
           activeCompetitions.map((event) => (
-            <EventCard key={event.title} event={event} />
+            <CompetitionCard key={event.title} event={event} />
           ))
         )}
       </Box>
