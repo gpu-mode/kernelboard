@@ -78,11 +78,8 @@ const styles = {
   },
 };
 
-type HackathonType = "in-person" | "digital";
-
-interface Hackathon {
+interface EventItem {
   title: string;
-  type: HackathonType;
   startDate: string;
   endDate: string;
   location: string;
@@ -90,20 +87,11 @@ interface Hackathon {
   description?: string;
 }
 
-// Edit this list to add/remove hackathons
-const hackathons: Hackathon[] = [
-  {
-    title: "Blackwell NVFP4 Kernel Hackathon",
-    type: "digital",
-    startDate: "2025-11-03",
-    endDate: "2026-02-20",
-    location: "Online",
-    lumaUrl: "https://lu.ma/9n27uem4",
-    description: "Build fast NVFP4 kernels for Blackwell GPUs.",
-  },
+// Edit these lists to add/remove events
+
+const inPersonEvents: EventItem[] = [
   {
     title: "GPU MODE x Diffusion Meetup",
-    type: "in-person",
     startDate: "2026-03-11",
     endDate: "2026-03-11",
     location: "San Francisco, California",
@@ -111,7 +99,6 @@ const hackathons: Hackathon[] = [
   },
   {
     title: "PyTorch Helion Hackathon",
-    type: "in-person",
     startDate: "2026-03-14",
     endDate: "2026-03-14",
     location: "San Francisco, CA",
@@ -119,7 +106,6 @@ const hackathons: Hackathon[] = [
   },
   {
     title: "SemiAnalysis x FluidStack Hackathon",
-    type: "in-person",
     startDate: "2026-03-15",
     endDate: "2026-03-15",
     location: "San Jose, CA",
@@ -127,11 +113,28 @@ const hackathons: Hackathon[] = [
   },
   {
     title: "NVFP4 Award Ceremony at GTC",
-    type: "in-person",
     startDate: "2026-03-16",
     endDate: "2026-03-16",
     location: "San Jose, CA",
     lumaUrl: "https://luma.com/blast/reo09yXX6p",
+  },
+];
+
+const kernelCompetitions: EventItem[] = [
+  {
+    title: "The $1.1M AMD x GPU MODE - E2E Model Speedrun",
+    startDate: "2026-03-06",
+    endDate: "2026-03-30",
+    location: "Online",
+    lumaUrl: "https://luma.com/cqq4mojz",
+  },
+  {
+    title: "Blackwell NVFP4 Kernel Hackathon",
+    startDate: "2025-11-03",
+    endDate: "2026-02-20",
+    location: "Online",
+    lumaUrl: "https://lu.ma/9n27uem4",
+    description: "Build fast NVFP4 kernels for Blackwell GPUs.",
   },
 ];
 
@@ -189,37 +192,32 @@ function isEventUpcoming(event: DiscordEvent): boolean {
   return eventEnd >= now;
 }
 
-function HackathonCard({ hackathon }: { hackathon: Hackathon }) {
-  const ongoing = isOngoing(hackathon.startDate, hackathon.endDate);
-  const duration = getDurationDays(hackathon.startDate, hackathon.endDate);
+function EventCard({ event }: { event: EventItem }) {
+  const ongoing = isOngoing(event.startDate, event.endDate);
+  const duration = getDurationDays(event.startDate, event.endDate);
 
   return (
     <Box sx={styles.card}>
       <Box sx={styles.chipContainer}>
-        <Chip
-          label={hackathon.type === "in-person" ? "In-Person" : "Digital"}
-          size="small"
-          color={hackathon.type === "in-person" ? "primary" : "secondary"}
-        />
         {ongoing ? (
           <Chip label="Ongoing" size="small" color="success" />
         ) : (
           <Chip label="Upcoming" size="small" color="info" />
         )}
       </Box>
-      <Typography sx={styles.cardTitle}>{hackathon.title}</Typography>
+      <Typography sx={styles.cardTitle}>{event.title}</Typography>
       <Typography sx={styles.cardMeta}>
-        {formatDate(hackathon.startDate)} - {formatDate(hackathon.endDate)} (
-        {duration} days) · {hackathon.location}
+        {formatDate(event.startDate)} - {formatDate(event.endDate)} ({duration}{" "}
+        days) · {event.location}
       </Typography>
-      {hackathon.description && (
+      {event.description && (
         <Typography sx={styles.cardDescription}>
-          {hackathon.description}
+          {event.description}
         </Typography>
       )}
-      {hackathon.lumaUrl && (
+      {event.lumaUrl && (
         <Link
-          href={hackathon.lumaUrl}
+          href={event.lumaUrl}
           target="_blank"
           rel="noopener noreferrer"
           sx={styles.link}
@@ -273,33 +271,51 @@ export default function Lectures() {
       });
   }, []);
 
-  const activeHackathons = hackathons.filter((h) => {
-    const now = new Date();
-    const end = parseLocalDate(h.endDate);
-    return end >= now;
-  });
+  const filterActive = (items: EventItem[]) =>
+    items.filter((item) => {
+      const now = new Date();
+      const end = parseLocalDate(item.endDate);
+      return end >= now;
+    });
+
+  const activeInPerson = filterActive(inPersonEvents);
+  const activeCompetitions = filterActive(kernelCompetitions);
 
   return (
     <Box sx={styles.container}>
       <Typography variant="h4" sx={{ marginBottom: "24px", fontWeight: 600 }}>
-        Events & Lectures
+        Events
       </Typography>
 
       <Typography sx={styles.intro}>
-        GPU MODE hosts hackathons, lectures, and events featuring experts in GPU
-        programming.
+        GPU MODE hosts in-person events, kernel competitions, and lectures
+        featuring experts in GPU programming.
       </Typography>
 
-      {/* Hackathons Section */}
+      {/* In Person Events Section */}
       <Box sx={styles.section}>
-        <Typography sx={styles.sectionTitle}>Hackathons</Typography>
-        {activeHackathons.length === 0 ? (
+        <Typography sx={styles.sectionTitle}>In Person Events</Typography>
+        {activeInPerson.length === 0 ? (
           <Typography sx={styles.noEvents}>
-            No hackathons currently running. Check back soon!
+            No in-person events currently scheduled. Check back soon!
           </Typography>
         ) : (
-          activeHackathons.map((hackathon) => (
-            <HackathonCard key={hackathon.title} hackathon={hackathon} />
+          activeInPerson.map((event) => (
+            <EventCard key={event.title} event={event} />
+          ))
+        )}
+      </Box>
+
+      {/* Kernel Competitions Section */}
+      <Box sx={styles.section}>
+        <Typography sx={styles.sectionTitle}>Kernel Competitions</Typography>
+        {activeCompetitions.length === 0 ? (
+          <Typography sx={styles.noEvents}>
+            No kernel competitions currently running. Check back soon!
+          </Typography>
+        ) : (
+          activeCompetitions.map((event) => (
+            <EventCard key={event.title} event={event} />
           ))
         )}
       </Box>
