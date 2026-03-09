@@ -9,6 +9,16 @@ import { vi, expect, it, describe, beforeEach } from "vitest";
 // Mock the API hook
 vi.mock("../../lib/hooks/useApi");
 
+// Mock react-syntax-highlighter to avoid ESM issues
+vi.mock("react-syntax-highlighter", () => ({
+  default: ({ children }: { children: string }) => <pre>{children}</pre>,
+  Prism: ({ children }: { children: string }) => <pre>{children}</pre>,
+}));
+
+vi.mock("react-syntax-highlighter/dist/esm/styles/prism", () => ({
+  vscDarkPlus: {},
+}));
+
 // Mock utility functions
 vi.mock("../../lib/date/utils", () => ({
   getTimeLeft: vi.fn(() => "2 days 5 hours remaining"),
@@ -42,6 +52,7 @@ describe("Home", () => {
     const mockHookReturn = {
       data: null,
       loading: true,
+      hasLoaded: false,
       error: null,
       errorStatus: null,
       call: mockCall,
@@ -53,13 +64,18 @@ describe("Home", () => {
 
     renderWithProviders(<Home />);
 
-    expect(screen.getByText(/Summoning/i)).toBeInTheDocument();
+    // Page structure is visible during loading
+    expect(screen.getByText("Leaderboards")).toBeInTheDocument();
+    expect(screen.getByText("Submit your first kernel")).toBeInTheDocument();
+    // Loading indicator is present
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
   });
 
   it("shows error message", () => {
     const mockHookReturn = {
       data: null,
       loading: false,
+      hasLoaded: true,
       error: "Something went wrong",
       errorStatus: 500,
       call: mockCall,
@@ -79,6 +95,7 @@ describe("Home", () => {
     const mockHookReturn = {
       data: null,
       loading: false,
+      hasLoaded: true,
       error: "Network error",
       errorStatus: null,
       call: mockCall,
@@ -118,6 +135,7 @@ describe("Home", () => {
     const mockHookReturn = {
       data: mockData,
       loading: false,
+      hasLoaded: true,
       error: null,
       errorStatus: null,
       call: mockCall,
@@ -144,6 +162,7 @@ describe("Home", () => {
     const mockHookReturn = {
       data: mockData,
       loading: false,
+      hasLoaded: true,
       error: null,
       errorStatus: null,
       call: mockCall,
@@ -203,6 +222,7 @@ describe("Home", () => {
     const mockHookReturn = {
       data: mockData,
       loading: false,
+      hasLoaded: true,
       error: null,
       errorStatus: null,
       call: mockCall,
@@ -241,6 +261,7 @@ describe("Home", () => {
     const mockHookReturn = {
       data: mockData,
       loading: false,
+      hasLoaded: true,
       error: null,
       errorStatus: null,
       call: mockCall,
@@ -274,6 +295,7 @@ describe("Home", () => {
     const mockHookReturn = {
       data: mockData,
       loading: false,
+      hasLoaded: true,
       error: null,
       errorStatus: null,
       call: mockCall,
@@ -314,6 +336,7 @@ describe("Home", () => {
       const mockHookReturn = {
         data: mockData,
         loading: false,
+        hasLoaded: true,
         error: null,
         errorStatus: null,
         call: mockCall,
@@ -352,6 +375,7 @@ describe("Home", () => {
       const mockHookReturn = {
         data: mockData,
         loading: false,
+        hasLoaded: true,
         error: null,
         errorStatus: null,
         call: mockCall,
@@ -400,6 +424,7 @@ describe("Home", () => {
       const mockHookReturn = {
         data: mockData,
         loading: false,
+        hasLoaded: true,
         error: null,
         errorStatus: null,
         call: mockCall,
@@ -440,6 +465,7 @@ describe("Home", () => {
       const mockHookReturn = {
         data: mockData,
         loading: false,
+        hasLoaded: true,
         error: null,
         errorStatus: null,
         call: mockCall,
@@ -479,6 +505,7 @@ describe("Home", () => {
       const mockHookReturn = {
         data: mockData,
         loading: false,
+        hasLoaded: true,
         error: null,
         errorStatus: null,
         call: mockCall,
@@ -529,6 +556,7 @@ describe("Home", () => {
       const mockHookReturn = {
         data: mockData,
         loading: false,
+        hasLoaded: true,
         error: null,
         errorStatus: null,
         call: mockCall,
@@ -569,6 +597,7 @@ describe("Home", () => {
       const mockHookReturn = {
         data: mockData,
         loading: false,
+        hasLoaded: true,
         error: null,
         errorStatus: null,
         call: mockCall,
@@ -611,6 +640,7 @@ describe("Home", () => {
       const mockHookReturn = {
         data: mockData,
         loading: false,
+        hasLoaded: true,
         error: null,
         errorStatus: null,
         call: mockCall,
@@ -650,6 +680,7 @@ describe("Home", () => {
       const mockHookReturn = {
         data: mockData,
         loading: false,
+        hasLoaded: true,
         error: null,
         errorStatus: null,
         call: mockCall,
