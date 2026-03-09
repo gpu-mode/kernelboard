@@ -12,6 +12,7 @@ vi.mock("../../lib/hooks/useApi");
 // Mock utility functions
 vi.mock("../../lib/date/utils", () => ({
   getTimeLeft: vi.fn(() => "2 days 5 hours remaining"),
+  isExpired: vi.fn(() => false),
 }));
 
 vi.mock("../../lib/utils/ranking", () => ({
