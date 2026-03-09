@@ -6,10 +6,16 @@ import {
   DialogContent,
   DialogTitle,
   Typography,
+  List,
+  ListItemButton,
+  ListItemText,
+  Stack,
+  Chip,
 } from "@mui/material";
+import CodeIcon from "@mui/icons-material/Code";
 import Grid from "@mui/material/Grid";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { fetchLeaderboardSummaries } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { ErrorAlert } from "../../components/alert/ErrorAlert";
@@ -18,6 +24,8 @@ import Loading from "../../components/common/loading";
 import { ConstrainedContainer } from "../../components/app-layout/ConstrainedContainer";
 import MarkdownRenderer from "../../components/markdown-renderer/MarkdownRenderer";
 import quickStartMarkdown from "./quick-start.md?raw";
+import { isExpired, getTimeLeft } from "../../lib/date/utils";
+import { ColoredSquare } from "../../components/common/ColoredSquare";
 
 interface TopUser {
   rank: number;
@@ -41,7 +49,9 @@ interface LeaderboardSummaries {
 
 export default function Home() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [isQuickStartOpen, setIsQuickStartOpen] = useState(false);
+  const [isLeaderboardSelectOpen, setIsLeaderboardSelectOpen] = useState(false);
   const useBeta = searchParams.has("use_beta");
   const forceRefresh = searchParams.has("force_refresh");
 
@@ -59,6 +69,14 @@ export default function Home() {
   }, [call, useBeta, forceRefresh]);
 
   const leaderboards = data?.leaderboards || [];
+  const activeLeaderboards = leaderboards.filter(
+    (lb) => !isExpired(lb.deadline)
+  );
+
+  const handleLeaderboardSelect = (id: number) => {
+    setIsLeaderboardSelectOpen(false);
+    navigate(`/leaderboard/${id}/editor`);
+  };
 
   return (
     <ConstrainedContainer>
@@ -66,21 +84,114 @@ export default function Home() {
         <Typography variant="h1" component="h1" sx={{ mb: 3 }}>
           Leaderboards
         </Typography>
-
         <Box sx={{ mb: 4 }}>
-          <Button
-            variant="contained"
-            onClick={() => setIsQuickStartOpen(true)}
-            sx={{
-              textTransform: "none",
-              fontWeight: 500,
-              px: 3,
-              py: 1.5,
-            }}
-          >
+          <Typography variant="h6" sx={{ mb: 1.5 }}>
             Submit your first kernel
-          </Button>
+          </Typography>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <Button
+              variant="contained"
+              startIcon={<CodeIcon />}
+              onClick={() => setIsLeaderboardSelectOpen(true)}
+              sx={{
+                textTransform: "none",
+                fontWeight: 500,
+                px: 3,
+                py: 1.5,
+              }}
+            >
+              Submit via browser
+              <Chip
+                label="beta"
+                size="small"
+                sx={{
+                  ml: 1,
+                  height: 20,
+                  fontSize: "0.7rem",
+                  bgcolor: "warning.main",
+                  color: "warning.contrastText",
+                }}
+              />
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => setIsQuickStartOpen(true)}
+              sx={{
+                textTransform: "none",
+                fontWeight: 500,
+                px: 3,
+                py: 1.5,
+              }}
+            >
+              Submit via cli
+            </Button>
+          </Stack>
         </Box>
+
+        {/* Leaderboard Selection Dialog */}
+        <Dialog
+          open={isLeaderboardSelectOpen}
+          onClose={() => setIsLeaderboardSelectOpen(false)}
+          maxWidth="sm"
+          fullWidth
+          sx={{
+            "& .MuiDialog-paper": {
+              maxHeight: { xs: "80vh", sm: "70vh" },
+            },
+          }}
+        >
+          <DialogTitle>Select an active leaderboard</DialogTitle>
+          <DialogContent dividers sx={{ p: 0 }}>
+            {activeLeaderboards.length > 0 ? (
+              <List sx={{ width: "100%", py: 0 }}>
+                {activeLeaderboards.map((lb) => (
+                  <ListItemButton
+                    key={lb.id}
+                    onClick={() => handleLeaderboardSelect(lb.id)}
+                    sx={{
+                      py: 1,
+                      px: { xs: 1.5, sm: 2 },
+                      borderBottom: "1px solid",
+                      borderColor: "divider",
+                      "&:last-child": { borderBottom: "none" },
+                    }}
+                  >
+                    <ListItemText
+                      primary={
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          <ColoredSquare name={lb.name} />
+                          {lb.name}
+                        </Box>
+                      }
+                      secondary={getTimeLeft(lb.deadline)}
+                      slotProps={{
+                        primary: {
+                          fontWeight: 500,
+                          fontSize: { xs: "0.9rem", sm: "0.95rem" },
+                          component: "div",
+                        },
+                        secondary: {
+                          fontSize: "0.8rem",
+                        },
+                      }}
+                    />
+                  </ListItemButton>
+                ))}
+              </List>
+            ) : (
+              <Box sx={{ p: 3, textAlign: "center" }}>
+                <Typography color="text.secondary">
+                  No active leaderboards available.
+                </Typography>
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setIsLeaderboardSelectOpen(false)}>
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <Dialog
           open={isQuickStartOpen}
@@ -88,7 +199,7 @@ export default function Home() {
           maxWidth="md"
           fullWidth
         >
-          <DialogTitle>Submit Your First Kernel</DialogTitle>
+          <DialogTitle>Submit Your First Kernel via cli tool!</DialogTitle>
           <DialogContent dividers>
             <MarkdownRenderer content={quickStartMarkdown} />
           </DialogContent>
