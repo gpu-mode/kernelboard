@@ -492,7 +492,7 @@ def create_mock_submission(
         # Return same format as real cluster API
         return http_success(
             message="submission success, please refresh submission history",
-            data={"submission_id": submission_id},
+            data={"details": {"id": submission_id}},
         )
 
     except Exception as e:
