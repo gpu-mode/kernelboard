@@ -30,6 +30,7 @@ import { ErrorAlert } from "../../components/alert/ErrorAlert";
 import MarkdownRenderer from "../../components/markdown-renderer/MarkdownRenderer";
 import { SubmissionMode } from "../../lib/types/mode";
 import { useAuthStore } from "../../lib/store/authStore";
+import { isExpired, toDateUtc } from "../../lib/date/utils";
 import SubmissionHistorySection from "./components/submission-history/SubmissionHistorySection";
 import { useThemeStore } from "../../lib/store/themeStore";
 import {
@@ -237,8 +238,10 @@ export default function LeaderboardEditor() {
     if (!code.trim()) return false;
     // Only enable if editor has been modified
     if (!isEditorDirty) return false;
+    // Disable if deadline has passed
+    if (data?.deadline && isExpired(data.deadline)) return false;
     return true;
-  }, [code, gpuType, mode, isEditorDirty]);
+  }, [code, gpuType, mode, isEditorDirty, data?.deadline]);
 
   if (loading) return <Loading />;
   if (error) return <ErrorAlert status={errorStatus} message={error} />;
@@ -268,8 +271,12 @@ export default function LeaderboardEditor() {
             <Typography variant="h4" fontWeight="bold">
               {data.name}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Submit your Python code
+            <Typography
+              variant="body2"
+              color={isExpired(data.deadline) ? "error.main" : "text.secondary"}
+              sx={{ mt: 0.5 }}
+            >
+              {isExpired(data.deadline) ? "Ended" : "Ends in"} {toDateUtc(data.deadline)} UTC
             </Typography>
           </Box>
           <Stack direction="row" spacing={1} alignItems="center">

@@ -452,7 +452,7 @@ export async function submitCode(
 
   const details = payloadData?.details as Record<string, unknown> | undefined;
   const sub_id = (details?.id as number) || 0;
-  console.log("Submission successful with sub_id", sub_id);
+  console.log("Submission successful with details", details);
   return {
     sub_id
   };
