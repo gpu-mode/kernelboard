@@ -120,7 +120,7 @@ const inPersonEvents: InPersonEvent[] = [
     title: "NVFP4 Award Ceremony at GTC",
     date: "2026-03-16",
     location: "San Jose, CA",
-    lumaUrl: "https://luma.com/blast/reo09yXX6p",
+    lumaUrl: "https://register.nvidia.com/flow/nvidia/gtc26/spersvpSE8203731245",
   },
 ];
 
