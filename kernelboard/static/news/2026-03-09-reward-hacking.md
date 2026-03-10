@@ -70,12 +70,32 @@ From the GPU's perspective, **only** one kernel ran. From the eval's perspective
 
 **Benchmark Cases (provided by [the eval harness](https://github.com/gpu-mode/reference-kernels/blob/main/problems/nvidia/nvfp4_group_gemm/task.yml))**
 
-| Case | Groups | N | K | Honest Tiles | Grid (honest) |
-|------|--------|------|------|-------------|----------------|
-| 1 | 8 | 4096 | 7168 | ~148 | 148 (all SMs) |
-| 2 | 8 | 7168 | 2048 | ~148 | 148 (all SMs) |
-| 3 | 2 | 3072 | 4096 | 120 | 120 (28 idle SMs) |
-| 4 | 2 | 4096 | 1536 | 128 | 128 (20 idle SMs) |
+<table style="width:100%; border-collapse:collapse; margin:1rem 0;">
+  <thead>
+    <tr style="border-bottom:2px solid #ccc;">
+      <th style="padding:8px; text-align:left;">Case</th>
+      <th style="padding:8px; text-align:left;">Groups</th>
+      <th style="padding:8px; text-align:left;">N</th>
+      <th style="padding:8px; text-align:left;">K</th>
+      <th style="padding:8px; text-align:left;">Honest Tiles</th>
+      <th style="padding:8px; text-align:left;">Grid (honest)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">1</td><td style="padding:8px;">8</td><td style="padding:8px;">4096</td><td style="padding:8px;">7168</td><td style="padding:8px;">~148</td><td style="padding:8px;">148 (all SMs)</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">2</td><td style="padding:8px;">8</td><td style="padding:8px;">7168</td><td style="padding:8px;">2048</td><td style="padding:8px;">~148</td><td style="padding:8px;">148 (all SMs)</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">3</td><td style="padding:8px;">2</td><td style="padding:8px;">3072</td><td style="padding:8px;">4096</td><td style="padding:8px;">120</td><td style="padding:8px;">120 (28 idle SMs)</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">4</td><td style="padding:8px;">2</td><td style="padding:8px;">4096</td><td style="padding:8px;">1536</td><td style="padding:8px;">128</td><td style="padding:8px;">128 (20 idle SMs)</td>
+    </tr>
+  </tbody>
+</table>
 
 Interestingly, in [submission.py](https://drive.google.com/file/d/1qBUUJSbv4V7Y-brxWjz5H2Th0cgIOyEo/view?usp=sharing) the agent included a bail-out for cases where using the super-batching would hurt. For large K (when `K > 4096`), the exploit disables itself and falls back to the legitimate path.
 
@@ -91,21 +111,56 @@ The fact that the exploit was conditional shows that the agent clearly used the 
 
 **Experiment 1: Individual vs Super-batch (All 4 Cases)**
 
-| Case | Individual | Superbatch | Ratio | Reported (÷15) | Fake Speedup |
-|------|-----------|-----------|-------|----------------|-------------|
-| 1 (K=7168) | 55.07 μs | 56.48 μs | 1.03× | 3.77 μs | 1.0× (skipped) |
-| 2 (K=2048) | 39.23 μs | 345.98 μs | 8.82× | 23.07 μs | **1.70×** |
-| 3 (K=4096) | 21.34 μs | 126.98 μs | 5.95× | 8.47 μs | **2.52×** |
-| 4 (K=1536) | 18.75 μs | 72.51 μs | 3.87× | 4.83 μs | **3.88×** |
+<table style="width:100%; border-collapse:collapse; margin:1rem 0;">
+  <thead>
+    <tr style="border-bottom:2px solid #ccc;">
+      <th style="padding:8px; text-align:left;">Case</th>
+      <th style="padding:8px; text-align:left;">Individual</th>
+      <th style="padding:8px; text-align:left;">Superbatch</th>
+      <th style="padding:8px; text-align:left;">Ratio</th>
+      <th style="padding:8px; text-align:left;">Reported (÷15)</th>
+      <th style="padding:8px; text-align:left;">Fake Speedup</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">1 (K=7168)</td><td style="padding:8px;">55.07 μs</td><td style="padding:8px;">56.48 μs</td><td style="padding:8px;">1.03×</td><td style="padding:8px;">3.77 μs</td><td style="padding:8px;">1.0× (skipped)</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">2 (K=2048)</td><td style="padding:8px;">39.23 μs</td><td style="padding:8px;">345.98 μs</td><td style="padding:8px;">8.82×</td><td style="padding:8px;">23.07 μs</td><td style="padding:8px;"><strong>1.70×</strong></td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">3 (K=4096)</td><td style="padding:8px;">21.34 μs</td><td style="padding:8px;">126.98 μs</td><td style="padding:8px;">5.95×</td><td style="padding:8px;">8.47 μs</td><td style="padding:8px;"><strong>2.52×</strong></td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">4 (K=1536)</td><td style="padding:8px;">18.75 μs</td><td style="padding:8px;">72.51 μs</td><td style="padding:8px;">3.87×</td><td style="padding:8px;">4.83 μs</td><td style="padding:8px;"><strong>3.88×</strong></td>
+    </tr>
+  </tbody>
+</table>
 
 **Key finding:** For case 1, the submission did not take the superbatch path since `K > 4096` so there was no speedup. Cases 2-4 show increasing "speedup" for smaller problems.
 
 **Experiment 2: Forcing Super-batch on Case 1 (Removing the K>4096 Skip)**
 
-| Mode | Duration | DRAM Throughput | SM Busy | IPC |
-|------|---------|----------------|---------|-----|
-| Individual | 55.49 μs | 43.9% | 40.2% | 0.31 |
-| Superbatch | 770.43 μs | 82.9% | 43.3% | 0.21 |
+<table style="width:100%; border-collapse:collapse; margin:1rem 0;">
+  <thead>
+    <tr style="border-bottom:2px solid #ccc;">
+      <th style="padding:8px; text-align:left;">Mode</th>
+      <th style="padding:8px; text-align:left;">Duration</th>
+      <th style="padding:8px; text-align:left;">DRAM Throughput</th>
+      <th style="padding:8px; text-align:left;">SM Busy</th>
+      <th style="padding:8px; text-align:left;">IPC</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">Individual</td><td style="padding:8px;">55.49 μs</td><td style="padding:8px;">43.9%</td><td style="padding:8px;">40.2%</td><td style="padding:8px;">0.31</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">Superbatch</td><td style="padding:8px;">770.43 μs</td><td style="padding:8px;">82.9%</td><td style="padding:8px;">43.3%</td><td style="padding:8px;">0.21</td>
+    </tr>
+  </tbody>
+</table>
 
 **Ratio:** 770/55 = 13.9× for 15× work -> only 1.08× per-tile efficiency gain.
 
@@ -115,17 +170,45 @@ The fact that the exploit was conditional shows that the agent clearly used the 
 
 The submission's CUTLASS kernel uses persistent scheduling: Grid=(148,1,1), one CTA per SM, each CTA processing multiple tiles sequentially. We profiled nine configurations on B200 using `ncu --set full`, each as a single kernel launch changing only the number of tiles. GPU timing events capture everything on the stream, including gaps between kernel launches. We wanted to quantify the associated overhead on the GPU stream and thus figure out whether there was something more to the superbatch choice than just exploiting the "dividing by 15" timing measurement.
 
-| Tiles | Duration | SM Busy | Instructions |
-|-------|---------|---------|-------------|
-| 1 | 19.55 μs | 0.15% | 4,601 |
-| 2 | 19.58 μs | 0.33% | 9,202 |
-| 4 | 19.94 μs | 0.63% | 18,404 |
-| 8 | 19.74 μs | 1.30% | 36,808 |
-| 16 | 19.74 μs | 2.50% | 73,616 |
-| 48 | 20.96 μs | 7.53% | 220,848 |
-| 120 | 21.86 μs | 18.66% | 541,564 |
-| 148 | 24.26 μs | 22.16% | 680,948 |
-| 240 | 31.04 μs | 27.24% | 945,776 |
+<table style="width:100%; border-collapse:collapse; margin:1rem 0;">
+  <thead>
+    <tr style="border-bottom:2px solid #ccc;">
+      <th style="padding:8px; text-align:left;">Tiles</th>
+      <th style="padding:8px; text-align:left;">Duration</th>
+      <th style="padding:8px; text-align:left;">SM Busy</th>
+      <th style="padding:8px; text-align:left;">Instructions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">1</td><td style="padding:8px;">19.55 μs</td><td style="padding:8px;">0.15%</td><td style="padding:8px;">4,601</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">2</td><td style="padding:8px;">19.58 μs</td><td style="padding:8px;">0.33%</td><td style="padding:8px;">9,202</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">4</td><td style="padding:8px;">19.94 μs</td><td style="padding:8px;">0.63%</td><td style="padding:8px;">18,404</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">8</td><td style="padding:8px;">19.74 μs</td><td style="padding:8px;">1.30%</td><td style="padding:8px;">36,808</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">16</td><td style="padding:8px;">19.74 μs</td><td style="padding:8px;">2.50%</td><td style="padding:8px;">73,616</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">48</td><td style="padding:8px;">20.96 μs</td><td style="padding:8px;">7.53%</td><td style="padding:8px;">220,848</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">120</td><td style="padding:8px;">21.86 μs</td><td style="padding:8px;">18.66%</td><td style="padding:8px;">541,564</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">148</td><td style="padding:8px;">24.26 μs</td><td style="padding:8px;">22.16%</td><td style="padding:8px;">680,948</td>
+    </tr>
+    <tr style="border-bottom:1px solid #eee;">
+      <td style="padding:8px;">240</td><td style="padding:8px;">31.04 μs</td><td style="padding:8px;">27.24%</td><td style="padding:8px;">945,776</td>
+    </tr>
+  </tbody>
+</table>
 
 **Key finding:** The ~19.5 μs startup cost is **CONSTANT** regardless of tile count. With 1 tile, the kernel takes 19.55 μs at 0.15% SM Busy so the overwhelming amount of time is spent entirely on GPU overhead. Even in the 148-tile and 240-tile cases where CTAs must process more than 1 tile, we get a per-tile work cost of ~0.074 μs (31.04 - 24.26 = 6.78 μs for 92 extra tiles). For 148 tiles, fixed startup overhead alone accounts for ~80% of its total runtime. This includes TMEM allocation, barrier setup, TMA descriptor initialization, tensormap creation, pipeline state machine initialization. All executed before the persistent loop processes any tiles.
 
