@@ -198,6 +198,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
 
   const chartRef = useRef<ReactECharts>(null);
   const [zoomState, setZoomState] = useState<Array<{ startValue?: number; endValue?: number }>>([]);
+  const [legendSelected, setLegendSelected] = useState<Record<string, boolean>>({});
 
   // Local state for axis input fields (not applied until button clicked)
   const [xStartInput, setXStartInput] = useState("");
@@ -232,9 +233,15 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     }
   }, []);
 
-  // Clear saved zoom state when restore is triggered
+  // Track legend selection changes so toggled-off series stay off across re-renders
+  const onLegendSelectChanged = useCallback((params: { selected: Record<string, boolean> }) => {
+    setLegendSelected(params.selected);
+  }, []);
+
+  // Clear saved zoom state and legend selection when restore is triggered
   const onRestore = useCallback(() => {
     setZoomState([]);
+    setLegendSelected({});
     setXStartInput("");
     setXEndInput("");
     setYMinInput("");
@@ -342,9 +349,10 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     () => ({
       datazoom: onDataZoom,
       restore: onRestore,
+      legendselectchanged: onLegendSelectChanged,
       ...(isCodeViewingAllowed && { click: onChartClick }),
     }),
-    [onDataZoom, onRestore, isCodeViewingAllowed, onChartClick]
+    [onDataZoom, onRestore, onLegendSelectChanged, isCodeViewingAllowed, onChartClick]
   );
 
   // Fetch custom trend data on mount
@@ -1011,6 +1019,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       filterMode,
       bottom: 40,
       height: 20,
+      showDataShadow: false,
       borderColor: isDark ? "#555" : "#ccc",
       backgroundColor: isDark ? "#333" : "#f5f5f5",
       fillerColor: isDark ? "rgba(100,100,100,0.3)" : "rgba(200,200,200,0.3)",
@@ -1029,6 +1038,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       filterMode,
       right: 10,
       width: 20,
+      showDataShadow: false,
       borderColor: isDark ? "#555" : "#ccc",
       backgroundColor: isDark ? "#333" : "#f5f5f5",
       fillerColor: isDark ? "rgba(100,100,100,0.3)" : "rgba(200,200,200,0.3)",
@@ -1094,6 +1104,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
       textStyle: {
         color: textColor,
       },
+      ...(Object.keys(legendSelected).length > 0 && { selected: legendSelected }),
     },
     grid: {
       left: "5%",
