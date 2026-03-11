@@ -152,11 +152,11 @@ export default React.memo(function CodeBlock({ code, bordered = false }: CodeBlo
     <Box
       sx={{
         ...styles.container,
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        minHeight: 0,
         ...(canVirtualize && {
-          display: "flex",
-          flexDirection: "column",
-          flex: 1,
-          minHeight: 0,
           overflow: "hidden",
         }),
       }}
@@ -174,8 +174,10 @@ export default React.memo(function CodeBlock({ code, bordered = false }: CodeBlo
       <Box
         ref={canVirtualize ? containerRef : undefined}
         sx={{
+          flex: 1,
+          minHeight: 0,
           ...(canVirtualize
-            ? { flex: 1, minHeight: 0, overflow: "hidden" }
+            ? { overflow: "hidden" }
             : { overflowY: "auto" }),
           ...(bordered && {
             border: `1px solid ${theme.palette.divider}`,
