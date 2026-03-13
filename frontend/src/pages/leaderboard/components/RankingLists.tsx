@@ -158,7 +158,7 @@ export default function RankingsList({
             </Box>
           );
         }
-        const isExpanded = expanded[field] ?? false;
+        const isExpanded = expanded[field] ?? true;
         const visibleItems = isExpanded ? items : items.slice(0, 3);
         return (
           <Box key={field}>
