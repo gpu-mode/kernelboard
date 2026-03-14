@@ -122,6 +122,12 @@ const inPersonEvents: InPersonEvent[] = [
     location: "San Jose, CA",
     lumaUrl: "https://register.nvidia.com/flow/nvidia/gtc26/spersvpSE8203731245",
   },
+  {
+    title: "GPU MODE IRL Hackathon - PyTorch Conference Europe",
+    date: "2026-04-09",
+    location: "Paris, France",
+    lumaUrl: "https://luma.com/gpu-mode-paris-2026",
+  },
 ];
 
 const kernelCompetitions: EventItem[] = [
