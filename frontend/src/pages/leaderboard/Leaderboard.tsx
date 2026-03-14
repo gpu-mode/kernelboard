@@ -187,17 +187,17 @@ const LeaderboardContent = memo(function LeaderboardContent() {
     return `${verb} ${toDateUtc(raw)} UTC`;
   };
 
-  const info_items = [
-    { title: "Deadline", content: <span>{toDeadlineUTC(data.deadline)}</span> },
-    { title: "GPU types", content: <span>{data.gpu_types.join(", ")}</span> },
-  ];
-
   return (
     <ConstrainedContainer>
       <Box>
-        {/* Header with title and Submit button */}
+        {/* Header with title, deadline, and Submit button */}
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-          <h1 style={{ margin: 0 }}>{data.name}</h1>
+          <Stack direction="row" alignItems="baseline" spacing={2}>
+            <h1 style={{ margin: 0 }}>{data.name}</h1>
+            <Typography variant="body2" color="text.secondary">
+              {toDeadlineUTC(data.deadline)}
+            </Typography>
+          </Stack>
           <Stack direction="row" spacing={1}>
             <Button
               variant="outlined"
@@ -246,19 +246,6 @@ const LeaderboardContent = memo(function LeaderboardContent() {
             <Button onClick={() => setIsQuickStartOpen(false)}>Close</Button>
           </DialogActions>
         </Dialog>
-        {/* Header info cards shown above tabs */}
-        <Grid container spacing={2} marginBottom={2}>
-          {info_items.map((info, idx) => (
-            <Grid size={{ xs: 12, md: 6 }} key={idx}>
-              <Card>
-                <CardContent>
-                  <CardTitle>{info.title}</CardTitle>
-                  {info.content}
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
         <Grid marginBottom={2}>
           <Card>
             <CardContent>
