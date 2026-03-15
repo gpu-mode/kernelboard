@@ -48,7 +48,7 @@ interface LeaderboardSummaries {
 }
 
 function isBeginnerProblem(name: string): boolean {
-  return /pmpp/i.test(name);
+  return /_v2\b/i.test(name);
 }
 
 export default function Home() {
