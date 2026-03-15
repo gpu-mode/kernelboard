@@ -9,7 +9,6 @@ import {
   List,
   ListItemButton,
   ListItemText,
-  Stack,
   Chip,
 } from "@mui/material";
 import CodeIcon from "@mui/icons-material/Code";
@@ -98,50 +97,6 @@ export default function Home() {
         <Typography variant="h1" component="h1" sx={{ mb: 3 }}>
           Leaderboards
         </Typography>
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" sx={{ mb: 1.5 }}>
-            Submit your first kernel
-          </Typography>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-            <Button
-              variant="contained"
-              startIcon={<CodeIcon />}
-              onClick={() => setIsLeaderboardSelectOpen(true)}
-              sx={{
-                textTransform: "none",
-                fontWeight: 500,
-                px: 3,
-                py: 1.5,
-              }}
-            >
-              Submit via browser
-              <Chip
-                label="beta"
-                size="small"
-                sx={{
-                  ml: 1,
-                  height: 20,
-                  fontSize: "0.7rem",
-                  bgcolor: "warning.main",
-                  color: "warning.contrastText",
-                }}
-              />
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => setIsQuickStartOpen(true)}
-              sx={{
-                textTransform: "none",
-                fontWeight: 500,
-                px: 3,
-                py: 1.5,
-              }}
-            >
-              Submit via cli
-            </Button>
-          </Stack>
-        </Box>
-
         {/* Leaderboard Selection Dialog */}
         <Dialog
           open={isLeaderboardSelectOpen}
@@ -233,9 +188,19 @@ export default function Home() {
             {/* Active Competitions */}
             {activeCompetitions.length > 0 && (
               <Box sx={{ mb: 5 }}>
-                <Typography variant="h5" component="h2" sx={{ mb: 2 }}>
-                  Active Competitions
-                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
+                  <Typography variant="h5" component="h2">
+                    Active Competitions
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => setIsQuickStartOpen(true)}
+                    sx={{ textTransform: "none", fontWeight: 500 }}
+                  >
+                    Submit via cli
+                  </Button>
+                </Box>
                 <Grid container spacing={3}>
                   {activeCompetitions.map((leaderboard) => (
                     <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={leaderboard.id}>
@@ -249,9 +214,31 @@ export default function Home() {
             {/* Getting Started */}
             {beginnerProblems.length > 0 && (
               <Box sx={{ mb: 5 }}>
-                <Typography variant="h5" component="h2" sx={{ mb: 0.5 }}>
-                  Getting Started
-                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 0.5, flexWrap: "wrap", gap: 1 }}>
+                  <Typography variant="h5" component="h2">
+                    Getting Started
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<CodeIcon />}
+                    onClick={() => setIsLeaderboardSelectOpen(true)}
+                    sx={{ textTransform: "none", fontWeight: 500 }}
+                  >
+                    Submit via browser
+                    <Chip
+                      label="beta"
+                      size="small"
+                      sx={{
+                        ml: 1,
+                        height: 18,
+                        fontSize: "0.65rem",
+                        bgcolor: "warning.main",
+                        color: "warning.contrastText",
+                      }}
+                    />
+                  </Button>
+                </Box>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                   New to GPU programming? Start here.
                 </Typography>
