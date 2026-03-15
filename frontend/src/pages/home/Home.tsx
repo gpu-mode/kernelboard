@@ -47,6 +47,10 @@ interface LeaderboardSummaries {
   now: string;
 }
 
+function isBeginnerProblem(name: string): boolean {
+  return /pmpp/i.test(name);
+}
+
 export default function Home() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -71,6 +75,16 @@ export default function Home() {
   const leaderboards = data?.leaderboards || [];
   const activeLeaderboards = leaderboards.filter(
     (lb) => !isExpired(lb.deadline)
+  );
+
+  const activeCompetitions = leaderboards.filter(
+    (lb) => !isExpired(lb.deadline) && !isBeginnerProblem(lb.name)
+  );
+  const beginnerProblems = leaderboards.filter(
+    (lb) => !isExpired(lb.deadline) && isBeginnerProblem(lb.name)
+  );
+  const closedCompetitions = leaderboards.filter((lb) =>
+    isExpired(lb.deadline)
   );
 
   const handleLeaderboardSelect = (id: number) => {
@@ -215,13 +229,58 @@ export default function Home() {
         ) : loading ? (
           <Loading />
         ) : leaderboards.length > 0 ? (
-          <Grid container spacing={3}>
-            {leaderboards.map((leaderboard) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={leaderboard.id}>
-                <LeaderboardTile leaderboard={leaderboard} />
-              </Grid>
-            ))}
-          </Grid>
+          <Box>
+            {/* Active Competitions */}
+            {activeCompetitions.length > 0 && (
+              <Box sx={{ mb: 5 }}>
+                <Typography variant="h5" component="h2" sx={{ mb: 2 }}>
+                  Active Competitions
+                </Typography>
+                <Grid container spacing={3}>
+                  {activeCompetitions.map((leaderboard) => (
+                    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={leaderboard.id}>
+                      <LeaderboardTile leaderboard={leaderboard} />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
+
+            {/* Getting Started */}
+            {beginnerProblems.length > 0 && (
+              <Box sx={{ mb: 5 }}>
+                <Typography variant="h5" component="h2" sx={{ mb: 0.5 }}>
+                  Getting Started
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  New to GPU programming? Start here.
+                </Typography>
+                <Grid container spacing={3}>
+                  {beginnerProblems.map((leaderboard) => (
+                    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={leaderboard.id}>
+                      <LeaderboardTile leaderboard={leaderboard} />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
+
+            {/* Closed Competitions */}
+            {closedCompetitions.length > 0 && (
+              <Box>
+                <Typography variant="h5" component="h2" sx={{ mb: 2, color: "text.secondary" }}>
+                  Closed Competitions
+                </Typography>
+                <Grid container spacing={3}>
+                  {closedCompetitions.map((leaderboard) => (
+                    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={leaderboard.id}>
+                      <LeaderboardTile leaderboard={leaderboard} expired />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
+          </Box>
         ) : (
           <Typography variant="body1" color="text.secondary">
             No active leaderboards found.

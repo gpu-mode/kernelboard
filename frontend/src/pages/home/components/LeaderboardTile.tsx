@@ -63,9 +63,10 @@ interface LeaderboardData {
 
 interface LeaderboardTileProps {
   leaderboard: LeaderboardData;
+  expired?: boolean;
 }
 
-export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
+export default function LeaderboardTile({ leaderboard, expired }: LeaderboardTileProps) {
   const timeLeft = getTimeLeft(leaderboard.deadline);
 
   return (
@@ -78,7 +79,7 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
         sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}
       >
         {/* Leaderboard Name */}
-        <Box sx={{ mb: 1 }}>
+        <Box sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1 }}>
           <Typography
             variant="h6"
             component="h3"
@@ -87,12 +88,26 @@ export default function LeaderboardTile({ leaderboard }: LeaderboardTileProps) {
             <ColoredSquare name={leaderboard.name} />
             {leaderboard.name}
           </Typography>
+          {expired && (
+            <Chip
+              label="Ended"
+              size="small"
+              sx={{
+                fontSize: "0.7rem",
+                height: 22,
+                bgcolor: "action.disabledBackground",
+                color: "text.secondary",
+              }}
+            />
+          )}
         </Box>
 
         {/* Time Left */}
-        <Typography variant="body1" sx={{ color: "text.secondary" }}>
-          {timeLeft}
-        </Typography>
+        {!expired && (
+          <Typography variant="body1" sx={{ color: "text.secondary" }}>
+            {timeLeft}
+          </Typography>
+        )}
 
         {/* GPU Types */}
         <Typography
