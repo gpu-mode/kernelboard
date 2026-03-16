@@ -25,6 +25,7 @@ import MarkdownRenderer from "../../components/markdown-renderer/MarkdownRendere
 import quickStartMarkdown from "./quick-start.md?raw";
 import { isExpired, getTimeLeft } from "../../lib/date/utils";
 import { ColoredSquare } from "../../components/common/ColoredSquare";
+import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 
 interface TopUser {
   rank: number;
@@ -218,26 +219,50 @@ export default function Home() {
                   <Typography variant="h5" component="h2">
                     Getting Started
                   </Typography>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<CodeIcon />}
-                    onClick={() => setIsLeaderboardSelectOpen(true)}
-                    sx={{ textTransform: "none", fontWeight: 500 }}
-                  >
-                    Submit via browser
-                    <Chip
-                      label="beta"
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
+                    <Button
+                      variant="outlined"
                       size="small"
-                      sx={{
-                        ml: 1,
-                        height: 18,
-                        fontSize: "0.65rem",
-                        bgcolor: "warning.main",
-                        color: "warning.contrastText",
-                      }}
-                    />
-                  </Button>
+                      href="https://github.com/gpu-mode/resource-stream"
+                      target="_blank"
+                      rel="noopener"
+                      endIcon={<ArrowOutwardIcon sx={{ fontSize: 16 }} />}
+                      sx={{ textTransform: "none", fontWeight: 500 }}
+                    >
+                      Resources
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      href="https://www.youtube.com/@GPUMODE/videos"
+                      target="_blank"
+                      rel="noopener"
+                      endIcon={<ArrowOutwardIcon sx={{ fontSize: 16 }} />}
+                      sx={{ textTransform: "none", fontWeight: 500 }}
+                    >
+                      Lectures
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<CodeIcon />}
+                      onClick={() => setIsLeaderboardSelectOpen(true)}
+                      sx={{ textTransform: "none", fontWeight: 500 }}
+                    >
+                      Submit via browser
+                      <Chip
+                        label="beta"
+                        size="small"
+                        sx={{
+                          ml: 1,
+                          height: 18,
+                          fontSize: "0.65rem",
+                          bgcolor: "warning.main",
+                          color: "warning.contrastText",
+                        }}
+                      />
+                    </Button>
+                  </Box>
                 </Box>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                   New to GPU programming? Start here.
