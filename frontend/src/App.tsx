@@ -13,6 +13,7 @@ import WorkingGroups from "./pages/working-groups/WorkingGroups";
 import Lectures from "./pages/lectures/Lectures";
 import ErrorPage from "./pages/Error";
 import Login from "./pages/login/login";
+import Live from "./pages/live/Live";
 import { useAuthStore } from "./lib/store/authStore";
 import { useThemeStore } from "./lib/store/themeStore";
 import { useEffect, useMemo } from "react";
@@ -75,6 +76,7 @@ function App() {
             <Route path="/working-groups" element={<WorkingGroups />} />
             <Route path="/events" element={<Lectures />} />
             <Route path="/lectures" element={<Lectures />} />
+            <Route path="/live" element={<Live />} />
             <Route path="/login" element={<Login />} />
             {/* error handling page */}
             {errorRoutes.map(({ path, code, title, description }) => (
