@@ -57,11 +57,6 @@ export default function NavBar() {
     { label: "News", href: "/news" },
     { label: "Events", href: "/events" },
     { label: "Projects", href: "/working-groups" },
-    {
-      label: "Resources",
-      href: "https://github.com/gpu-mode/resource-stream",
-      external: true,
-    },
   ];
 
   const Brand = () => (
