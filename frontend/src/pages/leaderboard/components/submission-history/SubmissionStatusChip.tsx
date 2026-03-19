@@ -5,7 +5,12 @@ function SubmissionStatusChip({ status }: { status?: string | null }) {
   const v = str.toLowerCase();
   const isSuccess = v.includes("ok") || v.includes("succ");
   const isRunning = v.includes("run");
-  const isError = v.includes("fail") || v.includes("err") || v.includes("hack");
+  const isError =
+    v.includes("fail") ||
+    v.includes("err") ||
+    v.includes("hack") ||
+    v.includes("timed") ||
+    v.includes("timeout");
 
   const color: "default" | "success" | "warning" | "error" = isRunning
     ? "warning"
