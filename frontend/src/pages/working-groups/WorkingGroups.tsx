@@ -302,7 +302,7 @@ export default function WorkingGroups() {
         </Typography>
         <Typography>
           Mark Saroufim is BDFL. The main moderators are Alex Zhang,
-          Matej Sirovatka and Erik Schultheis. The community was originally founded by Andreas Köpf
+          Matej Sirovatka, Emre Guven and Erik Schultheis. The community was originally founded by Andreas Köpf
           and Mark Saroufim.
         </Typography>
       </Box>
