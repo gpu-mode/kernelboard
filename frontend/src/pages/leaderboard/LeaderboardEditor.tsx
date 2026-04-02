@@ -44,6 +44,17 @@ import {
 
 const DEFAULT_CODE = `# Write your code here`;
 
+function isTerminalErrorStatus(status?: string | null) {
+  const v = typeof status === "string" ? status.toLowerCase() : "";
+  return (
+    v.includes("fail") ||
+    v.includes("err") ||
+    v.includes("hack") ||
+    v.includes("timed") ||
+    v.includes("timeout")
+  );
+}
+
 export default function LeaderboardEditor() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -428,8 +439,17 @@ export default function LeaderboardEditor() {
                     </Alert>
                   )}
                   {editorStatus.kind === "done" && (
-                    <Alert severity="success" sx={{ mt: 1 }}>
-                      Submission completed!
+                    <Alert
+                      severity={
+                        isTerminalErrorStatus(editorStatus.result.status)
+                          ? "error"
+                          : "success"
+                      }
+                      sx={{ mt: 1 }}
+                    >
+                      {isTerminalErrorStatus(editorStatus.result.status)
+                        ? `Submission completed with status: ${editorStatus.result.status}`
+                        : "Submission completed!"}
                     </Alert>
                   )}
                 </>

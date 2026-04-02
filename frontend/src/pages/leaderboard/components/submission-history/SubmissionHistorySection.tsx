@@ -293,7 +293,10 @@ export default function SubmissionHistorySection({
                           <SubmissionStatusChip status={s.status} />
                         </TableCell>
                         <TableCell align="center">
-                          <SubmissionDoneCell done={s.submission_done} />
+                          <SubmissionDoneCell
+                            done={s.submission_done}
+                            status={s.status}
+                          />
                         </TableCell>
                         <TableCell>
                           {hasRuns ? (
