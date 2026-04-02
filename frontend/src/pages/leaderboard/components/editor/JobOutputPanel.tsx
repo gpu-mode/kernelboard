@@ -8,7 +8,30 @@ interface JobOutputPanelProps {
   uploadStatus: SubmitStatus;
 }
 
+function isTerminalErrorStatus(status?: string | null) {
+  const v = typeof status === "string" ? status.toLowerCase() : "";
+  return (
+    v.includes("fail") ||
+    v.includes("err") ||
+    v.includes("hack") ||
+    v.includes("timed") ||
+    v.includes("timeout")
+  );
+}
+
 export function JobOutputPanel({ editorStatus, uploadStatus }: JobOutputPanelProps) {
+  const completedResult =
+    editorStatus.kind === "done"
+      ? editorStatus.result
+      : uploadStatus.kind === "done"
+        ? uploadStatus.result
+        : undefined;
+  const completedWithError = isTerminalErrorStatus(completedResult?.status);
+  const doneLabel = completedWithError
+    ? (completedResult?.status ?? "failed")
+    : "Done";
+  const doneColor = completedWithError ? "error" : "success";
+
   return (
     <Box sx={{ flex: 1, minHeight: 80, display: "flex", flexDirection: "column" }}>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1, flexShrink: 0 }}>
@@ -28,8 +51,8 @@ export function JobOutputPanel({ editorStatus, uploadStatus }: JobOutputPanelPro
         {(editorStatus.kind === "done" || uploadStatus.kind === "done") && (
           <Chip
             icon={<CheckCircleIcon />}
-            label="Done"
-            color="success"
+            label={doneLabel}
+            color={doneColor}
             size="small"
             sx={{ height: 20, fontSize: "0.7rem" }}
           />
@@ -109,7 +132,7 @@ export function JobOutputPanel({ editorStatus, uploadStatus }: JobOutputPanelPro
 
         {editorStatus.kind === "done" && editorStatus.result && (
           <Box>
-            <div style={{ color: "#569cd6" }}>
+            <div style={{ color: completedWithError ? "#f14c4c" : "#569cd6" }}>
               Submission #{editorStatus.submissionId} completed
             </div>
             {editorStatus.result.error && (
@@ -154,7 +177,16 @@ export function JobOutputPanel({ editorStatus, uploadStatus }: JobOutputPanelPro
                 )}
               </Box>
             ))}
-            <div style={{ color: "#4ec9b0", marginTop: 8 }}>$ Done</div>
+            <div
+              style={{
+                color: completedWithError ? "#f14c4c" : "#4ec9b0",
+                marginTop: 8,
+              }}
+            >
+              {completedWithError
+                ? `$ ${editorStatus.result.status ?? "failed"}`
+                : "$ Done"}
+            </div>
           </Box>
         )}
 

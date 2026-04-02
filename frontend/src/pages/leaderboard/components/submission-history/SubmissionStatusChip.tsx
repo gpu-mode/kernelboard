@@ -3,19 +3,27 @@ import { Chip, Tooltip } from "@mui/material";
 function SubmissionStatusChip({ status }: { status?: string | null }) {
   const str = typeof status === "string" ? status : ""; // normalize
   const v = str.toLowerCase();
+  const isSuccess = v.includes("ok") || v.includes("succ");
+  const isRunning = v.includes("run");
+  const isError =
+    v.includes("fail") ||
+    v.includes("err") ||
+    v.includes("hack") ||
+    v.includes("timed") ||
+    v.includes("timeout");
 
-  const color: "default" | "success" | "warning" | "error" = v.includes("run")
+  const color: "default" | "success" | "warning" | "error" = isRunning
     ? "warning"
-    : v.includes("ok") || v.includes("succ")
+    : isSuccess
       ? "success"
-      : v.includes("fail") || v.includes("err")
+      : isError
         ? "error"
         : "default";
 
   const showFallback = !str;
   const label = showFallback
     ? "via CLI/Discord bot"
-    : v.includes("ok") || v.includes("succ")
+    : isSuccess
       ? "finished"
       : v;
 
