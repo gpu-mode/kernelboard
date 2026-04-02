@@ -13,7 +13,6 @@ import WorkingGroups from "./pages/working-groups/WorkingGroups";
 import Lectures from "./pages/lectures/Lectures";
 import ErrorPage from "./pages/Error";
 import Login from "./pages/login/login";
-import Live from "./pages/live/Live";
 import { useAuthStore } from "./lib/store/authStore";
 import { useThemeStore } from "./lib/store/themeStore";
 import { useEffect, useMemo } from "react";
