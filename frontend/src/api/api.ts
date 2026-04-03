@@ -55,6 +55,7 @@ export interface NewsPost {
 export interface LeaderboardSummary {
   id: number;
   name: string;
+  visibility?: string;
   deadline: string;
   gpu_types: string[];
   priority_gpu_type: string;
