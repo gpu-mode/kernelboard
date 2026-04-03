@@ -311,6 +311,7 @@ def _get_leaderboard_metadata_query():
             jsonb_build_object(
                 'id', l.id,
                 'name', l.name,
+                'visibility', l.visibility,
                 'deadline', l.deadline,
                 'gpu_types', COALESCE(g.gpu_types, '[]'::jsonb),
                 'priority_gpu_type', p.gpu_type
@@ -508,6 +509,7 @@ def _get_query():
         SELECT jsonb_build_object(
             'id', l.id,
             'name', l.name,
+            'visibility', l.visibility,
             'deadline', l.deadline,
             'gpu_types', COALESCE(g.gpu_types, '[]'::jsonb),
             'priority_gpu_type', p.gpu_type,
