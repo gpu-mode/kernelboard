@@ -36,6 +36,7 @@ interface TopUser {
 interface LeaderboardData {
   id: number;
   name: string;
+  visibility?: string;
   deadline: string;
   gpu_types: string[];
   priority_gpu_type: string;
@@ -76,12 +77,23 @@ export default function Home() {
   const activeLeaderboards = leaderboards.filter(
     (lb) => !isExpired(lb.deadline)
   );
+  const isPrivateCompetition = (lb: LeaderboardData) =>
+    lb.visibility === "closed";
 
   const activeCompetitions = leaderboards.filter(
-    (lb) => !isExpired(lb.deadline) && !isBeginnerProblem(lb.name)
+    (lb) =>
+      !isExpired(lb.deadline) &&
+      !isBeginnerProblem(lb.name) &&
+      !isPrivateCompetition(lb)
   );
   const beginnerProblems = leaderboards.filter(
-    (lb) => !isExpired(lb.deadline) && isBeginnerProblem(lb.name)
+    (lb) =>
+      !isExpired(lb.deadline) &&
+      isBeginnerProblem(lb.name) &&
+      !isPrivateCompetition(lb)
+  );
+  const privateCompetitions = leaderboards.filter(
+    (lb) => !isExpired(lb.deadline) && isPrivateCompetition(lb)
   );
   const closedCompetitions = leaderboards.filter((lb) =>
     isExpired(lb.deadline)
@@ -269,6 +281,25 @@ export default function Home() {
                 </Typography>
                 <Grid container spacing={3}>
                   {beginnerProblems.map((leaderboard) => (
+                    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={leaderboard.id}>
+                      <LeaderboardTile leaderboard={leaderboard} />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
+
+            {/* Private Competitions */}
+            {privateCompetitions.length > 0 && (
+              <Box sx={{ mb: 5 }}>
+                <Typography variant="h5" component="h2" sx={{ mb: 0.5 }}>
+                  Private Competitions
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Invite-only competitions with dedicated leaderboard pages.
+                </Typography>
+                <Grid container spacing={3}>
+                  {privateCompetitions.map((leaderboard) => (
                     <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={leaderboard.id}>
                       <LeaderboardTile leaderboard={leaderboard} />
                     </Grid>

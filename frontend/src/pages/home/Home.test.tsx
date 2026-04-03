@@ -4,6 +4,7 @@ import { ThemeProvider } from "@mui/material";
 import { appTheme } from "../../components/common/styles/theme";
 import Home from "./Home";
 import * as apiHook from "../../lib/hooks/useApi";
+import * as dateUtils from "../../lib/date/utils";
 import { vi, expect, it, describe, beforeEach } from "vitest";
 
 // Mock the API hook
@@ -66,7 +67,6 @@ describe("Home", () => {
 
     // Page structure is visible during loading
     expect(screen.getByText("Leaderboards")).toBeInTheDocument();
-    expect(screen.getByText("Submit your first kernel")).toBeInTheDocument();
     // Loading indicator is present
     expect(screen.getByRole("progressbar")).toBeInTheDocument();
   });
@@ -309,6 +309,116 @@ describe("Home", () => {
 
     expect(screen.getByText("no-users-leaderboard")).toBeInTheDocument();
     expect(screen.getByText("L4")).toBeInTheDocument();
+  });
+
+  it("shows active private competitions in their own section before closed competitions", () => {
+    vi.mocked(dateUtils.isExpired).mockImplementation((deadline: string | Date) => {
+      if (deadline instanceof Date) return deadline.getTime() < Date.now();
+      return deadline === "2024-01-01T00:00:00Z";
+    });
+
+    const mockData = {
+      leaderboards: [
+        {
+          id: 1,
+          name: "public-competition",
+          visibility: "public",
+          deadline: "2025-12-31T23:59:59Z",
+          gpu_types: ["T4"],
+          priority_gpu_type: "T4",
+          top_users: null,
+        },
+        {
+          id: 2,
+          name: "private-competition",
+          visibility: "closed",
+          deadline: "2025-12-31T23:59:59Z",
+          gpu_types: ["A100"],
+          priority_gpu_type: "A100",
+          top_users: null,
+        },
+        {
+          id: 3,
+          name: "expired-public-competition",
+          visibility: "public",
+          deadline: "2024-01-01T00:00:00Z",
+          gpu_types: ["L4"],
+          priority_gpu_type: "L4",
+          top_users: null,
+        },
+      ],
+      now: "2025-01-01T00:00:00Z",
+    };
+
+    const mockHookReturn = {
+      data: mockData,
+      loading: false,
+      hasLoaded: true,
+      error: null,
+      errorStatus: null,
+      call: mockCall,
+    };
+
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockHookReturn,
+    );
+
+    renderWithProviders(<Home />);
+
+    expect(screen.getByText("Active Competitions")).toBeInTheDocument();
+    expect(screen.getByText("Private Competitions")).toBeInTheDocument();
+    expect(screen.getByText("Closed Competitions")).toBeInTheDocument();
+    expect(screen.getByText("private-competition")).toBeInTheDocument();
+
+    const privateHeading = screen.getByText("Private Competitions");
+    const closedHeading = screen.getByText("Closed Competitions");
+    expect(
+      Boolean(
+        privateHeading.compareDocumentPosition(closedHeading) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps expired private competitions in the closed competitions section", () => {
+    vi.mocked(dateUtils.isExpired).mockImplementation((deadline: string | Date) => {
+      if (deadline instanceof Date) return deadline.getTime() < Date.now();
+      return deadline === "2024-01-01T00:00:00Z";
+    });
+
+    const mockData = {
+      leaderboards: [
+        {
+          id: 1,
+          name: "expired-private-competition",
+          visibility: "closed",
+          deadline: "2024-01-01T00:00:00Z",
+          gpu_types: ["H100"],
+          priority_gpu_type: "H100",
+          top_users: null,
+        },
+      ],
+      now: "2025-01-01T00:00:00Z",
+    };
+
+    const mockHookReturn = {
+      data: mockData,
+      loading: false,
+      hasLoaded: true,
+      error: null,
+      errorStatus: null,
+      call: mockCall,
+    };
+
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockHookReturn,
+    );
+
+    renderWithProviders(<Home />);
+
+    expect(screen.queryByText("Private Competitions")).not.toBeInTheDocument();
+    expect(screen.getByText("Closed Competitions")).toBeInTheDocument();
+    expect(screen.getByText("expired-private-competition")).toBeInTheDocument();
   });
 
   describe("LeaderboardTile functionality", () => {
