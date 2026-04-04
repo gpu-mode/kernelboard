@@ -75,7 +75,7 @@ function App() {
             <Route path="/working-groups" element={<WorkingGroups />} />
             <Route path="/events" element={<Lectures />} />
             <Route path="/lectures" element={<Lectures />} />
-            <Route path="/live" element={<div>Live temporarily disabled</div>} />
+            <Route path="/live" element={<Live />} />
             <Route path="/login" element={<Login />} />
             {/* error handling page */}
             {errorRoutes.map(({ path, code, title, description }) => (
