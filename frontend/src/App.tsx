@@ -11,6 +11,7 @@ import Home from "./pages/home/Home";
 import News from "./pages/news/News";
 import WorkingGroups from "./pages/working-groups/WorkingGroups";
 import Lectures from "./pages/lectures/Lectures";
+import Live from "./pages/live/Live";
 import ErrorPage from "./pages/Error";
 import Login from "./pages/login/login";
 import { useAuthStore } from "./lib/store/authStore";
