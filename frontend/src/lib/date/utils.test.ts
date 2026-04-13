@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { getTimeLeft, toDateUtc } from "./utils";
+import { getTimeLeft, shouldHideTimeRemaining, toDateUtc } from "./utils";
 
 describe("getTimeLeft", () => {
   beforeEach(() => {
@@ -176,5 +176,38 @@ describe("toDateUtc", () => {
       const result = toDateUtc(input);
       expect(result).toBe("2025-03-24 12:00");
     });
+  });
+});
+
+describe("shouldHideTimeRemaining", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("hides countdowns for deadlines more than a year away", () => {
+    vi.setSystemTime(new Date("2025-03-24T00:00:00.000Z"));
+
+    expect(
+      shouldHideTimeRemaining("2026-03-25T00:00:01.000Z"),
+    ).toBe(true);
+  });
+
+  it("keeps countdowns for deadlines within a year", () => {
+    vi.setSystemTime(new Date("2025-03-24T00:00:00.000Z"));
+
+    expect(
+      shouldHideTimeRemaining("2026-03-24T00:00:00.000Z"),
+    ).toBe(false);
+  });
+
+  it("does not hide past or invalid deadlines", () => {
+    vi.setSystemTime(new Date("2025-03-24T00:00:00.000Z"));
+
+    expect(shouldHideTimeRemaining("2025-03-23T23:59:59.000Z")).toBe(false);
+    expect(shouldHideTimeRemaining("gibberish")).toBe(false);
   });
 });

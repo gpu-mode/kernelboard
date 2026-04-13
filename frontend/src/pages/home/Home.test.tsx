@@ -24,6 +24,7 @@ vi.mock("react-syntax-highlighter/dist/esm/styles/prism", () => ({
 vi.mock("../../lib/date/utils", () => ({
   getTimeLeft: vi.fn(() => "2 days 5 hours remaining"),
   isExpired: vi.fn(() => false),
+  shouldHideTimeRemaining: vi.fn(() => false),
 }));
 
 vi.mock("../../lib/utils/ranking", () => ({
@@ -459,6 +460,49 @@ describe("Home", () => {
       renderWithProviders(<Home />);
 
       expect(screen.getByText("2 days 5 hours remaining")).toBeInTheDocument();
+    });
+
+    it("hides time left for effectively always-open leaderboards", () => {
+      vi.mocked(dateUtils.shouldHideTimeRemaining).mockReturnValue(true);
+
+      const mockData = {
+        leaderboards: [
+          {
+            id: 1,
+            name: "grayscale_v2",
+            deadline: "2027-12-31T23:59:59Z",
+            gpu_types: ["T4"],
+            priority_gpu_type: "T4",
+            top_users: [
+              {
+                rank: 1,
+                score: 0.123,
+                user_name: "alice",
+              },
+            ],
+          },
+        ],
+        now: "2025-01-01T00:00:00Z",
+      };
+
+      const mockHookReturn = {
+        data: mockData,
+        loading: false,
+        hasLoaded: true,
+        error: null,
+        errorStatus: null,
+        call: mockCall,
+      };
+
+      (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue(
+        mockHookReturn,
+      );
+
+      renderWithProviders(<Home />);
+
+      expect(
+        screen.queryByText("2 days 5 hours remaining"),
+      ).not.toBeInTheDocument();
     });
 
     it("formats scores correctly", () => {
