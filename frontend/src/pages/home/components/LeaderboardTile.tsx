@@ -1,7 +1,7 @@
 import { Box, Card, CardContent, Chip, type Theme, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 import { getMedalIcon } from "../../../components/common/medal.tsx";
-import { getTimeLeft } from "../../../lib/date/utils.ts";
+import { getTimeLeft, shouldHideTimeRemaining } from "../../../lib/date/utils.ts";
 import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
 import { ColoredSquare } from "../../../components/common/ColoredSquare.tsx";
 
@@ -68,6 +68,7 @@ interface LeaderboardTileProps {
 
 export default function LeaderboardTile({ leaderboard, expired }: LeaderboardTileProps) {
   const timeLeft = getTimeLeft(leaderboard.deadline);
+  const hideTimeRemaining = shouldHideTimeRemaining(leaderboard.deadline);
 
   return (
     <Card
@@ -103,7 +104,7 @@ export default function LeaderboardTile({ leaderboard, expired }: LeaderboardTil
         </Box>
 
         {/* Time Left */}
-        {!expired && (
+        {!expired && !hideTimeRemaining && (
           <Typography variant="body1" sx={{ color: "text.secondary" }}>
             {timeLeft}
           </Typography>
