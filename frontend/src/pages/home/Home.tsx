@@ -23,7 +23,7 @@ import Loading from "../../components/common/loading";
 import { ConstrainedContainer } from "../../components/app-layout/ConstrainedContainer";
 import MarkdownRenderer from "../../components/markdown-renderer/MarkdownRenderer";
 import quickStartMarkdown from "./quick-start.md?raw";
-import { isExpired, getTimeLeft } from "../../lib/date/utils";
+import { isExpired, getTimeLeft, shouldHideTimeRemaining } from "../../lib/date/utils";
 import { ColoredSquare } from "../../components/common/ColoredSquare";
 import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 
@@ -104,6 +104,10 @@ export default function Home() {
     navigate(`/leaderboard/${id}/editor`);
   };
 
+  const getLeaderboardTimeRemaining = (deadline: string) => {
+    return shouldHideTimeRemaining(deadline) ? undefined : getTimeLeft(deadline);
+  };
+
   return (
     <ConstrainedContainer>
       <Box>
@@ -145,7 +149,7 @@ export default function Home() {
                           {lb.name}
                         </Box>
                       }
-                      secondary={getTimeLeft(lb.deadline)}
+                      secondary={getLeaderboardTimeRemaining(lb.deadline)}
                       slotProps={{
                         primary: {
                           fontWeight: 500,

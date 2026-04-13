@@ -1,5 +1,7 @@
 import dayjs from "./dayjs";
 
+const ALWAYS_OPEN_DEADLINE_THRESHOLD_DAYS = 365;
+
 export const toDateUtc = (raw: string) => {
   return dayjs(raw).utc().format("YYYY-MM-DD HH:mm");
 };
@@ -30,6 +32,17 @@ export const getTimeLeft = (deadline: string): string => {
   const hourLabel = hours === 1 ? "hour" : "hours";
 
   return `${days} ${dayLabel} ${hours} ${hourLabel} remaining`;
+};
+
+export const shouldHideTimeRemaining = (deadline: string): boolean => {
+  const now = dayjs().utc();
+  const deadlineDate = dayjs(deadline);
+
+  if (!deadlineDate.isValid() || deadlineDate.isSame(now) || deadlineDate.isBefore(now)) {
+    return false;
+  }
+
+  return deadlineDate.diff(now, "day", true) > ALWAYS_OPEN_DEADLINE_THRESHOLD_DAYS;
 };
 
 export const isExpired = (
