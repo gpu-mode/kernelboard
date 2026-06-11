@@ -23,6 +23,7 @@ export default function Footer() {
     { label: "X", href: "https://x.com/GPU_MODE" },
     { label: "YouTube", href: "https://www.youtube.com/@GPUMODE" },
     { label: "GitHub", href: "https://github.com/gpu-mode/" },
+    { label: "Privacy", href: "/privacy" },
   ];
 
   return (
