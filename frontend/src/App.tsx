@@ -14,6 +14,7 @@ import Lectures from "./pages/lectures/Lectures";
 import Live from "./pages/live/Live";
 import ErrorPage from "./pages/Error";
 import Login from "./pages/login/login";
+import Privacy from "./pages/privacy/Privacy";
 import { useAuthStore } from "./lib/store/authStore";
 import { useThemeStore } from "./lib/store/themeStore";
 import { useEffect, useMemo } from "react";
@@ -78,6 +79,7 @@ function App() {
             <Route path="/lectures" element={<Lectures />} />
             <Route path="/live" element={<Live />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/privacy" element={<Privacy />} />
             {/* error handling page */}
             {errorRoutes.map(({ path, code, title, description }) => (
               <Route
