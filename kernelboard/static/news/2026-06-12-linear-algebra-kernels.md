@@ -34,6 +34,8 @@ We'll be using a simple scoring system: if any of your submissions are in the to
 
 The main leaderboard ranks solutions by speed. But we also want to celebrate the submissions that are unusually elegant, unusually accurate, or just deeply strange and still correct. There will be rare swag.
 
+The solution space for this problem is quite wide, so if you're a math, algorithms, or quantization geek, now is your time to shine.
+
 The real prize is probably a bit more interesting, we'll clean up and publish the best linear algebra kernels in a standalone repo and work towards publishing a paper together.
 
 And of course, next time you are in the Bay Area, come hang out with some top-tier linear algebra people and talk about what we should build next together.
