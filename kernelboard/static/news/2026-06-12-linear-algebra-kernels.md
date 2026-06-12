@@ -44,7 +44,7 @@ And of course, next time you are in the Bay Area, come hang out with some top-ti
 
 We highly recommend you first check out the QR chapter in the textbook by [Trefethen and Bau](https://www.stat.uchicago.edu/~lekheng/courses/309/books/Trefethen-Bau.pdf)
 
-After that you and your agents can make submissions via [popcorn-cli](https://github.com/gpu-mode/popcorn-cli)
+After that you and your agents can make submissions using the [B200 QR getting started guide](https://github.com/gpu-mode/popcorn-cli/blob/main/docs/linalg-qr-b200.md)
 
 If you'd like to stay up to date with newer problem releases or changes to the eval harness, or if you have questions, please follow updates and ask us in the linalg channel on [discord.gg/gpumode](https://discord.gg/gpumode)
 
