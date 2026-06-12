@@ -44,7 +44,7 @@ We highly recommend you first check out the QR chapter in the textbook by [Trefe
 
 After that you and your agents can make submissions via [popcorn-cli](https://github.com/gpu-mode/popcorn-cli)
 
-If you'd like to stay up to date with newer problem releases or changes to the eval harness then please follow updates on [discord.gg/gpumode](https://discord.gg/gpumode)
+If you'd like to stay up to date with newer problem releases or changes to the eval harness, or if you have questions, please follow updates and ask us in the linalg channel on [discord.gg/gpumode](https://discord.gg/gpumode)
 
 ## Acknowledgements
 We'd like to thank Rohan Anil for pointing out which classical algorithms are worth accelerating, Core Automation for funding our Modal credits, Modal for providing the best GPU sandboxing service and Northflank for the best service hosting we could ask for.
