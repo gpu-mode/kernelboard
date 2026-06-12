@@ -24,7 +24,7 @@ So for the first QR problem the reference implementation will be `torch.geqrf` w
 * Factorization: `R ~= Q.T @ A`
 * Orthogonality: `Q.T @ Q ~= I`
 * Reconstruction: `Q @ R ~= A`
-* Triangularity: `Q.T @ A` has little lower-triangular leakage.
+* Triangularity: `lower(Q.T @ A) ~= 0`.
 
 However, we chose to define relative tolerances and scale them by `n * eps32`. The reason for this is we want you to experiment with approaches that lose accuracy by using lower bit widths but then try to recover it back. The benchmarks will mostly test dense random square matrices but the tests include rank-deficient, near-rank-deficient, banded, row-scaled, near-collinear, upper-triangular, and clustered-scale inputs because random dense matrices are not enough.
 
