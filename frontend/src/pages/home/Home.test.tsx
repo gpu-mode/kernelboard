@@ -422,6 +422,69 @@ describe("Home", () => {
     expect(screen.getByText("expired-private-competition")).toBeInTheDocument();
   });
 
+  it("does not classify every v2 leaderboard as a beginner problem", () => {
+    const mockData = {
+      leaderboards: [
+        {
+          id: 1,
+          name: "grayscale_v2",
+          deadline: "2027-12-31T23:59:59Z",
+          gpu_types: ["T4"],
+          priority_gpu_type: "T4",
+          top_users: null,
+        },
+        {
+          id: 2,
+          name: "qr_v2",
+          deadline: "2027-12-31T23:59:59Z",
+          gpu_types: ["B200"],
+          priority_gpu_type: "B200",
+          top_users: null,
+        },
+      ],
+      now: "2025-01-01T00:00:00Z",
+    };
+
+    const mockHookReturn = {
+      data: mockData,
+      loading: false,
+      hasLoaded: true,
+      error: null,
+      errorStatus: null,
+      call: mockCall,
+    };
+
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue(
+      mockHookReturn,
+    );
+
+    renderWithProviders(<Home />);
+
+    const activeHeading = screen.getByText("Active Competitions");
+    const gettingStartedHeading = screen.getByText("Getting Started");
+    const qrTile = screen.getByText("qr_v2");
+    const grayscaleTile = screen.getByText("grayscale_v2");
+
+    expect(
+      Boolean(
+        activeHeading.compareDocumentPosition(qrTile) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+    expect(
+      Boolean(
+        qrTile.compareDocumentPosition(gettingStartedHeading) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+    expect(
+      Boolean(
+        gettingStartedHeading.compareDocumentPosition(grayscaleTile) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+  });
+
   describe("LeaderboardTile functionality", () => {
     it("displays time left correctly", () => {
       const mockData = {
