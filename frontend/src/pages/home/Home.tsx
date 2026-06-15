@@ -48,8 +48,19 @@ interface LeaderboardSummaries {
   now: string;
 }
 
+const BEGINNER_PROBLEM_NAMES = new Set([
+  "conv2d_v2",
+  "grayscale_v2",
+  "histogram_v2",
+  "matmul_v2",
+  "prefixsum_v2",
+  "sort_v2",
+  "vectoradd_v2",
+  "vectorsum_v2",
+]);
+
 function isBeginnerProblem(name: string): boolean {
-  return /_v2\b/i.test(name);
+  return BEGINNER_PROBLEM_NAMES.has(name.toLowerCase());
 }
 
 export default function Home() {
