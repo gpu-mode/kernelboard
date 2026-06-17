@@ -1,51 +1,64 @@
-def kernelbot_leaderboard_payload(rankings=None, description="description"):
-    return {
-        "rankings": rankings
-        if rankings is not None
-        else {
-            "H100": [
-                {"user_name": "Alice", "score": 1.25, "file_name": "submission.py"}
-            ]
-        },
-        "leaderboard": {
-            "name": "conv2d",
-            "deadline": "2026-06-29T17:00:00-07:00",
-            "lang": "py",
-            "description": description,
-            "reference": "def ref():\\n    pass",
-            "benchmarks": [{"n": 32}],
-            "gpu_types": ["H100"],
-        },
-    }
+from kernelboard.lib.db import get_db_connection
 
 
-def view_from_payload(payload):
-    from kernelboard.lib.kernelbot_client import to_leaderboard_view
-
-    return to_leaderboard_view(payload)
-
-
-def test_leaderboard_view():
-    view = view_from_payload(kernelbot_leaderboard_payload())
-
-    assert view["name"] == "conv2d"
-    assert view["rankings"]["H100"][0]["user_name"] == "Alice"
+def test_leaderboard(client):
+    response = client.get("/leaderboard/339")
+    assert response.status_code == 200
+    assert b"conv2d" in response.data
 
 
-def test_leaderboard_view_formats_language():
-    view = view_from_payload(kernelbot_leaderboard_payload())
-
-    assert view["lang"] == "Python"
-
-
-def test_leaderboard_no_submissions():
-    view = view_from_payload(kernelbot_leaderboard_payload(rankings={"H100": []}))
-
-    assert view["rankings"] == {}
+def test_nonexistent_leaderboard(client):
+    response = client.get("/leaderboard/1000000")
+    assert response.status_code == 404
 
 
-def test_leaderboard_preserves_latex_description():
-    latex = r"$$\sum_{i=1?^n i$$"
-    view = view_from_payload(kernelbot_leaderboard_payload(description=f"{latex} description"))
+def test_leaderboard_no_submissions(client, app):
+    with app.app_context():
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE leaderboard.submission SET leaderboard_id = 340 WHERE leaderboard_id = 339"
+            )
+            conn.commit()  # Commit update so the web request sees it.
 
-    assert view["description"] == f"{latex} description"
+    response = client.get("/leaderboard/339")
+    assert response.status_code == 200
+    assert b"No submissions yet" in response.data
+
+
+def test_leaderboard_mathjax(client, app):
+    # Test that MathJax script is not included for a standard description.
+    response_no_math = client.get("/leaderboard/339")
+    assert response_no_math.status_code == 200
+    mathjax_script = b'script id="mathjax"'
+    assert mathjax_script not in response_no_math.data
+
+    # Test that MathJax script is included when description contains LaTeX.
+    with app.app_context():
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            # Fetch original description.
+            cur.execute(
+                "SELECT description FROM leaderboard.leaderboard WHERE id = 339"
+            )
+            result = cur.fetchone()
+            description = result[0]
+
+            # Update the description to include a LaTeX expression.
+            latex = r"$$\sum_{i=1?^n i$$"
+            new_description = f"{latex} {description}"
+
+            cur.execute(
+                """
+                UPDATE leaderboard.leaderboard
+                SET description = %(new_desc)s
+                WHERE id = 339
+                """,
+                {"new_desc": new_description},
+            )
+            conn.commit()
+
+            response_with_math = client.get("/leaderboard/339")
+            assert response_with_math.status_code == 200
+            assert mathjax_script in response_with_math.data
+            assert latex.encode("utf-8") in response_with_math.data
