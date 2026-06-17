@@ -130,6 +130,14 @@ personal_best_candidates AS (
     WHERE NOT r.secret
         AND r.score IS NOT NULL
         AND r.passed
+        AND NOT EXISTS (
+            SELECT 1
+            FROM leaderboard.runs sr
+            WHERE sr.submission_id = s.id
+                AND sr.secret
+                AND sr.runner = r.runner
+                AND sr.passed = FALSE
+        )
 ),
 
 personal_best_runs AS (

@@ -370,6 +370,14 @@ def _get_query_for_ids():
                 AND r.score IS NOT NULL
                 AND r.passed
                 AND s.leaderboard_id IN %s
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM leaderboard.runs sr
+                    WHERE sr.submission_id = s.id
+                        AND sr.secret
+                        AND sr.runner = r.runner
+                        AND sr.passed = FALSE
+                )
         ),
         personal_best_runs AS (
             SELECT * FROM personal_best_candidates
@@ -466,6 +474,14 @@ def _get_query():
             WHERE NOT r.secret
                 AND r.score IS NOT NULL
                 AND r.passed
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM leaderboard.runs sr
+                    WHERE sr.submission_id = s.id
+                        AND sr.secret
+                        AND sr.runner = r.runner
+                        AND sr.passed = FALSE
+                )
         ),
 
         -- Step 2: Select only the best run for each user
