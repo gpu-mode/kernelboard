@@ -1,8 +1,10 @@
 import logging
+import os
 import time
 from http import HTTPStatus
 from typing import Any, List
 
+import requests
 from flask import Blueprint
 
 from kernelboard.lib.db import get_db_connection
@@ -20,29 +22,42 @@ leaderboard_bp = Blueprint(
 def leaderboard(leaderboard_id: int):
     total_start = time.perf_counter()
 
-    # 1. Database connection
-    db_conn_start = time.perf_counter()
-    conn = get_db_connection()
-    db_conn_time = (time.perf_counter() - db_conn_start) * 1000
+    kernelbot_start = time.perf_counter()
+    try:
+        response = requests.get(
+            f"{get_cluster_manager_endpoint()}/leaderboard/{leaderboard_id}/rankings",
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        logger.exception("kernelbot leaderboard request failed", exc_info=exc)
+        return http_error(
+            "could not fetch leaderboard rankings",
+            10000 + HTTPStatus.BAD_GATEWAY,
+            HTTPStatus.BAD_GATEWAY,
+        )
+    kernelbot_time = (time.perf_counter() - kernelbot_start) * 1000
 
-    # 2. Query execution
-    query = _get_query()
-    query_start = time.perf_counter()
-    with conn.cursor() as cur:
-        cur.execute(query, {"leaderboard_id": leaderboard_id})
-        result = cur.fetchone()
-    query_time = (time.perf_counter() - query_start) * 1000
-
-    if is_result_invalid(result):
+    if response.status_code == HTTPStatus.NOT_FOUND:
         return http_error(
             f"canonot find leaderboard with id {leaderboard_id}",
             10000 + HTTPStatus.NOT_FOUND,
             HTTPStatus.NOT_FOUND,
         )
 
-    data = result[0]
+    if not response.ok:
+        logger.error(
+            "kernelbot leaderboard request failed: status=%s body=%s",
+            response.status_code,
+            response.text,
+        )
+        return http_error(
+            "could not fetch leaderboard rankings",
+            10000 + HTTPStatus.BAD_GATEWAY,
+            HTTPStatus.BAD_GATEWAY,
+        )
 
-    # 3. Data transformation
+    data = response.json()
+
     transform_start = time.perf_counter()
     res = to_api_leaderboard_item(data)
     transform_time = (time.perf_counter() - transform_start) * 1000
@@ -52,10 +67,9 @@ def leaderboard(leaderboard_id: int):
     # Log timing breakdown
     logger.info(
         "[Perf] leaderboard_id=%s | "
-        "db_conn=%.2fms | query=%.2fms | transform=%.2fms | total=%.2fms",
+        "kernelbot=%.2fms | transform=%.2fms | total=%.2fms",
         leaderboard_id,
-        db_conn_time,
-        query_time,
+        kernelbot_time,
         transform_time,
         total_time,
     )
@@ -118,109 +132,11 @@ def to_api_leaderboard_item(data: dict[str, Any]):
     }
 
 
-def _get_query():
-    query = """
-        WITH
-
-        -- Basic info about the leaderboard.
-        leaderboard_info AS (
-            SELECT
-                name,
-                deadline,
-                task->>'lang' AS lang,
-                description AS description,
-                task->'files'->>'reference.py' AS reference,
-                task->'benchmarks' AS benchmarks
-            FROM leaderboard.leaderboard
-            WHERE id = %(leaderboard_id)s
-        ),
-
-        -- All the different GPU types for this leaderboard.
-        gpu_types AS (
-            SELECT DISTINCT gpu_type
-            FROM leaderboard.gpu_type
-            WHERE leaderboard_id = %(leaderboard_id)s
-        ),
-
-        -- Total submission count per user per GPU type for this leaderboard.
-        submission_counts AS (
-            SELECT s.user_id, r.runner, COUNT(DISTINCT s.id) AS submission_count
-            FROM leaderboard.submission s
-            JOIN leaderboard.runs r ON r.submission_id = s.id
-            WHERE s.leaderboard_id = %(leaderboard_id)s
-            GROUP BY s.user_id, r.runner
-        ),
-
-        -- All the runs on this leaderboard. For each user and GPU type, the
-        -- user's runs on that GPU type are ranked by score.
-        ranked_runs AS (
-            SELECT r.runner AS runner,
-                u.user_name AS user_name,
-                r.score AS score,
-                s.submission_time AS submission_time,
-                s.file_name AS file_name,
-                r.submission_id AS submission_id,
-                COALESCE(sc.submission_count, 0) AS submission_count,
-                RANK() OVER (PARTITION BY r.runner, u.id ORDER BY r.score ASC) AS rank
-            FROM leaderboard.runs r
-                JOIN leaderboard.submission s ON r.submission_id = s.id
-                LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
-                LEFT JOIN submission_counts sc ON s.user_id = sc.user_id AND r.runner = sc.runner
-            WHERE NOT r.secret
-                AND r.score IS NOT NULL
-                AND r.passed
-                AND s.leaderboard_id = %(leaderboard_id)s
-                AND NOT EXISTS (
-                    SELECT 1
-                    FROM leaderboard.runs sr
-                    WHERE sr.submission_id = s.id
-                        AND sr.secret
-                        AND sr.runner = r.runner
-                        AND sr.passed = FALSE
-                )
-        ),
-
-        -- From ranked_runs, keep only the top run per user.
-        top_runs AS (SELECT * FROM ranked_runs WHERE rank = 1)
-
-        SELECT jsonb_build_object(
-            'rankings', (SELECT jsonb_object_agg(g.gpu_type, (
-                SELECT jsonb_agg(
-                    jsonb_build_object(
-                        'user_name', r.user_name,
-                        'score', r.score,
-                        'file_name', r.file_name,
-                        'submission_id', r.submission_id,
-                        'submission_count', r.submission_count,
-                        'submission_time', r.submission_time
-                    )
-                    ORDER BY r.score ASC
-                )
-                FROM top_runs r WHERE r.runner = g.gpu_type))),
-
-            'leaderboard', (SELECT jsonb_build_object(
-                'name', name,
-                'deadline', deadline,
-                'lang', lang,
-                'description', description,
-                'reference', reference,
-                'benchmarks', benchmarks,
-                'gpu_types', (SELECT jsonb_agg(gpu_type) FROM gpu_types)
-            ) FROM leaderboard_info)
-        ) AS result FROM (SELECT gpu_type FROM gpu_types) g;
-    """
-    return query
-
-
-def is_result_invalid(result):
-    if result is None:
-        return True
-    if len(result) == 0:
-        return True
-    if not result[0] or not result[0]["leaderboard"]:
-        return True
-
-    return False
+def get_cluster_manager_endpoint():
+    env_var = os.getenv("DISCORD_CLUSTER_MANAGER_API_BASE_URL", "")
+    if not env_var:
+        logger.warning("DISCORD_CLUSTER_MANAGER_API_BASE_URL is not set")
+    return env_var.rstrip("/")
 
 
 # ai generated code hardcoded user_id
