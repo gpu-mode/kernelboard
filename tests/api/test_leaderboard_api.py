@@ -38,7 +38,8 @@ def test_failed_secret_benchmark_hides_public_leaderboard_run(client, app):
                     (id, leaderboard_id, file_name, user_id, code_id, submission_time, done)
                 VALUES
                     (900001, 339, 'hidden_secret_fail.py', '123456789012345', 13, NOW(), TRUE),
-                    (900002, 339, 'visible_public_pass.py', '234567890123456', 13, NOW(), TRUE)
+                    (900002, 339, 'visible_public_pass.py', '234567890123456', 13, NOW(), TRUE),
+                    (900003, 339, 'hidden_missing_secret.py', '345678901234567', 13, NOW(), TRUE)
                 """
             )
             cur.execute(
@@ -104,6 +105,36 @@ def test_failed_secret_benchmark_hides_public_leaderboard_run(client, app):
                         '{}',
                         '{}',
                         '{}'
+                    ),
+                    (
+                        900004,
+                        900002,
+                        NOW(),
+                        NOW(),
+                        'leaderboard',
+                        TRUE,
+                        'H100',
+                        -998,
+                        TRUE,
+                        '{}',
+                        '{}',
+                        '{}',
+                        '{}'
+                    ),
+                    (
+                        900005,
+                        900003,
+                        NOW(),
+                        NOW(),
+                        'leaderboard',
+                        FALSE,
+                        'H100',
+                        -997,
+                        TRUE,
+                        '{}',
+                        '{}',
+                        '{}',
+                        '{}'
                     )
                 """
             )
@@ -117,4 +148,5 @@ def test_failed_secret_benchmark_hides_public_leaderboard_run(client, app):
     ranked_files = {row["file_name"] for row in h100_rankings}
 
     assert "hidden_secret_fail.py" not in ranked_files
+    assert "hidden_missing_secret.py" not in ranked_files
     assert "visible_public_pass.py" in ranked_files
