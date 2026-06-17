@@ -83,7 +83,17 @@ def index():
                 JOIN priority_gpu_types p on p.leaderboard_id = a.id
                     AND p.gpu_type = r.runner
                 LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
-            WHERE NOT r.secret AND r.score IS NOT NULL AND r.passed
+            WHERE NOT r.secret
+                AND r.score IS NOT NULL
+                AND r.passed
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM leaderboard.runs sr
+                    WHERE sr.submission_id = s.id
+                        AND sr.secret
+                        AND sr.runner = r.runner
+                        AND sr.passed = FALSE
+                )
         ),
 
         -- Select only the best run for each user and GPU type.

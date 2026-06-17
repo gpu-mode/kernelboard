@@ -166,7 +166,18 @@ def _get_query():
                 JOIN leaderboard.submission s ON r.submission_id = s.id
                 LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
                 LEFT JOIN submission_counts sc ON s.user_id = sc.user_id AND r.runner = sc.runner
-            WHERE NOT r.secret AND r.score IS NOT NULL AND r.passed AND s.leaderboard_id = %(leaderboard_id)s
+            WHERE NOT r.secret
+                AND r.score IS NOT NULL
+                AND r.passed
+                AND s.leaderboard_id = %(leaderboard_id)s
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM leaderboard.runs sr
+                    WHERE sr.submission_id = s.id
+                        AND sr.secret
+                        AND sr.runner = r.runner
+                        AND sr.passed = FALSE
+                )
         ),
 
         -- From ranked_runs, keep only the top run per user.
@@ -248,6 +259,14 @@ def get_custom_trend(leaderboard_id: int):
               AND r.score IS NOT NULL
               AND r.passed = true
               AND NOT r.secret
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM leaderboard.runs sr
+                  WHERE sr.submission_id = s.id
+                    AND sr.secret
+                    AND sr.runner = r.runner
+                    AND sr.passed = FALSE
+              )
             ORDER BY s.submission_time ASC
         """
         cur.execute(sql, (HARDCODED_USER_ID, leaderboard_id))
@@ -369,6 +388,14 @@ def get_user_trend(leaderboard_id: int):
               AND r.score IS NOT NULL
               AND r.passed = true
               AND NOT r.secret
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM leaderboard.runs sr
+                  WHERE sr.submission_id = s.id
+                    AND sr.secret
+                    AND sr.runner = r.runner
+                    AND sr.passed = FALSE
+              )
             ORDER BY s.submission_time ASC
         """
         cur.execute(sql, (*user_id_list, leaderboard_id))
@@ -455,6 +482,14 @@ def get_fastest_trend(leaderboard_id: int):
               AND r.score IS NOT NULL
               AND r.passed = true
               AND NOT r.secret
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM leaderboard.runs sr
+                  WHERE sr.submission_id = s.id
+                    AND sr.secret
+                    AND sr.runner = r.runner
+                    AND sr.passed = FALSE
+              )
             ORDER BY s.submission_time ASC
         """
         cur.execute(sql, (leaderboard_id,))
