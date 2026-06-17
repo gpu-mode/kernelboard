@@ -1,4 +1,3 @@
-import os
 import random
 import secrets
 import string
@@ -132,7 +131,7 @@ def db_server():
                 "-f",
                 "tests/data.sql",
             ],
-            env={**os.environ, "PGPASSWORD": password},
+            env={"PGPASSWORD": password},
         )
 
         if result.returncode != 0:
