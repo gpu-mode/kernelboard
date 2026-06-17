@@ -39,7 +39,7 @@ def mock_kernelbot_response(payload=None, status_code=200):
     return response
 
 
-@patch("kernelboard.api.leaderboard.requests.get")
+@patch("kernelboard.lib.kernelbot_client.requests.get")
 def test_leaderboard(mock_get, client):
     mock_get.return_value = mock_kernelbot_response()
 
@@ -53,7 +53,7 @@ def test_leaderboard(mock_get, client):
     )
 
 
-@patch("kernelboard.api.leaderboard.requests.get")
+@patch("kernelboard.lib.kernelbot_client.requests.get")
 def test_nonexistent_leaderboard(mock_get, client):
     mock_get.return_value = mock_kernelbot_response(status_code=404)
 
@@ -61,7 +61,7 @@ def test_nonexistent_leaderboard(mock_get, client):
     assert response.status_code == 404
 
 
-@patch("kernelboard.api.leaderboard.requests.get")
+@patch("kernelboard.lib.kernelbot_client.requests.get")
 def test_leaderboard_no_submissions(mock_get, client):
     mock_get.return_value = mock_kernelbot_response(
         kernelbot_leaderboard_payload(rankings={"H100": [], "A100": []})
@@ -74,7 +74,7 @@ def test_leaderboard_no_submissions(mock_get, client):
     assert res["data"]["rankings"] == {}
 
 
-@patch("kernelboard.api.leaderboard.requests.get")
+@patch("kernelboard.lib.kernelbot_client.requests.get")
 def test_leaderboard_delegates_secret_filtering_to_kernelbot(mock_get, client):
     mock_get.return_value = mock_kernelbot_response(
         kernelbot_leaderboard_payload(
