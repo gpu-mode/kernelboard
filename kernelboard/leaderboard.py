@@ -46,6 +46,15 @@ def leaderboard(leaderboard_id: int):
                 AND r.score IS NOT NULL
                 AND r.passed
                 AND s.leaderboard_id = %(leaderboard_id)s
+                AND EXISTS (
+                    SELECT 1
+                    FROM leaderboard.runs sr
+                    WHERE sr.submission_id = s.id
+                        AND sr.secret
+                        AND sr.runner = r.runner
+                        AND sr.mode = 'leaderboard'
+                        AND sr.passed
+                )
                 AND NOT EXISTS (
                     SELECT 1
                     FROM leaderboard.runs sr

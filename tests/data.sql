@@ -80,7 +80,8 @@ CREATE TABLE leaderboard.leaderboard (
     creator_id bigint DEFAULT '-1'::integer NOT NULL,
     forum_id bigint NOT NULL,
     secret_seed bigint DEFAULT floor((random() * ('2147483648'::bigint)::double precision)) NOT NULL,
-    description text NOT NULL
+    description text NOT NULL,
+    visibility text DEFAULT 'public'::text NOT NULL
 );
 
 

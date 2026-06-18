@@ -170,6 +170,15 @@ def _get_query():
                 AND r.score IS NOT NULL
                 AND r.passed
                 AND s.leaderboard_id = %(leaderboard_id)s
+                AND EXISTS (
+                    SELECT 1
+                    FROM leaderboard.runs sr
+                    WHERE sr.submission_id = s.id
+                        AND sr.secret
+                        AND sr.runner = r.runner
+                        AND sr.mode = 'leaderboard'
+                        AND sr.passed
+                )
                 AND NOT EXISTS (
                     SELECT 1
                     FROM leaderboard.runs sr
@@ -259,6 +268,15 @@ def get_custom_trend(leaderboard_id: int):
               AND r.score IS NOT NULL
               AND r.passed = true
               AND NOT r.secret
+              AND EXISTS (
+                  SELECT 1
+                  FROM leaderboard.runs sr
+                  WHERE sr.submission_id = s.id
+                    AND sr.secret
+                    AND sr.runner = r.runner
+                    AND sr.mode = 'leaderboard'
+                    AND sr.passed
+              )
               AND NOT EXISTS (
                   SELECT 1
                   FROM leaderboard.runs sr
@@ -388,6 +406,15 @@ def get_user_trend(leaderboard_id: int):
               AND r.score IS NOT NULL
               AND r.passed = true
               AND NOT r.secret
+              AND EXISTS (
+                  SELECT 1
+                  FROM leaderboard.runs sr
+                  WHERE sr.submission_id = s.id
+                    AND sr.secret
+                    AND sr.runner = r.runner
+                    AND sr.mode = 'leaderboard'
+                    AND sr.passed
+              )
               AND NOT EXISTS (
                   SELECT 1
                   FROM leaderboard.runs sr
@@ -482,6 +509,15 @@ def get_fastest_trend(leaderboard_id: int):
               AND r.score IS NOT NULL
               AND r.passed = true
               AND NOT r.secret
+              AND EXISTS (
+                  SELECT 1
+                  FROM leaderboard.runs sr
+                  WHERE sr.submission_id = s.id
+                    AND sr.secret
+                    AND sr.runner = r.runner
+                    AND sr.mode = 'leaderboard'
+                    AND sr.passed
+              )
               AND NOT EXISTS (
                   SELECT 1
                   FROM leaderboard.runs sr

@@ -370,6 +370,15 @@ def _get_query_for_ids():
                 AND r.score IS NOT NULL
                 AND r.passed
                 AND s.leaderboard_id IN %s
+                AND EXISTS (
+                    SELECT 1
+                    FROM leaderboard.runs sr
+                    WHERE sr.submission_id = s.id
+                        AND sr.secret
+                        AND sr.runner = r.runner
+                        AND sr.mode = 'leaderboard'
+                        AND sr.passed
+                )
                 AND NOT EXISTS (
                     SELECT 1
                     FROM leaderboard.runs sr
@@ -474,6 +483,15 @@ def _get_query():
             WHERE NOT r.secret
                 AND r.score IS NOT NULL
                 AND r.passed
+                AND EXISTS (
+                    SELECT 1
+                    FROM leaderboard.runs sr
+                    WHERE sr.submission_id = s.id
+                        AND sr.secret
+                        AND sr.runner = r.runner
+                        AND sr.mode = 'leaderboard'
+                        AND sr.passed
+                )
                 AND NOT EXISTS (
                     SELECT 1
                     FROM leaderboard.runs sr
