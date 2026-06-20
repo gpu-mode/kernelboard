@@ -18,7 +18,14 @@ def leaderboard(leaderboard_id: int):
                 deadline,
                 task->>'lang' AS lang,
                 description AS description,
-                task->'files'->>'reference.py' AS reference
+                task->'files'->>'reference.py' AS reference,
+                (
+                    SELECT code
+                    FROM leaderboard.templates
+                    WHERE leaderboard_id = %(leaderboard_id)s
+                    ORDER BY CASE WHEN lang = 'Python' THEN 0 ELSE 1 END
+                    LIMIT 1
+                ) AS starter
             FROM leaderboard.leaderboard
             WHERE id = %(leaderboard_id)s
         ),
@@ -86,6 +93,7 @@ def leaderboard(leaderboard_id: int):
                 'lang', lang,
                 'description', description,
                 'reference', reference,
+                'starter', starter,
                 'gpu_types', (SELECT jsonb_agg(gpu_type) FROM gpu_types)
             ) FROM leaderboard_info)
         ) AS result FROM (SELECT gpu_type FROM gpu_types) g;
@@ -117,6 +125,9 @@ def leaderboard(leaderboard_id: int):
 
     reference = leaderboard_data["reference"] or ""
     reference = reference.replace("\\n", "\n")
+
+    starter = leaderboard_data["starter"] or ""
+    starter = starter.replace("\\n", "\n")
 
     gpu_types = leaderboard_data["gpu_types"]
     gpu_types.sort()
@@ -150,6 +161,6 @@ def leaderboard(leaderboard_id: int):
         lang=lang,
         gpu_types=gpu_types,
         description=description,
-        reference=reference,
+        reference=starter,
         rankings=rankings,
     )

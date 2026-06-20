@@ -30,6 +30,7 @@ const mockDeadline = "2025-06-29T17:00:00-07:00";
 const mockExpiredDeadline = "2024-01-29T12:00:00-02:00";
 const mockDescription = "Implement a 2D the given specifications";
 const mockReference = "import torch";
+const mockStarter = "def custom_kernel(data):\n    return data";
 const mockName = "test-game";
 
 describe("Leaderboard", () => {
@@ -44,12 +45,13 @@ describe("Leaderboard", () => {
 
   // -------------------- Basic rendering --------------------
 
-  it("renders name, description, gpu types; rankings visible on Rankings tab; reference visible after switching to Reference tab", () => {
+  it("renders name, description, gpu types; rankings visible on Rankings tab; starter code visible after switching to Starter Code tab", () => {
     const mockData = {
       deadline: mockDeadline,
       description: mockDescription,
       name: mockName,
       reference: mockReference,
+      starter: mockStarter,
       gpu_types: ["T1", "T2"],
       rankings: {
         T1: [
@@ -90,7 +92,7 @@ describe("Leaderboard", () => {
 
     // Tabs exist
     const rankingsTab = screen.getByRole("tab", { name: /Rankings/i });
-    const referenceTab = screen.getByRole("tab", { name: /Reference/i });
+    const referenceTab = screen.getByRole("tab", { name: /Starter Code/i });
     const submissionTab = screen.getByRole("tab", { name: /Submission/i });
     expect(rankingsTab).toBeInTheDocument();
     expect(referenceTab).toBeInTheDocument();
@@ -100,11 +102,10 @@ describe("Leaderboard", () => {
     expect(screen.getByText(/user1/)).toBeInTheDocument();
     expect(screen.getByText(/user2/)).toBeInTheDocument();
 
-    // Switch to Reference tab before asserting its content
+    // Switch to Starter Code tab before asserting its content
     fireEvent.click(referenceTab);
-    expect(screen.getByText(/Reference Implementation/i)).toBeInTheDocument();
-    expect(screen.getByText(/import/)).toBeInTheDocument();
-    expect(screen.getByText(/torch/)).toBeInTheDocument();
+    expect(screen.getByText(/Starter Submission/i)).toBeInTheDocument();
+    expect(screen.getByText(/custom_kernel/)).toBeInTheDocument();
   });
 
   it("shows loading state", () => {
@@ -276,15 +277,16 @@ describe("Leaderboard", () => {
     expect(screen.queryAllByTestId("ranking-0-row")).toHaveLength(3);
   });
 
-  // -------------------- Reference codeblock --------------------
+  // -------------------- Starter codeblock --------------------
 
-  it("show reference codeblock (after switching to Reference tab)", () => {
+  it("shows starter codeblock (after switching to Starter Code tab)", () => {
     const mockData = {
       name: "test-code",
       description: "",
       deadline: "",
       gpu_types: ["T1"],
       reference: mockReference,
+      starter: mockStarter,
       rankings: { T1: [] },
     };
 
@@ -298,23 +300,23 @@ describe("Leaderboard", () => {
 
     renderWithRouter(<Leaderboard />);
 
-    // Must switch to Reference tab first
-    fireEvent.click(screen.getByRole("tab", { name: /Reference/i }));
+    // Must switch to Starter Code tab first
+    fireEvent.click(screen.getByRole("tab", { name: /Starter Code/i }));
 
-    // Reference codeblock should be visible
-    expect(screen.getByText(/Reference Implementation/i)).toBeInTheDocument();
-    expect(screen.getByText(/import/)).toBeInTheDocument();
-    expect(screen.getByText(/torch/)).toBeInTheDocument();
+    // Starter codeblock should be visible
+    expect(screen.getByText(/Starter Submission/i)).toBeInTheDocument();
+    expect(screen.getByText(/custom_kernel/)).toBeInTheDocument();
   });
 
   // -------------------- Tabs behavior (switching) --------------------
 
-  it("starts on Rankings tab by default and can switch to Reference and back", () => {
+  it("starts on Rankings tab by default and can switch to Starter Code and back", () => {
     const mockData = {
       deadline: mockDeadline,
       description: mockDescription,
       name: mockName,
       reference: mockReference,
+      starter: mockStarter,
       gpu_types: ["T1"],
       rankings: {
         T1: [
@@ -342,11 +344,10 @@ describe("Leaderboard", () => {
     // Default selected tab should be Rankings (content visible)
     expect(screen.getByText(/user1/)).toBeInTheDocument();
 
-    // Switch to Reference tab
-    fireEvent.click(screen.getByRole("tab", { name: /Reference/i }));
-    expect(screen.getByText(/Reference Implementation/i)).toBeInTheDocument();
-    expect(screen.getByText(/import/)).toBeInTheDocument();
-    expect(screen.getByText(/torch/)).toBeInTheDocument();
+    // Switch to Starter Code tab
+    fireEvent.click(screen.getByRole("tab", { name: /Starter Code/i }));
+    expect(screen.getByText(/Starter Submission/i)).toBeInTheDocument();
+    expect(screen.getByText(/custom_kernel/)).toBeInTheDocument();
 
     // Switch back to Rankings tab
     fireEvent.click(screen.getByRole("tab", { name: /Rankings/i }));
@@ -359,6 +360,7 @@ describe("Leaderboard", () => {
       description: mockDescription,
       name: mockName,
       reference: mockReference,
+      starter: mockStarter,
       gpu_types: ["T1"],
       rankings: { T1: [] },
     };
@@ -386,6 +388,7 @@ describe("Leaderboard", () => {
       deadline: mockDeadline,
       gpu_types: ["T1"],
       reference: mockReference,
+      starter: mockStarter,
       rankings: { T1: [] },
     };
 
@@ -416,6 +419,7 @@ describe("Leaderboard", () => {
       deadline: mockDeadline,
       gpu_types: ["T1"],
       reference: mockReference,
+      starter: mockStarter,
       rankings: { T1: [] },
     };
 
@@ -451,6 +455,7 @@ describe("Leaderboard", () => {
       deadline: mockDeadline,
       gpu_types: ["T1"],
       reference: mockReference,
+      starter: mockStarter,
       rankings: { T1: [] },
     };
 
@@ -488,6 +493,7 @@ describe("Leaderboard", () => {
       deadline: mockExpiredDeadline,
       gpu_types: ["T1"],
       reference: mockReference,
+      starter: mockStarter,
       rankings: { T1: [] },
     };
 
