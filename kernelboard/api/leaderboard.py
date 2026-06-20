@@ -80,6 +80,9 @@ def to_api_leaderboard_item(data: dict[str, Any]):
     reference = leaderboard_data["reference"] or ""
     reference = reference.replace("\\n", "\n")
 
+    starter = leaderboard_data["starter"] or ""
+    starter = starter.replace("\\n", "\n")
+
     benchmarks = leaderboard_data.get("benchmarks") or []
 
     gpu_types = leaderboard_data["gpu_types"]
@@ -113,6 +116,7 @@ def to_api_leaderboard_item(data: dict[str, Any]):
         "gpu_types": gpu_types,
         "description": description,
         "reference": reference,
+        "starter": starter,
         "benchmarks": benchmarks,
         "rankings": rankings,
     }
@@ -130,6 +134,13 @@ def _get_query():
                 task->>'lang' AS lang,
                 description AS description,
                 task->'files'->>'reference.py' AS reference,
+                (
+                    SELECT code
+                    FROM leaderboard.templates
+                    WHERE leaderboard_id = %(leaderboard_id)s
+                    ORDER BY CASE WHEN lang = 'Python' THEN 0 ELSE 1 END
+                    LIMIT 1
+                ) AS starter,
                 task->'benchmarks' AS benchmarks
             FROM leaderboard.leaderboard
             WHERE id = %(leaderboard_id)s
@@ -213,6 +224,7 @@ def _get_query():
                 'lang', lang,
                 'description', description,
                 'reference', reference,
+                'starter', starter,
                 'benchmarks', benchmarks,
                 'gpu_types', (SELECT jsonb_agg(gpu_type) FROM gpu_types)
             ) FROM leaderboard_info)

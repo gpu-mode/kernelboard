@@ -284,7 +284,7 @@ const LeaderboardContent = memo(function LeaderboardContent() {
             allowScrollButtonsMobile
           >
             <Tab label="Rankings" value="rankings" {...a11yProps(0)} />
-            <Tab label="Reference" value="reference" {...a11yProps(1)} />
+            <Tab label="Starter Code" value="reference" {...a11yProps(1)} />
             <Tab label="Submission" value="submission" {...a11yProps(2)} />
           </Tabs>
         </Box>
@@ -330,13 +330,19 @@ const LeaderboardContent = memo(function LeaderboardContent() {
           </Box>
         </TabPanel>
 
-        {/* Reference Implementation Tab */}
+        {/* Starter Code Tab */}
         <TabPanel value={tab} tabKey="reference">
           <Card>
             <CardContent>
-              <CardTitle fontWeight="bold">Reference Implementation</CardTitle>
+              <CardTitle fontWeight="bold">Starter Submission</CardTitle>
               <Box>
-                <CodeBlock code={data.reference} bordered />
+                {data.starter ? (
+                  <CodeBlock code={data.starter} bordered />
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No starter submission is available for this problem.
+                  </Typography>
+                )}
               </Box>
             </CardContent>
           </Card>
