@@ -148,6 +148,7 @@ def _get_query():
             FROM leaderboard.submission s
             JOIN leaderboard.runs r ON r.submission_id = s.id
             WHERE s.leaderboard_id = %(leaderboard_id)s
+              AND COALESCE(s.status, 'active') <> 'hacked'
             GROUP BY s.user_id, r.runner
         ),
 
@@ -166,7 +167,9 @@ def _get_query():
                 JOIN leaderboard.submission s ON r.submission_id = s.id
                 LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
                 LEFT JOIN submission_counts sc ON s.user_id = sc.user_id AND r.runner = sc.runner
-            WHERE NOT r.secret AND r.score IS NOT NULL AND r.passed AND s.leaderboard_id = %(leaderboard_id)s
+            WHERE NOT r.secret AND r.score IS NOT NULL AND r.passed
+              AND s.leaderboard_id = %(leaderboard_id)s
+              AND COALESCE(s.status, 'active') <> 'hacked'
         ),
 
         -- From ranked_runs, keep only the top run per user.
@@ -248,6 +251,7 @@ def get_custom_trend(leaderboard_id: int):
               AND r.score IS NOT NULL
               AND r.passed = true
               AND NOT r.secret
+              AND COALESCE(s.status, 'active') <> 'hacked'
             ORDER BY s.submission_time ASC
         """
         cur.execute(sql, (HARDCODED_USER_ID, leaderboard_id))
@@ -369,6 +373,7 @@ def get_user_trend(leaderboard_id: int):
               AND r.score IS NOT NULL
               AND r.passed = true
               AND NOT r.secret
+              AND COALESCE(s.status, 'active') <> 'hacked'
             ORDER BY s.submission_time ASC
         """
         cur.execute(sql, (*user_id_list, leaderboard_id))
@@ -455,6 +460,7 @@ def get_fastest_trend(leaderboard_id: int):
               AND r.score IS NOT NULL
               AND r.passed = true
               AND NOT r.secret
+              AND COALESCE(s.status, 'active') <> 'hacked'
             ORDER BY s.submission_time ASC
         """
         cur.execute(sql, (leaderboard_id,))
@@ -535,6 +541,7 @@ def search_users(leaderboard_id: int):
                 FROM leaderboard.user_info u
                 JOIN leaderboard.submission s ON s.user_id = u.id
                 WHERE s.leaderboard_id = %s
+                  AND COALESCE(s.status, 'active') <> 'hacked'
                   AND u.user_name ILIKE %s
                 ORDER BY u.user_name
                 LIMIT %s
@@ -546,6 +553,7 @@ def search_users(leaderboard_id: int):
                 FROM leaderboard.user_info u
                 JOIN leaderboard.submission s ON s.user_id = u.id
                 WHERE s.leaderboard_id = %s
+                  AND COALESCE(s.status, 'active') <> 'hacked'
                 ORDER BY u.user_name
                 LIMIT %s
             """

@@ -130,6 +130,7 @@ personal_best_candidates AS (
     WHERE NOT r.secret
         AND r.score IS NOT NULL
         AND r.passed
+        AND COALESCE(s.status, 'active') <> 'hacked'
 ),
 
 personal_best_runs AS (

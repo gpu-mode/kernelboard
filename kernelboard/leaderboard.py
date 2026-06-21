@@ -42,7 +42,9 @@ def leaderboard(leaderboard_id: int):
             FROM leaderboard.runs r
                 JOIN leaderboard.submission s ON r.submission_id = s.id
                 LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
-            WHERE NOT r.secret AND r.score IS NOT NULL AND r.passed AND s.leaderboard_id = %(leaderboard_id)s
+            WHERE NOT r.secret AND r.score IS NOT NULL AND r.passed
+                AND s.leaderboard_id = %(leaderboard_id)s
+                AND COALESCE(s.status, 'active') <> 'hacked'
         ),
 
         -- From ranked_runs, keep only the top run per user.

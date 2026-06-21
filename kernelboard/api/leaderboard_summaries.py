@@ -369,6 +369,7 @@ def _get_query_for_ids():
             WHERE NOT r.secret
                 AND r.score IS NOT NULL
                 AND r.passed
+                AND COALESCE(s.status, 'active') <> 'hacked'
                 AND s.leaderboard_id IN %s
         ),
         personal_best_runs AS (
@@ -466,6 +467,7 @@ def _get_query():
             WHERE NOT r.secret
                 AND r.score IS NOT NULL
                 AND r.passed
+                AND COALESCE(s.status, 'active') <> 'hacked'
         ),
 
         -- Step 2: Select only the best run for each user
