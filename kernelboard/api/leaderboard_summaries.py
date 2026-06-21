@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 leaderboard_summaries_bp = Blueprint("leaderboard_summaries_bp", __name__, url_prefix="/leaderboard-summaries")
 
 # Redis cache key prefix for ended leaderboard top_users
-CACHE_KEY_PREFIX = "lb_top_users:"
+CACHE_KEY_PREFIX = "lb_top_users:v2:"
 
 
 # =============================================================================
@@ -370,6 +370,13 @@ def _get_query_for_ids():
                 AND r.score IS NOT NULL
                 AND r.passed
                 AND s.leaderboard_id IN %s
+                AND s.status <> 'hacked'
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM leaderboard.submission_job_status sjs
+                    WHERE sjs.submission_id = s.id
+                        AND sjs.status = 'hacked'
+                )
                 AND EXISTS (
                     SELECT 1
                     FROM leaderboard.runs sr
@@ -483,6 +490,13 @@ def _get_query():
             WHERE NOT r.secret
                 AND r.score IS NOT NULL
                 AND r.passed
+                AND s.status <> 'hacked'
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM leaderboard.submission_job_status sjs
+                    WHERE sjs.submission_id = s.id
+                        AND sjs.status = 'hacked'
+                )
                 AND EXISTS (
                     SELECT 1
                     FROM leaderboard.runs sr

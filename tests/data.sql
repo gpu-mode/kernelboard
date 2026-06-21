@@ -106,6 +106,18 @@ ALTER SEQUENCE leaderboard.leaderboard_id_seq OWNED BY leaderboard.leaderboard.i
 
 
 --
+-- Name: templates; Type: TABLE; Schema: leaderboard; Owner: -
+--
+
+CREATE TABLE leaderboard.templates (
+    id SERIAL PRIMARY KEY,
+    leaderboard_id integer NOT NULL,
+    lang text NOT NULL,
+    code text NOT NULL
+);
+
+
+--
 -- Name: runs; Type: TABLE; Schema: leaderboard; Owner: -
 --
 
@@ -157,7 +169,8 @@ CREATE TABLE leaderboard.submission (
     user_id text NOT NULL,
     code_id integer NOT NULL,
     submission_time timestamp with time zone NOT NULL,
-    done boolean DEFAULT false
+    done boolean DEFAULT false,
+    status text DEFAULT 'active'::text NOT NULL
 );
 
 
