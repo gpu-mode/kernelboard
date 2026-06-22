@@ -86,6 +86,13 @@ def index():
             WHERE NOT r.secret
                 AND r.score IS NOT NULL
                 AND r.passed
+                AND s.status <> 'hacked'
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM leaderboard.submission_job_status sjs
+                    WHERE sjs.submission_id = s.id
+                        AND sjs.status = 'hacked'
+                )
                 AND EXISTS (
                     SELECT 1
                     FROM leaderboard.runs sr

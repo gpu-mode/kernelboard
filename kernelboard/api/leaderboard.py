@@ -159,6 +159,13 @@ def _get_query():
             FROM leaderboard.submission s
             JOIN leaderboard.runs r ON r.submission_id = s.id
             WHERE s.leaderboard_id = %(leaderboard_id)s
+                AND s.status <> 'hacked'
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM leaderboard.submission_job_status sjs
+                    WHERE sjs.submission_id = s.id
+                        AND sjs.status = 'hacked'
+                )
             GROUP BY s.user_id, r.runner
         ),
 
@@ -181,6 +188,13 @@ def _get_query():
                 AND r.score IS NOT NULL
                 AND r.passed
                 AND s.leaderboard_id = %(leaderboard_id)s
+                AND s.status <> 'hacked'
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM leaderboard.submission_job_status sjs
+                    WHERE sjs.submission_id = s.id
+                        AND sjs.status = 'hacked'
+                )
                 AND EXISTS (
                     SELECT 1
                     FROM leaderboard.runs sr
@@ -280,6 +294,13 @@ def get_custom_trend(leaderboard_id: int):
               AND r.score IS NOT NULL
               AND r.passed = true
               AND NOT r.secret
+              AND s.status <> 'hacked'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM leaderboard.submission_job_status sjs
+                  WHERE sjs.submission_id = s.id
+                    AND sjs.status = 'hacked'
+              )
               AND EXISTS (
                   SELECT 1
                   FROM leaderboard.runs sr
@@ -418,6 +439,13 @@ def get_user_trend(leaderboard_id: int):
               AND r.score IS NOT NULL
               AND r.passed = true
               AND NOT r.secret
+              AND s.status <> 'hacked'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM leaderboard.submission_job_status sjs
+                  WHERE sjs.submission_id = s.id
+                    AND sjs.status = 'hacked'
+              )
               AND EXISTS (
                   SELECT 1
                   FROM leaderboard.runs sr
@@ -521,6 +549,13 @@ def get_fastest_trend(leaderboard_id: int):
               AND r.score IS NOT NULL
               AND r.passed = true
               AND NOT r.secret
+              AND s.status <> 'hacked'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM leaderboard.submission_job_status sjs
+                  WHERE sjs.submission_id = s.id
+                    AND sjs.status = 'hacked'
+              )
               AND EXISTS (
                   SELECT 1
                   FROM leaderboard.runs sr
@@ -618,6 +653,13 @@ def search_users(leaderboard_id: int):
                 FROM leaderboard.user_info u
                 JOIN leaderboard.submission s ON s.user_id = u.id
                 WHERE s.leaderboard_id = %s
+                  AND s.status <> 'hacked'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM leaderboard.submission_job_status sjs
+                      WHERE sjs.submission_id = s.id
+                        AND sjs.status = 'hacked'
+                  )
                   AND u.user_name ILIKE %s
                 ORDER BY u.user_name
                 LIMIT %s
@@ -629,6 +671,13 @@ def search_users(leaderboard_id: int):
                 FROM leaderboard.user_info u
                 JOIN leaderboard.submission s ON s.user_id = u.id
                 WHERE s.leaderboard_id = %s
+                  AND s.status <> 'hacked'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM leaderboard.submission_job_status sjs
+                      WHERE sjs.submission_id = s.id
+                        AND sjs.status = 'hacked'
+                  )
                 ORDER BY u.user_name
                 LIMIT %s
             """

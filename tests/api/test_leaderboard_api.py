@@ -150,3 +150,120 @@ def test_failed_secret_benchmark_hides_public_leaderboard_run(client, app):
     assert "hidden_secret_fail.py" not in ranked_files
     assert "hidden_missing_secret.py" not in ranked_files
     assert "visible_public_pass.py" in ranked_files
+
+
+def test_hacked_submissions_are_hidden_from_public_leaderboard(client, app):
+    with app.app_context():
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            submissions = [
+                (
+                    900011,
+                    "hidden_submission_status_hacked.py",
+                    "123456789012345",
+                    "hacked",
+                ),
+                (900012, "hidden_job_status_hacked.py", "234567890123456", "active"),
+                (900013, "visible_clean_status.py", "345678901234567", "active"),
+            ]
+            for submission_id, file_name, user_id, status in submissions:
+                cur.execute(
+                    """
+                    INSERT INTO leaderboard.submission
+                        (
+                            id,
+                            leaderboard_id,
+                            file_name,
+                            user_id,
+                            code_id,
+                            submission_time,
+                            done,
+                            status
+                        )
+                    VALUES
+                        (%s, 339, %s, %s, 13, NOW(), TRUE, %s)
+                    """,
+                    (submission_id, file_name, user_id, status),
+                )
+                cur.execute(
+                    """
+                    INSERT INTO leaderboard.runs
+                        (
+                            id,
+                            submission_id,
+                            start_time,
+                            end_time,
+                            mode,
+                            secret,
+                            runner,
+                            score,
+                            passed,
+                            compilation,
+                            meta,
+                            result,
+                            system_info
+                        )
+                    VALUES
+                        (
+                            %s,
+                            %s,
+                            NOW(),
+                            NOW(),
+                            'leaderboard',
+                            FALSE,
+                            'H100',
+                            %s,
+                            TRUE,
+                            '{}',
+                            '{}',
+                            '{}',
+                            '{}'
+                        ),
+                        (
+                            %s,
+                            %s,
+                            NOW(),
+                            NOW(),
+                            'leaderboard',
+                            TRUE,
+                            'H100',
+                            %s,
+                            TRUE,
+                            '{}',
+                            '{}',
+                            '{}',
+                            '{}'
+                        )
+                    """,
+                    (
+                        submission_id * 10,
+                        submission_id,
+                        -submission_id,
+                        submission_id * 10 + 1,
+                        submission_id,
+                        -submission_id,
+                    ),
+                )
+
+            cur.execute(
+                """
+                INSERT INTO leaderboard.submission_job_status
+                    (submission_id, status, created_at, last_heartbeat)
+                VALUES
+                    (900012, 'hacked', NOW(), NOW())
+                """
+            )
+            conn.commit()
+
+    response = client.get("/api/leaderboard/339")
+    assert response.status_code == 200
+
+    payload = response.get_json()
+    ranked_files = {
+        row["file_name"]
+        for row in payload["data"]["rankings"]["H100"]
+    }
+
+    assert "hidden_submission_status_hacked.py" not in ranked_files
+    assert "hidden_job_status_hacked.py" not in ranked_files
+    assert "visible_clean_status.py" in ranked_files

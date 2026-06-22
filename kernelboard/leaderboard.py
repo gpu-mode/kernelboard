@@ -53,6 +53,13 @@ def leaderboard(leaderboard_id: int):
                 AND r.score IS NOT NULL
                 AND r.passed
                 AND s.leaderboard_id = %(leaderboard_id)s
+                AND s.status <> 'hacked'
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM leaderboard.submission_job_status sjs
+                    WHERE sjs.submission_id = s.id
+                        AND sjs.status = 'hacked'
+                )
                 AND EXISTS (
                     SELECT 1
                     FROM leaderboard.runs sr
