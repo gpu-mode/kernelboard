@@ -13,7 +13,7 @@ from flask_login import current_user, login_required
 
 from kernelboard.lib.auth_utils import (
     get_id_and_username_from_session,
-    get_whitelist,
+    is_current_user_admin,
 )
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.error import ValidationError, validate_required_fields
@@ -202,7 +202,7 @@ def list_codes_route():
         else:
             # otherwise, check if user able to see the leaderboard codes
             # (only admin can see the leaderboard codes if leaderboard is not ended)
-            return check_admin_access_codes(user_id, leaderboard_id, submission_ids)
+            return check_admin_access_codes(leaderboard_id, submission_ids)
     except Exception as e:
         logger.error(f"faild to list codes: {e}")
         return http_error(
@@ -211,12 +211,9 @@ def list_codes_route():
         )
 
 
-def check_admin_access_codes(
-    user_id: str, leaderboard_id: int, submission_ids: List[int]
-):
+def check_admin_access_codes(leaderboard_id: int, submission_ids: List[int]):
     # check if user able to see the leaderboard codes
-    whilte_list = get_whitelist(leaderboard_id)
-    if user_id not in whilte_list:
+    if not is_current_user_admin(str(leaderboard_id)):
         logger.info("[list_codes] user is not admin, skip the request")
         return http_success(message="skip since user is not admin", data={})
     else:
