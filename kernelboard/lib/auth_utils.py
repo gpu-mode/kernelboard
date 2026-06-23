@@ -116,6 +116,7 @@ def get_whitelist(leaderboard_id: str = "") -> set[str]:
         "1394757548833509408",
         "268205958637944832",
         "1354693822055055441",
+        "17482230",  # rohan-anil GitHub user id
     ]
 
     whitelist = GPU_TEAM_WHITE_LIST
