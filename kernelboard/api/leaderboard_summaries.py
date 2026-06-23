@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from flask import Blueprint, request
 
-from kernelboard.lib.auth_utils import get_id_and_username_from_session, get_whitelist
+from kernelboard.lib.auth_utils import is_current_user_admin
 from kernelboard.lib.db import get_db_connection
 from kernelboard.lib.redis_connection import get_redis_connection
 from kernelboard.lib.status_code import http_success
@@ -91,9 +91,7 @@ def index():
     force_refresh = request.args.get("force_refresh_cache") is not None
 
     # Check if user is admin to force refresh cache
-    user_id, _ = get_id_and_username_from_session()
-    whitelist = get_whitelist()
-    if not user_id or user_id not in whitelist:
+    if not is_current_user_admin():
         logger.info("[leaderboard_summaries] skip force_refresh since user is not admin")
         force_refresh = False
 

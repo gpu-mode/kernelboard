@@ -34,7 +34,7 @@ def get_user_info_from_session() -> Any:
             "identity": identity,
             "display_name": session.get("display_name") if is_auth else None,
             "avatar_url": session.get("avatar_url") if is_auth else None,
-            "is_admin": identity in get_whitelist() if is_auth and identity else False,
+            "is_admin": is_admin_identity(provider, identity) if is_auth else False,
         },
     }
     return res
@@ -98,28 +98,44 @@ def ensure_user_info_with_token(user_id: int, user_name: str) -> Optional[Any]:
         return cur.fetchone()
 
 
-def get_whitelist(leaderboard_id: str = "") -> set[str]:
+def get_whitelist(leaderboard_id: str = "") -> set[tuple[str, str]]:
     """
-     return a unique set of cleaned Discord user IDs.
+    Return a unique set of whitelisted (provider, identity) pairs.
     TODO: move this to a db table if more roles are needed
     """
     if not isinstance(leaderboard_id, str):
         leaderboard_id = str(leaderboard_id)
 
     # GpuMode CORE Team, always have access to all leaderboards
-    GPU_TEAM_WHITE_LIST = [
-        "1372260358621888674",
-        "489144435032981515",
-        "838132355075014667",
-        "325883680419610631",
-        "557943190045327360",
-        "1394757548833509408",
-        "268205958637944832",
-        "1354693822055055441",
-        "17482230",  # rohan-anil GitHub user id
-    ]
+    GPU_TEAM_ADMINS = {
+        ("discord", "1372260358621888674"): "elainewy",
+        ("discord", "489144435032981515"): "siro",
+        ("discord", "838132355075014667"): "Erik S.",
+        ("discord", "325883680419610631"): "Seraphim",
+        ("discord", "557943190045327360"): "Snektron",
+        ("discord", "1394757548833509408"): "Emre",
+        ("discord", "268205958637944832"): "az",
+        ("github", "17482230"): "rohan-anil",
+    }
 
-    whitelist = GPU_TEAM_WHITE_LIST
+    whitelist = GPU_TEAM_ADMINS.keys()
 
     # Add leaderboard based white_list,notice leaderboard_id is a string
     return set(whitelist)
+
+
+def is_admin_identity(
+    provider: Optional[str],
+    identity: Optional[str],
+    leaderboard_id: str = "",
+) -> bool:
+    if not provider or not identity:
+        return False
+    return (provider, identity) in get_whitelist(leaderboard_id)
+
+
+def is_current_user_admin(leaderboard_id: str = "") -> bool:
+    if current_user.is_anonymous:
+        return False
+    d = get_provider_and_identity(current_user.get_id())
+    return is_admin_identity(d["provider"], d["identity"], leaderboard_id)
