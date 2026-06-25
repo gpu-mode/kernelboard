@@ -122,6 +122,41 @@ export default function Home() {
   return (
     <ConstrainedContainer>
       <Box>
+        <Box
+          sx={{
+            border: 1,
+            borderColor: "divider",
+            borderRadius: 1,
+            bgcolor: "background.paper",
+            px: 2,
+            py: 1.5,
+            width: "100%",
+            mb: 3,
+          }}
+        >
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ lineHeight: 1.6 }}
+          >
+            GPU MODE&apos;s mission is to make high-performance GPU programming
+            more accessible.
+            <br />
+            We rely on donations and sponsorships to fund community compute,
+            lectures, kernel competitions, working groups, and events.
+            <br />
+            Thank you to Modal, Core Automation, and Northflank for supporting
+            us. To sponsor GPU MODE, please{" "}
+            <Box
+              component="a"
+              href="mailto:mark@gpumode.com"
+              sx={{ color: "primary.main", fontWeight: 600 }}
+            >
+              reach out
+            </Box>
+            .
+          </Typography>
+        </Box>
         <Typography variant="h1" component="h1" sx={{ mb: 3 }}>
           Leaderboards
         </Typography>
