@@ -1,7 +1,8 @@
 import { Box, Typography, Link, Chip } from "@mui/material";
 import type { Theme } from "@mui/material/styles";
 import { useEffect, useState } from "react";
-import { fetchEvents, DiscordEvent } from "../../api/api";
+import { fetchEvents } from "../../api/api";
+import type { DiscordEvent } from "../../api/api";
 import Loading from "../../components/common/loading";
 
 const styles = {
