@@ -34,9 +34,7 @@ The next problem in the linear algebra series is `eigh`, the symmetric eigenvalu
 
 The main correctness footgun is that eigenvectors are not unique. If `q` is an eigenvector then `-q` is also an eigenvector, so a valid implementation can disagree with PyTorch by a sign flip in every column. Repeated or tightly clustered eigenvalues are even trickier: the individual vectors inside that eigenspace can rotate while still representing the same correct decomposition.
 
-Instead the checker looks at the mathematical invariants: `Q.T @ Q ~= I`, `A @ Q ~= Q @ diag(L)`, `Q @ diag(L) @ Q.T ~= A`, sorted eigenvalues, finite FP32 outputs, and the expected shapes/devices. Like QR, the tolerances are intentionally residual-based and scaled by `n * eps32` so approximate or low-bit internal strategies have room to compete, while outputs still have to represent a real eigendecomposition.
-
-There are several promising algorithm families here. General dense implementations can use Householder tridiagonalization followed by QR or divide-and-conquer on the tridiagonal problem. Jacobi-style methods trade more sweeps for parallel pairwise rotations and good accuracy. Structured inputs can be much cheaper: diagonal and nearly diagonal cases avoid the dense eigensolver entirely, and PSD Gram matrices open the door to specialized low-rank or approximate methods. The benchmark suite includes dense, diagonal, rank-deficient, near-rank-deficient, repeated-eigenvalue, clustered-eigenvalue, banded, row-scaled, and mixed batches so submissions are rewarded for both speed and numerical robustness.
+Instead the checker looks at the mathematical invariants: `Q.T @ Q ~= I`, `A @ Q ~= Q @ diag(L)`, `Q @ diag(L) @ Q.T ~= A`, sorted eigenvalues, finite FP32 outputs, and the expected shapes/devices. Like QR, the tolerances are intentionally residual-based and scaled by `n * eps32` so approximate or low-bit internal strategies should work.
 
 ## Prize
 
