@@ -28,6 +28,14 @@ So for the first QR problem the reference implementation will be `torch.geqrf` w
 
 However, we chose to define relative tolerances and scale them by `n * eps32`. The reason for this is we want you to experiment with approaches that lose accuracy by using lower bit widths but then try to recover it back. The benchmarks will mostly test dense random square matrices but the tests include rank-deficient, near-rank-deficient, banded, row-scaled, near-collinear, upper-triangular, and clustered-scale inputs because random dense matrices are not enough.
 
+## Eigh
+
+The next problem in the linear algebra series is `eigh`, the symmetric eigenvalue decomposition. The input is a batched real symmetric matrix `A`, and the goal is to return `A = Q diag(L) Q.T`, where the columns of `Q` are orthonormal eigenvectors and `L` contains the eigenvalues in ascending order.
+
+The main correctness footgun is that eigenvectors are not unique. If `q` is an eigenvector then `-q` is also an eigenvector, so a valid implementation can disagree with PyTorch by a sign flip in every column. Repeated or tightly clustered eigenvalues are even trickier: the individual vectors inside that eigenspace can rotate while still representing the same correct decomposition.
+
+Instead the checker looks at the mathematical invariants: `Q.T @ Q ~= I`, `A @ Q ~= Q @ diag(L)`, `Q @ diag(L) @ Q.T ~= A`, sorted eigenvalues, finite FP32 outputs, and the expected shapes/devices. Like QR, the tolerances are intentionally residual-based and scaled by `n * eps32` so approximate or low-bit internal strategies should work.
+
 ## Prize
 
 We'll be using a simple scoring system: if any of your submissions are in the top 3 of any problem then you'll be recognized as a winner.
