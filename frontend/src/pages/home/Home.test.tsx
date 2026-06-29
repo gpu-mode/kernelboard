@@ -703,7 +703,7 @@ describe("Home", () => {
 
       renderWithProviders(<Home />);
 
-      const link = screen.getByRole("link");
+      const link = screen.getByRole("link", { name: /test-leaderboard/i });
       expect(link).toHaveAttribute("href", "/leaderboard/42");
     });
 

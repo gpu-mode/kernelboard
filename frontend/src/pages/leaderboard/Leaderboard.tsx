@@ -13,7 +13,7 @@ import Grid from "@mui/material/Grid";
 import { memo, useCallback, useEffect, useState } from "react";
 import { fetchLeaderBoard, searchUsers } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
-import { isExpired, toDateUtc } from "../../lib/date/utils";
+import { isExpired, toDateLocal } from "../../lib/date/utils";
 import RankingsList from "./components/RankingLists";
 import CodeBlock from "../../components/codeblock/CodeBlock";
 import MarkdownRenderer from "../../components/markdown-renderer/MarkdownRenderer";
@@ -182,9 +182,9 @@ const LeaderboardContent = memo(function LeaderboardContent() {
   if (error) return <ErrorAlert status={errorStatus} message={error} />;
   if (!data) return null;
 
-  const toDeadlineUTC = (raw: string) => {
+  const toDeadlineLocal = (raw: string) => {
     const verb = isExpired(raw) ? "Ended" : "Ends";
-    return `${verb} ${toDateUtc(raw)} UTC`;
+    return `${verb} ${toDateLocal(raw)}`;
   };
 
   return (
@@ -195,7 +195,7 @@ const LeaderboardContent = memo(function LeaderboardContent() {
           <Stack direction="row" alignItems="baseline" spacing={2}>
             <h1 style={{ margin: 0 }}>{data.name}</h1>
             <Typography variant="body2" color="text.secondary">
-              {toDeadlineUTC(data.deadline)}
+              {toDeadlineLocal(data.deadline)}
             </Typography>
           </Stack>
           <Stack direction="row" spacing={1}>

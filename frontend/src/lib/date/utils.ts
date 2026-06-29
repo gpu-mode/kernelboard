@@ -6,13 +6,39 @@ export const toDateUtc = (raw: string) => {
   return dayjs(raw).utc().format("YYYY-MM-DD HH:mm");
 };
 
+export const toDateLocal = (raw: string, timeZone?: string) => {
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) {
+    return "Invalid date";
+  }
+
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  };
+
+  if (timeZone) {
+    options.timeZone = timeZone;
+  }
+
+  try {
+    return new Intl.DateTimeFormat(undefined, options).format(date);
+  } catch {
+    return `${toDateUtc(raw)} UTC`;
+  }
+};
+
 /**
  * Calculate time left until deadline.
  * Returns formatted string if deadline is in the future, otherwise "ended".
  * Matches the Python to_time_left function.
  */
-export const getTimeLeft = (deadline: string): string => {
-  const now = dayjs().utc();
+export const getTimeLeft = (deadline: string, time: Date = new Date()): string => {
+  const now = dayjs(time).utc();
   const deadlineDate = dayjs(deadline);
 
   // Check if the deadline is invalid or in the past
@@ -24,9 +50,18 @@ export const getTimeLeft = (deadline: string): string => {
     return "ended";
   }
 
-  const diff = deadlineDate.diff(now);
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const totalSeconds = Math.floor(deadlineDate.diff(now) / 1000);
+  const days = Math.floor(totalSeconds / (60 * 60 * 24));
+  const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+
+  if (days === 0 && hours === 0) {
+    const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+    const seconds = totalSeconds % 60;
+    const minuteLabel = minutes === 1 ? "minute" : "minutes";
+    const secondLabel = seconds === 1 ? "second" : "seconds";
+
+    return `${minutes} ${minuteLabel} ${seconds} ${secondLabel} remaining`;
+  }
 
   const dayLabel = days === 1 ? "day" : "days";
   const hourLabel = hours === 1 ? "hour" : "hours";
@@ -34,8 +69,8 @@ export const getTimeLeft = (deadline: string): string => {
   return `${days} ${dayLabel} ${hours} ${hourLabel} remaining`;
 };
 
-export const shouldHideTimeRemaining = (deadline: string): boolean => {
-  const now = dayjs().utc();
+export const shouldHideTimeRemaining = (deadline: string, time: Date = new Date()): boolean => {
+  const now = dayjs(time).utc();
   const deadlineDate = dayjs(deadline);
 
   if (!deadlineDate.isValid() || deadlineDate.isSame(now) || deadlineDate.isBefore(now)) {

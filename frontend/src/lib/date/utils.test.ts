@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { getTimeLeft, shouldHideTimeRemaining, toDateUtc } from "./utils";
+import {
+  getTimeLeft,
+  shouldHideTimeRemaining,
+  toDateLocal,
+  toDateUtc,
+} from "./utils";
 
 describe("getTimeLeft", () => {
   beforeEach(() => {
@@ -43,6 +48,16 @@ describe("getTimeLeft", () => {
       const result = getTimeLeft(deadline);
 
       expect(result).toBe("2 days 1 hour remaining");
+    });
+
+    it("calculates minutes and seconds when less than an hour remains", () => {
+      const mockNow = new Date("2025-03-24T00:00:00.000Z");
+      vi.setSystemTime(mockNow);
+
+      const deadline = "2025-03-24T00:30:45.000Z";
+      const result = getTimeLeft(deadline);
+
+      expect(result).toBe("30 minutes 45 seconds remaining");
     });
 
     it("handles datetime objects (equivalent test)", () => {
@@ -151,6 +166,16 @@ describe("getTimeLeft", () => {
 
       expect(result).toBe("1 day 0 hours remaining");
     });
+
+    it("uses singular labels for 1 minute 1 second", () => {
+      const mockNow = new Date("2025-03-24T00:00:00.000Z");
+      vi.setSystemTime(mockNow);
+
+      const deadline = "2025-03-24T00:01:01.000Z";
+      const result = getTimeLeft(deadline);
+
+      expect(result).toBe("1 minute 1 second remaining");
+    });
   });
 });
 
@@ -176,6 +201,20 @@ describe("toDateUtc", () => {
       const result = toDateUtc(input);
       expect(result).toBe("2025-03-24 12:00");
     });
+  });
+});
+
+describe("toDateLocal", () => {
+  it("formats datetime in the requested timezone", () => {
+    const result = toDateLocal("2026-06-30T00:00:00Z", "America/Los_Angeles");
+
+    expect(result).toBe("Jun 29, 2026, 5:00 PM PDT");
+  });
+
+  it("falls back to UTC if timezone formatting fails", () => {
+    const result = toDateLocal("2026-06-30T00:00:00Z", "bad/timezone");
+
+    expect(result).toBe("2026-06-30 00:00 UTC");
   });
 });
 
