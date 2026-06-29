@@ -68,6 +68,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [isQuickStartOpen, setIsQuickStartOpen] = useState(false);
   const [isLeaderboardSelectOpen, setIsLeaderboardSelectOpen] = useState(false);
+  const [now, setNow] = useState(() => new Date());
   const useBeta = searchParams.has("use_beta");
   const forceRefresh = searchParams.has("force_refresh");
 
@@ -84,30 +85,35 @@ export default function Home() {
     call(useBeta, forceRefresh);
   }, [call, useBeta, forceRefresh]);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   const leaderboards = data?.leaderboards || [];
   const activeLeaderboards = leaderboards.filter(
-    (lb) => !isExpired(lb.deadline)
+    (lb) => !isExpired(lb.deadline, now)
   );
   const isPrivateCompetition = (lb: LeaderboardData) =>
     lb.visibility === "closed";
 
   const activeCompetitions = leaderboards.filter(
     (lb) =>
-      !isExpired(lb.deadline) &&
+      !isExpired(lb.deadline, now) &&
       !isBeginnerProblem(lb.name) &&
       !isPrivateCompetition(lb)
   );
   const beginnerProblems = leaderboards.filter(
     (lb) =>
-      !isExpired(lb.deadline) &&
+      !isExpired(lb.deadline, now) &&
       isBeginnerProblem(lb.name) &&
       !isPrivateCompetition(lb)
   );
   const privateCompetitions = leaderboards.filter(
-    (lb) => !isExpired(lb.deadline) && isPrivateCompetition(lb)
+    (lb) => !isExpired(lb.deadline, now) && isPrivateCompetition(lb)
   );
   const closedCompetitions = leaderboards.filter((lb) =>
-    isExpired(lb.deadline)
+    isExpired(lb.deadline, now)
   );
 
   const handleLeaderboardSelect = (id: number) => {
@@ -116,7 +122,7 @@ export default function Home() {
   };
 
   const getLeaderboardTimeRemaining = (deadline: string) => {
-    return shouldHideTimeRemaining(deadline) ? undefined : getTimeLeft(deadline);
+    return shouldHideTimeRemaining(deadline, now) ? undefined : getTimeLeft(deadline, now);
   };
 
   return (
@@ -267,7 +273,7 @@ export default function Home() {
                 <Grid container spacing={3}>
                   {activeCompetitions.map((leaderboard) => (
                     <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={leaderboard.id}>
-                      <LeaderboardTile leaderboard={leaderboard} />
+                      <LeaderboardTile leaderboard={leaderboard} now={now} />
                     </Grid>
                   ))}
                 </Grid>
@@ -332,7 +338,7 @@ export default function Home() {
                 <Grid container spacing={3}>
                   {beginnerProblems.map((leaderboard) => (
                     <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={leaderboard.id}>
-                      <LeaderboardTile leaderboard={leaderboard} />
+                      <LeaderboardTile leaderboard={leaderboard} now={now} />
                     </Grid>
                   ))}
                 </Grid>
@@ -351,7 +357,7 @@ export default function Home() {
                 <Grid container spacing={3}>
                   {privateCompetitions.map((leaderboard) => (
                     <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={leaderboard.id}>
-                      <LeaderboardTile leaderboard={leaderboard} />
+                      <LeaderboardTile leaderboard={leaderboard} now={now} />
                     </Grid>
                   ))}
                 </Grid>
@@ -367,7 +373,7 @@ export default function Home() {
                 <Grid container spacing={3}>
                   {closedCompetitions.map((leaderboard) => (
                     <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={leaderboard.id}>
-                      <LeaderboardTile leaderboard={leaderboard} expired />
+                      <LeaderboardTile leaderboard={leaderboard} expired now={now} />
                     </Grid>
                   ))}
                 </Grid>

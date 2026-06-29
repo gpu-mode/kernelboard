@@ -64,11 +64,12 @@ interface LeaderboardData {
 interface LeaderboardTileProps {
   leaderboard: LeaderboardData;
   expired?: boolean;
+  now?: Date;
 }
 
-export default function LeaderboardTile({ leaderboard, expired }: LeaderboardTileProps) {
-  const timeLeft = getTimeLeft(leaderboard.deadline);
-  const hideTimeRemaining = shouldHideTimeRemaining(leaderboard.deadline);
+export default function LeaderboardTile({ leaderboard, expired, now }: LeaderboardTileProps) {
+  const timeLeft = getTimeLeft(leaderboard.deadline, now);
+  const hideTimeRemaining = shouldHideTimeRemaining(leaderboard.deadline, now);
 
   return (
     <Card

@@ -30,7 +30,7 @@ import { ErrorAlert } from "../../components/alert/ErrorAlert";
 import MarkdownRenderer from "../../components/markdown-renderer/MarkdownRenderer";
 import { SubmissionMode } from "../../lib/types/mode";
 import { useAuthStore } from "../../lib/store/authStore";
-import { isExpired, toDateUtc } from "../../lib/date/utils";
+import { isExpired, toDateLocal } from "../../lib/date/utils";
 import SubmissionHistorySection from "./components/submission-history/SubmissionHistorySection";
 import { useThemeStore } from "../../lib/store/themeStore";
 import {
@@ -287,7 +287,8 @@ export default function LeaderboardEditor() {
               color={isExpired(data.deadline) ? "error.main" : "text.secondary"}
               sx={{ mt: 0.5 }}
             >
-              {isExpired(data.deadline) ? "Ended" : "Ends in"} {toDateUtc(data.deadline)} UTC
+              {isExpired(data.deadline) ? "Ended" : "Ends"}{" "}
+              {toDateLocal(data.deadline)}
             </Typography>
           </Box>
           <Stack direction="row" spacing={1} alignItems="center">
