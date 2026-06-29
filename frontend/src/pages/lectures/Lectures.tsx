@@ -90,7 +90,7 @@ interface InPersonEvent {
 interface Competition {
   title: string;
   startDate: string;
-  endDate: string;
+  endDate?: string;
   location: string;
   lumaUrl: string;
   description?: string;
@@ -131,7 +131,15 @@ const inPersonEvents: InPersonEvent[] = [
   },
 ];
 
-const kernelCompetitions: EventItem[] = [
+const kernelCompetitions: Competition[] = [
+  {
+    title: "Linear Algebra Kernels For The Age Of Research",
+    startDate: "2026-06-12",
+    location: "Online",
+    lumaUrl: "/news/linear-algebra-kernels-age-of-research",
+    description:
+      "Open competition on classical linear algebra kernels, starting with QR and eigh on B200.",
+  },
   {
     title: "The $1.1M AMD x GPU MODE - E2E Model Speedrun",
     startDate: "2026-03-06",
@@ -237,8 +245,12 @@ function InPersonEventCard({ event }: { event: InPersonEvent }) {
 }
 
 function CompetitionCard({ event }: { event: Competition }) {
-  const ongoing = isOngoing(event.startDate, event.endDate);
-  const duration = getDurationDays(event.startDate, event.endDate);
+  const ongoing = event.endDate
+    ? isOngoing(event.startDate, event.endDate)
+    : parseLocalDate(event.startDate) <= new Date();
+  const duration = event.endDate
+    ? getDurationDays(event.startDate, event.endDate)
+    : null;
 
   return (
     <Box sx={styles.card}>
@@ -251,8 +263,11 @@ function CompetitionCard({ event }: { event: Competition }) {
       </Box>
       <Typography sx={styles.cardTitle}>{event.title}</Typography>
       <Typography sx={styles.cardMeta}>
-        {formatDate(event.startDate)} - {formatDate(event.endDate)} ({duration}{" "}
-        days) · {event.location}
+        {event.endDate
+          ? `${formatDate(event.startDate)} - ${formatDate(
+              event.endDate,
+            )} (${duration} days) · ${event.location}`
+          : `Open now · ${event.location}`}
       </Typography>
       {event.description && (
         <Typography sx={styles.cardDescription}>
@@ -318,7 +333,7 @@ export default function Lectures() {
     (e) => parseLocalDate(e.date) >= now,
   );
   const activeCompetitions = kernelCompetitions.filter(
-    (e) => parseLocalDate(e.endDate) >= now,
+    (e) => !e.endDate || parseLocalDate(e.endDate) >= now,
   );
 
   return (
