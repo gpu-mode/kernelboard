@@ -7,6 +7,81 @@ def test_leaderboard(client):
     assert b"conv2d" in response.data
 
 
+def test_concluded_leaderboard_includes_line_counts(client):
+    response = client.get("/api/leaderboard/339")
+    assert response.status_code == 200
+
+    payload = response.get_json()
+    ranked_items = [
+        item
+        for ranking in payload["data"]["rankings"].values()
+        for item in ranking
+    ]
+
+    assert ranked_items
+    assert all(isinstance(item.get("line_count"), int) for item in ranked_items)
+
+
+def test_active_leaderboard_omits_line_counts(client, app):
+    with app.app_context():
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE leaderboard.leaderboard
+                SET deadline = NOW() + INTERVAL '1 day'
+                WHERE id = 339
+                """
+            )
+            conn.commit()
+
+    response = client.get("/api/leaderboard/339")
+    assert response.status_code == 200
+
+    payload = response.get_json()
+    ranked_items = [
+        item
+        for ranking in payload["data"]["rankings"].values()
+        for item in ranking
+    ]
+
+    assert ranked_items
+    assert all("line_count" not in item for item in ranked_items)
+
+
+def test_leaderboard_line_counts_support_bytea_code_storage(client, app):
+    with app.app_context():
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                ALTER TABLE leaderboard.code_files DROP COLUMN hash;
+                ALTER TABLE leaderboard.code_files RENAME COLUMN code TO old_code;
+                ALTER TABLE leaderboard.code_files
+                    ADD COLUMN code BYTEA NOT NULL DEFAULT '';
+                UPDATE leaderboard.code_files
+                    SET code = convert_to(old_code, 'UTF8');
+                ALTER TABLE leaderboard.code_files ALTER COLUMN old_code DROP NOT NULL;
+                ALTER TABLE leaderboard.code_files ALTER COLUMN code DROP DEFAULT;
+                """
+            )
+            conn.commit()
+
+    response = client.get("/api/leaderboard/339")
+    assert response.status_code == 200
+
+    payload = response.get_json()
+    line_counts = [
+        item["line_count"]
+        for ranking in payload["data"]["rankings"].values()
+        for item in ranking
+        if "line_count" in item
+    ]
+
+    assert line_counts
+    assert all(isinstance(line_count, int) for line_count in line_counts)
+
+
 def test_nonexistent_leaderboard(client):
     response = client.get("/api/leaderboard/1000000")
     assert response.status_code == 404
