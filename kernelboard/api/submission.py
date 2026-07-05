@@ -195,7 +195,11 @@ def list_codes_route():
             logger.info(
                 "[list_codes] leaderboard is allowed, allow all users to see the leaderboard codes"
             )
-            results = list_codes(leaderboard_id, submission_ids)
+            results = list_codes(
+                leaderboard_id,
+                submission_ids,
+                include_line_count=True,
+            )
             return http_success(
                 data={"results": results},
             )
@@ -295,22 +299,33 @@ def list_submissions():
 def list_codes(
     leaderboard_id: int,
     submission_ids: List[int],
-) -> Tuple[List[dict[str, Any]], str]:
+    *,
+    include_line_count: bool = False,
+) -> List[dict[str, Any]]:
     conn = get_db_connection()
     with conn.cursor() as cur:
         sql, params = _query_list_codes(leaderboard_id, submission_ids)
         cur.execute(sql, params)
         rows = cur.fetchall()
-        items = [
-            {
+        items = []
+        for r in rows:
+            code = decodeCodeText(r[3])
+            item = {
                 "submission_id": r[0],
                 "leaderboard_id": r[1],
                 "code_id": r[2],
-                "code": decodeCodeText(r[3]),
+                "code": code,
             }
-            for r in rows
-        ]
+            if include_line_count:
+                item["line_count"] = count_lines_of_code(code)
+            items.append(item)
     return items
+
+
+def count_lines_of_code(code_text: str) -> int:
+    if not code_text:
+        return 0
+    return len(code_text.splitlines())
 
 
 def decodeCodeText(code_text):

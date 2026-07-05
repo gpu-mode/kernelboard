@@ -43,6 +43,7 @@ export interface CodesResponse {
   results: Array<{
     submission_id: number;
     code: string;
+    line_count?: number;
   }>;
 }
 

@@ -18,6 +18,7 @@ interface SubmissionSidebarStateType {
   navigationItems: NavigationItem[];
   navigationIndex: number;
   codes: Map<number, string>;
+  lineCounts: Map<number, number>;
   isOpen: boolean;
   isLoadingCodes: boolean;
   navigate: (newIndex: number, item: NavigationItem) => void;
@@ -40,6 +41,7 @@ export function SubmissionSidebarProvider({
   const [navigationItems, setNavigationItems] = useState<NavigationItem[]>([]);
   const [navigationIndex, setNavigationIndex] = useState(0);
   const [codes, setCodes] = useState<Map<number, string>>(new Map());
+  const [lineCounts, setLineCounts] = useState<Map<number, number>>(new Map());
   const [isLoadingCodes, setIsLoadingCodes] = useState(false);
   const codesRef = useRef(codes);
   codesRef.current = codes;
@@ -69,6 +71,15 @@ export function SubmissionSidebarProvider({
               const next = new Map(prev);
               for (const item of response?.results ?? []) {
                 next.set(item.submission_id, item.code);
+              }
+              return next;
+            });
+            setLineCounts((prev) => {
+              const next = new Map(prev);
+              for (const item of response?.results ?? []) {
+                if (typeof item.line_count === "number") {
+                  next.set(item.submission_id, item.line_count);
+                }
               }
               return next;
             });
@@ -113,6 +124,7 @@ export function SubmissionSidebarProvider({
           navigationItems,
           navigationIndex,
           codes,
+          lineCounts,
           isOpen: !!selectedSubmission,
           isLoadingCodes,
           navigate,
