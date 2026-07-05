@@ -193,6 +193,51 @@ def _post_submission(client, form_overrides=None, file_tuple=None):
     )
 
 
+def _seed_code_submission(
+    app,
+    *,
+    leaderboard_id: int,
+    submission_id: int,
+    code_id: int,
+    code: str,
+) -> None:
+    with app.app_context():
+        conn = get_db_connection()
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO leaderboard.user_info (id, user_name)
+                    VALUES (%s, %s)
+                    ON CONFLICT (id) DO UPDATE
+                    SET user_name = EXCLUDED.user_name
+                    """,
+                    ("loc-test-user", "loc-test-user"),
+                )
+                cur.execute(
+                    """
+                    INSERT INTO leaderboard.code_files (id, code)
+                    VALUES (%s, %s)
+                    """,
+                    (code_id, code),
+                )
+                cur.execute(
+                    """
+                    INSERT INTO leaderboard.submission
+                        (id, leaderboard_id, file_name, user_id, code_id, submission_time, done)
+                    VALUES
+                        (%s, %s, %s, %s, %s, NOW(), TRUE)
+                    """,
+                    (
+                        submission_id,
+                        leaderboard_id,
+                        "loc_solution.py",
+                        "loc-test-user",
+                        code_id,
+                    ),
+                )
+
+
 def test_submission_happy_path(app, client, prepare):
     # auth + web_token default to True
     prepare()
@@ -311,6 +356,88 @@ def test_submission_upstream_non_200_maps_to_http_error(app, client, prepare):
     js = resp.get_json()
     assert js["code"] == 10000 + 400
     assert "invalid format" in js["message"].lower()
+
+
+# ----------------------------
+# /api/codes list tests
+# ----------------------------
+
+def test_list_codes_includes_line_count_for_ended_leaderboard(app, client, prepare):
+    prepare()
+    code = "import torch\n\nprint('ok')\n"
+    _seed_code_submission(
+        app,
+        leaderboard_id=339,
+        submission_id=910001,
+        code_id=910001,
+        code=code,
+    )
+
+    with app.app_context():
+        conn = get_db_connection()
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE leaderboard.leaderboard
+                    SET deadline = NOW() - INTERVAL '1 hour'
+                    WHERE id = 339
+                    """
+                )
+
+    resp = client.post(
+        "/api/codes",
+        json={"leaderboard_id": 339, "submission_ids": [910001]},
+    )
+
+    assert resp.status_code == http.HTTPStatus.OK
+    item = resp.get_json()["data"]["results"][0]
+    assert item["code"] == code
+    assert item["line_count"] == 3
+
+
+def test_list_codes_omits_line_count_for_active_admin_access(
+    app,
+    client,
+    monkeypatch,
+):
+    fake_admin = SimpleNamespace(
+        is_anonymous=False,
+        is_authenticated=True,
+        get_id=lambda: "discord:838132355075014667",
+    )
+    monkeypatch.setattr(flask_login.utils, "_get_user", lambda: fake_admin)
+
+    code = "import torch\nprint('active')\n"
+    _seed_code_submission(
+        app,
+        leaderboard_id=339,
+        submission_id=910002,
+        code_id=910002,
+        code=code,
+    )
+
+    with app.app_context():
+        conn = get_db_connection()
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE leaderboard.leaderboard
+                    SET deadline = NOW() + INTERVAL '1 hour'
+                    WHERE id = 339
+                    """
+                )
+
+    resp = client.post(
+        "/api/codes",
+        json={"leaderboard_id": 339, "submission_ids": [910002]},
+    )
+
+    assert resp.status_code == http.HTTPStatus.OK
+    item = resp.get_json()["data"]["results"][0]
+    assert item["code"] == code
+    assert "line_count" not in item
 
 
 # ----------------------------
