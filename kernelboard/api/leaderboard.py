@@ -1,5 +1,6 @@
 import logging
 import time
+from datetime import datetime, timezone
 from http import HTTPStatus
 from typing import Any, List
 
@@ -45,6 +46,16 @@ def leaderboard(leaderboard_id: int):
     # 3. Data transformation
     transform_start = time.perf_counter()
     res = to_api_leaderboard_item(data)
+    try:
+        if _is_leaderboard_concluded(data["leaderboard"]["deadline"]):
+            _attach_line_counts(conn, leaderboard_id, res)
+    except Exception:
+        conn.rollback()
+        logger.warning(
+            "Failed to attach line counts for leaderboard_id=%s",
+            leaderboard_id,
+            exc_info=True,
+        )
     transform_time = (time.perf_counter() - transform_start) * 1000
 
     total_time = (time.perf_counter() - total_start) * 1000
@@ -120,6 +131,81 @@ def to_api_leaderboard_item(data: dict[str, Any]):
         "benchmarks": benchmarks,
         "rankings": rankings,
     }
+
+
+def _is_leaderboard_concluded(deadline) -> bool:
+    if deadline is None:
+        return False
+    if isinstance(deadline, str):
+        try:
+            deadline = datetime.fromisoformat(deadline)
+        except ValueError:
+            return False
+
+    now = datetime.now(deadline.tzinfo or timezone.utc)
+    if deadline.tzinfo is None:
+        now = now.replace(tzinfo=None)
+
+    return deadline < now
+
+
+def _attach_line_counts(conn, leaderboard_id: int, leaderboard: dict[str, Any]) -> None:
+    submission_ids = {
+        entry["submission_id"]
+        for ranking in leaderboard["rankings"].values()
+        for entry in ranking
+        if entry.get("submission_id") is not None
+    }
+    if not submission_ids:
+        return
+
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT s.id, cf.code
+            FROM leaderboard.submission s
+            JOIN leaderboard.code_files cf ON cf.id = s.code_id
+            WHERE s.leaderboard_id = %s
+              AND s.id = ANY(%s::int[])
+            """,
+            (leaderboard_id, list(submission_ids)),
+        )
+        rows = cur.fetchall()
+
+    line_counts = {
+        submission_id: _count_lines_of_code(_decode_code_text(code))
+        for submission_id, code in rows
+    }
+
+    for ranking in leaderboard["rankings"].values():
+        for entry in ranking:
+            line_count = line_counts.get(entry["submission_id"])
+            if line_count is not None:
+                entry["line_count"] = line_count
+
+
+def _count_lines_of_code(code_text: str) -> int:
+    if not code_text:
+        return 0
+    return len(code_text.splitlines())
+
+
+def _decode_code_text(code_text) -> str:
+    if isinstance(code_text, memoryview):
+        return code_text.tobytes().decode("utf-8", errors="replace")
+    if isinstance(code_text, bytes):
+        return code_text.decode("utf-8", errors="replace")
+    if isinstance(code_text, str):
+        if code_text.startswith("\\x"):
+            try:
+                return bytes.fromhex(code_text[2:]).decode("utf-8", errors="replace")
+            except Exception:
+                logger.info("failed to decode hex code text", exc_info=True)
+                return code_text
+        return code_text
+
+    logger.info("unexpected code text type: %s", type(code_text))
+    return str(code_text)
 
 
 def _get_query():
