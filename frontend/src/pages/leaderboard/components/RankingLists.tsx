@@ -29,7 +29,6 @@ interface RankingItem {
   submission_id: number;
   submission_count?: number;
   submission_time?: string;
-  line_count?: number;
 }
 
 interface RankingsListProps {
@@ -82,10 +81,6 @@ const styles: Record<string, SxProps<Theme>> = {
     minWidth: "90px",
   },
   submissionId: {
-    fontFamily: "monospace",
-    color: "text.secondary",
-  },
-  lineCount: {
     fontFamily: "monospace",
     color: "text.secondary",
   },
@@ -165,13 +160,6 @@ export default function RankingsList({
         }
         const isExpanded = expanded[field] ?? true;
         const visibleItems = isExpanded ? items : items.slice(0, 3);
-        const showLineCount = expired && items.some(
-          (item) => typeof item.line_count === "number",
-        );
-        const scoreSize = isAdmin ? 2 : showLineCount ? 2 : 3;
-        const deltaSize = isAdmin ? 1 : showLineCount ? 2 : 3;
-        const fileSize = 3;
-        const adminSubmissionCountSize = showLineCount ? 1 : 2;
         return (
           <Box key={field}>
             <Box sx={styles.header}>
@@ -201,18 +189,18 @@ export default function RankingsList({
                       {item.user_name} {getMedalIcon(item.rank)}
                     </Typography>
                   </Grid>
-                  <Grid size={scoreSize}>
+                  <Grid size={isAdmin ? 2 : 3}>
                     <Typography sx={styles.score}>
                       {formatMicroseconds(item.score)}
                     </Typography>
                   </Grid>
-                  <Grid size={deltaSize}>
+                  <Grid size={isAdmin ? 1 : 3}>
                     <Typography sx={styles.delta}>
                       {item.prev_score > 0 &&
                         `+${formatMicroseconds(item.prev_score)}`}
                     </Typography>
                   </Grid>
-                  <Grid size={isAdmin ? 2 : fileSize}>
+                  <Grid size={isAdmin ? 2 : 3}>
                     <Typography
                       sx={{
                         overflow: "hidden",
@@ -246,17 +234,8 @@ export default function RankingsList({
                       )}
                     </Typography>
                   </Grid>
-                  {showLineCount && (
-                    <Grid size={isAdmin ? 1 : 2}>
-                      <Typography sx={styles.lineCount}>
-                        {typeof item.line_count === "number"
-                          ? `LOC: ${item.line_count.toLocaleString()}`
-                          : ""}
-                      </Typography>
-                    </Grid>
-                  )}
                   {isAdmin && (
-                    <Grid size={adminSubmissionCountSize}>
+                    <Grid size={2}>
                       <Typography sx={styles.submissionId}>
                         Subs: {item.submission_count}
                       </Typography>

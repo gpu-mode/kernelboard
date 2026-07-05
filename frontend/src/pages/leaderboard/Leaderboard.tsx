@@ -417,6 +417,7 @@ function LeaderboardWithSidebar() {
     navigationItems,
     navigationIndex,
     codes,
+    lineCounts,
     isOpen,
     isLoadingCodes,
     navigate,
@@ -455,6 +456,7 @@ function LeaderboardWithSidebar() {
         navigationItems={navigationItems}
         navigationIndex={navigationIndex}
         codes={codes}
+        lineCounts={lineCounts}
         isLoadingCodes={isLoadingCodes}
         onClose={close}
         onNavigate={navigate}

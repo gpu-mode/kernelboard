@@ -35,7 +35,6 @@ export interface LeaderboardDetail {
       score: number;
       user_name: string;
       submission_id: number;
-      line_count?: number;
     }>
   >;
 }
@@ -44,6 +43,7 @@ export interface CodesResponse {
   results: Array<{
     submission_id: number;
     code: string;
+    line_count?: number;
   }>;
 }
 

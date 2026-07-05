@@ -141,8 +141,7 @@ def _get_query():
                     ORDER BY CASE WHEN lang = 'Python' THEN 0 ELSE 1 END
                     LIMIT 1
                 ) AS starter,
-                task->'benchmarks' AS benchmarks,
-                deadline < NOW() AS show_solution_code_metadata
+                task->'benchmarks' AS benchmarks
             FROM leaderboard.leaderboard
             WHERE id = %(leaderboard_id)s
         ),
@@ -180,25 +179,11 @@ def _get_query():
                 s.file_name AS file_name,
                 r.submission_id AS submission_id,
                 COALESCE(sc.submission_count, 0) AS submission_count,
-                CASE
-                    WHEN cf.code IS NULL THEN NULL
-                    WHEN cf.code = '' THEN 0
-                    ELSE array_length(
-                        regexp_split_to_array(
-                            regexp_replace(cf.code, E'(\\r\\n|\\r|\\n)$', ''),
-                            E'\\r\\n|\\r|\\n'
-                        ),
-                        1
-                    )
-                END AS line_count,
                 RANK() OVER (PARTITION BY r.runner, u.id ORDER BY r.score ASC) AS rank
             FROM leaderboard.runs r
                 JOIN leaderboard.submission s ON r.submission_id = s.id
                 LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
                 LEFT JOIN submission_counts sc ON s.user_id = sc.user_id AND r.runner = sc.runner
-                LEFT JOIN leaderboard.code_files cf
-                    ON cf.id = s.code_id
-                    AND (SELECT show_solution_code_metadata FROM leaderboard_info)
             WHERE NOT r.secret
                 AND r.score IS NOT NULL
                 AND r.passed
@@ -235,7 +220,6 @@ def _get_query():
         SELECT jsonb_build_object(
             'rankings', (SELECT jsonb_object_agg(g.gpu_type, (
                 SELECT jsonb_agg(
-                    (
                     jsonb_build_object(
                         'user_name', r.user_name,
                         'score', r.score,
@@ -243,12 +227,6 @@ def _get_query():
                         'submission_id', r.submission_id,
                         'submission_count', r.submission_count,
                         'submission_time', r.submission_time
-                    )
-                    ||
-                    CASE
-                        WHEN r.line_count IS NULL THEN '{}'::jsonb
-                        ELSE jsonb_build_object('line_count', r.line_count)
-                    END
                     )
                     ORDER BY r.score ASC
                 )
