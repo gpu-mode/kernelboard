@@ -35,6 +35,10 @@ REQUIRED_SUBMISSION_REQUEST_FIELDS = [
 WEB_AUTH_HEADER = "X-Web-Auth-Id"
 MAX_CONTENT_LENGTH = 1 * 1024 * 1024  # 1MB max file size
 
+# This blocks the leaderboard to show all the ranking codes when the leaderboard is ended
+BLOCKED_CODE_LEADERBOARD_LIST: list[str] = ["598"]  # leaderboard id to block show
+
+
 USE_MOCK_SUBMISSION: bool = os.environ.get(
     "USE_MOCK_SUBMISSION", ""
 ).lower() == "true"
@@ -180,15 +184,22 @@ def list_codes_route():
         )
 
     try:
+        # if leaderboard is allowed, allow all users to see the leaderboard codes
         is_ended = is_leaderboard_ended(leaderboard_id)
+        is_allowed = str(leaderboard_id) not in BLOCKED_CODE_LEADERBOARD_LIST
         logger.info("[list_codes] leaderboard is ended: %s", is_ended)
+        logger.info("[list_codes] leaderboard is allowed: %s", is_allowed)
 
-        # if leaderboard is ended, allow all users to see the leaderboard codes
-        if is_ended:
+        # if leaderboard is ended and allowed, allow all users to see the leaderboard codes
+        if is_ended and is_allowed:
             logger.info(
-                "[list_codes] leaderboard is ended, allow all users to see the leaderboard codes"
+                "[list_codes] leaderboard is allowed, allow all users to see the leaderboard codes"
             )
-            results = list_codes(leaderboard_id, submission_ids)
+            results = list_codes(
+                leaderboard_id,
+                submission_ids,
+                include_line_count=True,
+            )
             return http_success(
                 data={"results": results},
             )
@@ -288,22 +299,33 @@ def list_submissions():
 def list_codes(
     leaderboard_id: int,
     submission_ids: List[int],
-) -> Tuple[List[dict[str, Any]], str]:
+    *,
+    include_line_count: bool = False,
+) -> List[dict[str, Any]]:
     conn = get_db_connection()
     with conn.cursor() as cur:
         sql, params = _query_list_codes(leaderboard_id, submission_ids)
         cur.execute(sql, params)
         rows = cur.fetchall()
-        items = [
-            {
+        items = []
+        for r in rows:
+            code = decodeCodeText(r[3])
+            item = {
                 "submission_id": r[0],
                 "leaderboard_id": r[1],
                 "code_id": r[2],
-                "code": decodeCodeText(r[3]),
+                "code": code,
             }
-            for r in rows
-        ]
+            if include_line_count:
+                item["line_count"] = count_lines_of_code(code)
+            items.append(item)
     return items
+
+
+def count_lines_of_code(code_text: str) -> int:
+    if not code_text:
+        return 0
+    return len(code_text.splitlines())
 
 
 def decodeCodeText(code_text):
