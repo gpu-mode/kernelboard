@@ -22,7 +22,6 @@ interface SubmissionCodeSidebarProps {
   navigationItems: NavigationItem[];
   navigationIndex: number;
   codes: Map<number, string>;
-  lineCounts?: Map<number, number>;
   isLoadingCodes?: boolean;
   onClose: () => void;
   onNavigate: (newIndex: number, item: NavigationItem) => void;
@@ -35,7 +34,6 @@ export default function SubmissionCodeSidebar({
   navigationItems,
   navigationIndex,
   codes,
-  lineCounts,
   isLoadingCodes = false,
   onClose,
   onNavigate,
@@ -93,9 +91,6 @@ export default function SubmissionCodeSidebar({
   }, [onWidthChange]);
 
   const drawerWidth = isMobile ? "100vw" : width;
-  const lineCount = selectedSubmission
-    ? lineCounts?.get(selectedSubmission.submissionId)
-    : undefined;
 
   return (
     <Drawer
@@ -199,8 +194,7 @@ export default function SubmissionCodeSidebar({
             {/* Metadata */}
             {(selectedSubmission.timestamp ||
               selectedSubmission.originalTimestamp ||
-              selectedSubmission.score !== undefined ||
-              lineCount !== undefined) && (
+              selectedSubmission.score !== undefined) && (
               <Box
                 sx={{
                   px: 2,
@@ -259,20 +253,6 @@ export default function SubmissionCodeSidebar({
                       </Typography>
                       <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
                         {formatMicroseconds(selectedSubmission.score)}
-                      </Typography>
-                    </Box>
-                  )}
-                  {lineCount !== undefined && (
-                    <Box>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        display="block"
-                      >
-                        LOC
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-                        {lineCount.toLocaleString()}
                       </Typography>
                     </Box>
                   )}
