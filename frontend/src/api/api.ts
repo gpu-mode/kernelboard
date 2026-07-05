@@ -35,6 +35,7 @@ export interface LeaderboardDetail {
       score: number;
       user_name: string;
       submission_id: number;
+      line_count?: number;
     }>
   >;
 }
