@@ -69,6 +69,12 @@ const styles: Record<string, SxProps<Theme>> = {
     alignItems: "center",
     flexWrap: "wrap",
   },
+  rank: {
+    fontFamily: "monospace",
+    color: "text.secondary",
+    minWidth: "2em",
+    textAlign: "right",
+  },
   name: {
     fontWeight: 800,
     minWidth: "90px",
@@ -197,9 +203,12 @@ export default function RankingsList({
                   data-testid={`ranking-${ridx}-row`}
                 >
                   <Grid size={3}>
-                    <Typography sx={styles.name}>
-                      {item.user_name} {getMedalIcon(item.rank)}
-                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography sx={styles.rank}>{item.rank}. </Typography>
+                      <Typography sx={styles.name}>
+                        {item.user_name} {getMedalIcon(item.rank)}
+                      </Typography>
+                    </Box>
                   </Grid>
                   <Grid size={scoreSize}>
                     <Typography sx={styles.score}>
