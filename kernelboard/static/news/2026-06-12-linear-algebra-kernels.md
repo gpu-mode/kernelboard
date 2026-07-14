@@ -36,6 +36,10 @@ The main correctness footgun is that eigenvectors are not unique. If `q` is an e
 
 Instead the checker looks at the mathematical invariants: `Q.T @ Q ~= I`, `A @ Q ~= Q @ diag(L)`, `Q @ diag(L) @ Q.T ~= A`, sorted eigenvalues, finite FP32 outputs, and the expected shapes/devices. Like QR, the tolerances are intentionally residual-based and scaled by `n * eps32` so approximate or low-bit internal strategies should work.
 
+## Cholesky
+
+The third problem is batched FP32 Cholesky factorization: given a symmetric positive-definite matrix `A`, return a lower-triangular `L` such that `A = L @ L.T`. The 15 B200 benchmarks span thousands of small matrices, paired low- and high-batch cases from `512 x 512` through `4096 x 4096`, and single matrices up to `32768 x 32768`. Correctness is property-based, and the problem concludes July 30, 2026.
+
 ## Prize
 
 We'll be using a simple scoring system: if any of your submissions are in the top 3 of any problem then you'll be recognized as a winner.
