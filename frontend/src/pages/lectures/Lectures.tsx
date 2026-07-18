@@ -133,8 +133,16 @@ const inPersonEvents: InPersonEvent[] = [
 
 const kernelCompetitions: Competition[] = [
   {
+    title: "One Layer Deeper",
+    startDate: "2026-07-16",
+    endDate: "2026-08-30",
+    location: "Online",
+    lumaUrl: "https://onelayerdeeper.ai/",
+  },
+  {
     title: "Linear Algebra Kernels For The Age Of Research",
     startDate: "2026-06-12",
+    endDate: "2026-07-30",
     location: "Online",
     lumaUrl: "/news/linear-algebra-kernels-age-of-research",
     description:
