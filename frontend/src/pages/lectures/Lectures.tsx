@@ -329,14 +329,6 @@ function LectureCard({ event }: { event: DiscordEvent }) {
       {event.description && (
         <Typography sx={styles.cardDescription}>{event.description}</Typography>
       )}
-      <Link
-        href={event.event_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        sx={styles.link}
-      >
-        View on Discord (Add to Calendar)
-      </Link>
     </Box>
   );
 }
@@ -345,14 +337,16 @@ export default function Lectures() {
   const [events, setEvents] = useState<DiscordEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [calendarCopyError, setCalendarCopyError] = useState(false);
+  const [calendarCopyStatus, setCalendarCopyStatus] = useState<
+    "idle" | "copied" | "error"
+  >("idle");
 
-  const openGoogleCalendarSubscription = async () => {
+  const handleCopyCalendarUrl = async () => {
     try {
       await copyCalendarFeedUrl();
-      window.location.assign(GOOGLE_CALENDAR_ADD_BY_URL);
+      setCalendarCopyStatus("copied");
     } catch {
-      setCalendarCopyError(true);
+      setCalendarCopyStatus("error");
     }
   };
 
@@ -390,19 +384,14 @@ export default function Lectures() {
         featuring experts in GPU programming.
       </Typography>
 
-      {/* In Person Events Section */}
-      <Box sx={styles.section}>
-        <Typography sx={styles.sectionTitle}>In Person Events</Typography>
-        {activeInPerson.length === 0 ? (
-          <Typography sx={styles.noEvents}>
-            No in-person events currently scheduled. Check back soon!
-          </Typography>
-        ) : (
-          activeInPerson.map((event) => (
+      {activeInPerson.length > 0 && (
+        <Box sx={styles.section}>
+          <Typography sx={styles.sectionTitle}>In Person Events</Typography>
+          {activeInPerson.map((event) => (
             <InPersonEventCard key={event.title} event={event} />
-          ))
-        )}
-      </Box>
+          ))}
+        </Box>
+      )}
 
       {/* Kernel Competitions Section */}
       <Box sx={styles.section}>
@@ -440,26 +429,82 @@ export default function Lectures() {
           </Link>
           .
         </Typography>
-        <Button
-          onClick={openGoogleCalendarSubscription}
-          variant="outlined"
-          size="small"
-          sx={{ textTransform: "none" }}
-        >
-          Copy URL and open Google Calendar
-        </Button>
-        <Typography
+        <Box
           sx={{
-            color: calendarCopyError ? "error.main" : "text.secondary",
-            fontSize: "0.8rem",
-            marginTop: "8px",
+            padding: "16px",
             marginBottom: "16px",
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: "8px",
           }}
         >
-          {calendarCopyError
-            ? `Copy ${LECTURE_CALENDAR_FEED_URL}, then open Google Calendar → Other calendars → From URL.`
-            : "Paste the copied URL into “URL of calendar,” then click Add calendar. You only need to do this once."}
-        </Typography>
+          <Typography sx={{ fontWeight: 600, marginBottom: "8px" }}>
+            1. Copy this calendar URL:
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "8px",
+              marginBottom: "16px",
+            }}
+          >
+            <Typography
+              component="code"
+              sx={{
+                padding: "6px 8px",
+                backgroundColor: "action.hover",
+                borderRadius: "4px",
+                overflowWrap: "anywhere",
+              }}
+            >
+              {LECTURE_CALENDAR_FEED_URL}
+            </Typography>
+            <Button
+              onClick={handleCopyCalendarUrl}
+              variant="outlined"
+              size="small"
+              sx={{ textTransform: "none" }}
+            >
+              {calendarCopyStatus === "copied" ? "Copied" : "Copy URL"}
+            </Button>
+          </Box>
+          {calendarCopyStatus === "error" && (
+            <Typography
+              sx={{
+                color: "error.main",
+                fontSize: "0.8rem",
+                marginTop: "-8px",
+                marginBottom: "16px",
+              }}
+            >
+              Could not copy automatically. Select and copy the URL above.
+            </Typography>
+          )}
+          <Typography sx={{ fontWeight: 600, marginBottom: "8px" }}>
+            2. Open Google Calendar and paste it into “URL of calendar.”
+          </Typography>
+          <Button
+            href={GOOGLE_CALENDAR_ADD_BY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="outlined"
+            size="small"
+            sx={{ textTransform: "none" }}
+          >
+            Open Google Calendar
+          </Button>
+          <Typography
+            sx={{
+              color: "text.secondary",
+              fontSize: "0.8rem",
+              marginTop: "8px",
+            }}
+          >
+            Click Add calendar. You only need to do this once.
+          </Typography>
+        </Box>
         {loading ? (
           <Loading />
         ) : error ? (
