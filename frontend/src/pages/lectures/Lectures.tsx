@@ -1,9 +1,15 @@
-import { Box, Typography, Link, Chip } from "@mui/material";
+import { Box, Typography, Link, Chip, Button } from "@mui/material";
 import type { Theme } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import { fetchEvents } from "../../api/api";
 import type { DiscordEvent } from "../../api/api";
 import Loading from "../../components/common/loading";
+
+const LECTURE_CALENDAR_FEED_URL =
+  "https://www.gpumode.com/api/events/calendar.ics";
+const GOOGLE_CALENDAR_SUBSCRIBE_URL = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(
+  LECTURE_CALENDAR_FEED_URL,
+)}`;
 
 const styles = {
   container: {
@@ -397,6 +403,17 @@ export default function Lectures() {
           </Link>
           .
         </Typography>
+        <Button
+          component="a"
+          href={GOOGLE_CALENDAR_SUBSCRIBE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="outlined"
+          size="small"
+          sx={{ marginBottom: "16px", textTransform: "none" }}
+        >
+          Subscribe in Google Calendar
+        </Button>
         {loading ? (
           <Loading />
         ) : error ? (
