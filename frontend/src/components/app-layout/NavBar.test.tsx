@@ -1,31 +1,37 @@
-import { screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import NavBar from "./NavBar";
-import { renderWithProviders } from "../../tests/test-utils";
 
 describe("NavBar", () => {
-  it("renders an explicit homepage link", () => {
-    renderWithProviders(<NavBar />);
+  it("renders Working Groups link with correct URL", () => {
+    render(<NavBar />);
 
-    const homeLink = screen.getByRole("link", {
-      name: /gpu mode home/i,
+    const workingGroupsLink = screen.getByRole("link", {
+      name: /working groups/i,
     });
 
-    expect(homeLink).toHaveAttribute("href", "/home");
-    expect(homeLink).toHaveTextContent("Home");
+    expect(workingGroupsLink).toBeInTheDocument();
+    expect(workingGroupsLink).toHaveAttribute("href", "/working-groups");
+    // Internal link should not have target="_blank" or rel="noopener"
+    expect(workingGroupsLink).not.toHaveAttribute("target", "_blank");
+    expect(workingGroupsLink).not.toHaveAttribute("rel", "noopener");
   });
 
   it("renders all expected navigation links in correct order", () => {
-    renderWithProviders(<NavBar />);
+    render(<NavBar />);
 
     const links = screen.getAllByRole("link");
     const navigationLinks = links.filter((link) =>
-      ["News", "Events", "Projects"].includes(link.textContent || ""),
+      ["News", "Working Groups", "Events", "Resources", "Docs"].includes(
+        link.textContent || "",
+      ),
     );
 
-    expect(navigationLinks).toHaveLength(3);
+    expect(navigationLinks).toHaveLength(5);
     expect(navigationLinks[0]).toHaveTextContent("News");
-    expect(navigationLinks[1]).toHaveTextContent("Events");
-    expect(navigationLinks[2]).toHaveTextContent("Projects");
+    expect(navigationLinks[1]).toHaveTextContent("Working Groups");
+    expect(navigationLinks[2]).toHaveTextContent("Events");
+    expect(navigationLinks[3]).toHaveTextContent("Resources");
+    expect(navigationLinks[4]).toHaveTextContent("Docs");
   });
 });
