@@ -329,14 +329,6 @@ function LectureCard({ event }: { event: DiscordEvent }) {
       {event.description && (
         <Typography sx={styles.cardDescription}>{event.description}</Typography>
       )}
-      <Link
-        href={event.event_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        sx={styles.link}
-      >
-        View on Discord (Add to Calendar)
-      </Link>
     </Box>
   );
 }
@@ -392,19 +384,14 @@ export default function Lectures() {
         featuring experts in GPU programming.
       </Typography>
 
-      {/* In Person Events Section */}
-      <Box sx={styles.section}>
-        <Typography sx={styles.sectionTitle}>In Person Events</Typography>
-        {activeInPerson.length === 0 ? (
-          <Typography sx={styles.noEvents}>
-            No in-person events currently scheduled. Check back soon!
-          </Typography>
-        ) : (
-          activeInPerson.map((event) => (
+      {activeInPerson.length > 0 && (
+        <Box sx={styles.section}>
+          <Typography sx={styles.sectionTitle}>In Person Events</Typography>
+          {activeInPerson.map((event) => (
             <InPersonEventCard key={event.title} event={event} />
-          ))
-        )}
-      </Box>
+          ))}
+        </Box>
+      )}
 
       {/* Kernel Competitions Section */}
       <Box sx={styles.section}>
