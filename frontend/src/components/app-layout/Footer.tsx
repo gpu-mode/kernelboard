@@ -29,6 +29,14 @@ export default function Footer() {
   return (
     <FooterBox>
       <ConstrainedContainer>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Thank you to Modal, Core Automation, and Northflank for supporting us.
+          To sponsor GPU MODE, please{" "}
+          <Link href="mailto:mark@gpumode.com" fontWeight={600}>
+            reach out
+          </Link>
+          .
+        </Typography>
         <Box
           sx={{
             display: "flex",

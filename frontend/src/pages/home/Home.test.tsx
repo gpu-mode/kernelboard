@@ -149,15 +149,6 @@ describe("Home", () => {
     renderWithProviders(<Home />);
 
     expect(screen.getByText("Leaderboards")).toBeInTheDocument();
-    expect(
-      screen.getByText(/GPU MODE's mission is to make high-performance/i),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/Core Automation/i)).toBeInTheDocument();
-    expect(screen.getByText(/Northflank/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /reach out/i })).toHaveAttribute(
-      "href",
-      "mailto:mark@gpumode.com",
-    );
     expect(screen.getByText("test-leaderboard")).toBeInTheDocument();
     expect(screen.getByText("T4, L4")).toBeInTheDocument();
     expect(screen.getByText("alice")).toBeInTheDocument();
