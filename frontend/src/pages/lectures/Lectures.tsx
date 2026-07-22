@@ -7,9 +7,28 @@ import Loading from "../../components/common/loading";
 
 const LECTURE_CALENDAR_FEED_URL =
   "https://www.gpumode.com/api/events/calendar.ics";
-const GOOGLE_CALENDAR_SUBSCRIBE_URL = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(
-  LECTURE_CALENDAR_FEED_URL,
-)}`;
+const GOOGLE_CALENDAR_ADD_BY_URL =
+  "https://calendar.google.com/calendar/r/settings/addbyurl";
+
+async function copyCalendarFeedUrl(): Promise<void> {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(LECTURE_CALENDAR_FEED_URL);
+    return;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = LECTURE_CALENDAR_FEED_URL;
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  document.body.removeChild(textarea);
+
+  if (!copied) {
+    throw new Error("Unable to copy calendar feed URL");
+  }
+}
 
 const styles = {
   container: {
@@ -326,6 +345,16 @@ export default function Lectures() {
   const [events, setEvents] = useState<DiscordEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [calendarCopyError, setCalendarCopyError] = useState(false);
+
+  const openGoogleCalendarSubscription = async () => {
+    try {
+      await copyCalendarFeedUrl();
+      window.location.assign(GOOGLE_CALENDAR_ADD_BY_URL);
+    } catch {
+      setCalendarCopyError(true);
+    }
+  };
 
   useEffect(() => {
     fetchEvents()
@@ -412,16 +441,25 @@ export default function Lectures() {
           .
         </Typography>
         <Button
-          component="a"
-          href={GOOGLE_CALENDAR_SUBSCRIBE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
+          onClick={openGoogleCalendarSubscription}
           variant="outlined"
           size="small"
-          sx={{ marginBottom: "16px", textTransform: "none" }}
+          sx={{ textTransform: "none" }}
         >
-          Subscribe in Google Calendar
+          Copy URL and open Google Calendar
         </Button>
+        <Typography
+          sx={{
+            color: calendarCopyError ? "error.main" : "text.secondary",
+            fontSize: "0.8rem",
+            marginTop: "8px",
+            marginBottom: "16px",
+          }}
+        >
+          {calendarCopyError
+            ? `Copy ${LECTURE_CALENDAR_FEED_URL}, then open Google Calendar → Other calendars → From URL.`
+            : "Paste the copied URL into “URL of calendar,” then click Add calendar. You only need to do this once."}
+        </Typography>
         {loading ? (
           <Loading />
         ) : error ? (
