@@ -15,9 +15,10 @@ export const brandStyle: SxProps<Theme> = {
   ...flexRowCenter,
   ...mediumText,
   fontWeight: "bold",
-  ml: -2, // Negative left margin to reduce space from left edge
+  flexShrink: 0,
+  ml: { xs: 0, sm: -2 }, // Keep the mobile home control fully visible
   mr: {
-    xs: 2, // margin on extra-small screens
+    xs: 1, // margin on extra-small screens
     sm: 4, // margin on small screens
     md: 8, // margin on medium screens
     lg: 16, // margin on large screens

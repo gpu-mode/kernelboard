@@ -4,6 +4,7 @@ import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
+import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import { useTheme } from "@mui/material/styles";
 import {
   flexRowCenter,
@@ -60,15 +61,42 @@ export default function NavBar() {
   ];
 
   const Brand = () => (
-    <Box sx={brandStyle}>
-      <Link href="/" underline="none" color="inherit">
-        <Box sx={{ ...flexRowCenter }}>
+    <Box
+      sx={{
+        ...brandStyle,
+        position: { xs: "sticky", sm: "static" },
+        left: 0,
+        zIndex: 1,
+        bgcolor: "background.paper",
+      }}
+    >
+      <Link
+        href="/home"
+        aria-label="GPU MODE home"
+        underline="none"
+        color="inherit"
+        sx={{ display: "block" }}
+      >
+        <Box
+          sx={{
+            ...flexRowCenter,
+            display: { xs: "flex", sm: "none" },
+            minHeight: 44,
+            px: 0.5,
+            fontSize: "1rem",
+            fontWeight: 600,
+          }}
+        >
+          <HomeRoundedIcon sx={{ fontSize: 22 }} />
+          Home
+        </Box>
+        <Box sx={{ display: { xs: "none", sm: "flex" } }}>
           <Box
             component="img"
             src={logoSrc}
-            alt="GPU MODE"
+            alt=""
             sx={{
-              height: { xs: 24, sm: 32 },
+              height: 32,
               maxWidth: "100%",
             }}
           />
@@ -80,12 +108,19 @@ export default function NavBar() {
   return (
     <AppBar position="fixed" sx={appBarStyle}>
       <ConstrainedContainer>
-        <Toolbar sx={{ px: 0, gap: 2, overflowX: "auto" }}>
+        <Toolbar sx={{ px: 0, gap: { xs: 1, sm: 2 }, overflowX: "auto" }}>
           {/* Left: Brand */}
           <Brand />
 
           {/* Middle: Links */}
-          <Box sx={{ ...flexRowCenterMediumGap, ml: 3, flexShrink: 0 }}>
+          <Box
+            sx={{
+              ...flexRowCenterMediumGap,
+              gap: { xs: 2.5, sm: 5 },
+              ml: { xs: 0, sm: 3 },
+              flexShrink: 0,
+            }}
+          >
             {links.map(({ label, href, external }) => (
               <Link
                 key={label}
