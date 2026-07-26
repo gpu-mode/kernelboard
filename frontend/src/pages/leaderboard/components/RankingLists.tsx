@@ -133,10 +133,10 @@ function ValidationBadge({ item }: { item: RankingItem }) {
     ? ` Checked ${new Date(item.validation_checked_at).toLocaleString()}.`
     : "";
   const tooltip = fullyValidated
-    ? `All ${passed}/${total} training shapes passed the convergence, numerical, fallback, and speed gates.${speedup}${contract}${checked}`
+    ? `All ${passed}/${total} training shapes passed the convergence, numerical, and speed gates.${speedup}${contract}${checked}`
     : failed
       ? `The validation job failed before it could complete.${contract}${checked}`
-      : `${passed}/${total} training shapes passed the convergence, numerical, fallback, and speed gates.${speedup}${contract}${checked}`;
+      : `${passed}/${total} training shapes passed the convergence, numerical, and speed gates.${speedup}${contract}${checked}`;
 
   return (
     <Tooltip title={tooltip}>
