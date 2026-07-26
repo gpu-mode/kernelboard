@@ -51,6 +51,10 @@ def test_active_leaderboard_omits_line_counts(client, app):
 
 def test_leaderboard_includes_latest_validation_summary(client, app):
     initial = client.get("/api/leaderboard/339").get_json()
+    initial_ids = {
+        gpu: [item["submission_id"] for item in items]
+        for gpu, items in initial["data"]["rankings"].items()
+    }
     gpu_type, rankings = next(iter(initial["data"]["rankings"].items()))
     submission_id = rankings[0]["submission_id"]
 
@@ -84,9 +88,14 @@ def test_leaderboard_includes_latest_validation_summary(client, app):
 
     response = client.get("/api/leaderboard/339")
     assert response.status_code == 200
+    returned_rankings = response.get_json()["data"]["rankings"]
+    assert {
+        gpu: [item["submission_id"] for item in items]
+        for gpu, items in returned_rankings.items()
+    } == initial_ids
     validated = next(
         item
-        for item in response.get_json()["data"]["rankings"][gpu_type]
+        for item in returned_rankings[gpu_type]
         if item["submission_id"] == submission_id
     )
     assert validated["validation_status"] == "completed"
@@ -95,6 +104,35 @@ def test_leaderboard_includes_latest_validation_summary(client, app):
     assert validated["validation_fully_validated"] is True
     assert validated["validation_geomean_speedup"] == 1.25
     assert validated["validation_contract_version"] == "v1"
+
+    with app.app_context():
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE leaderboard.submission_validation
+                SET status = 'failed',
+                    passed_shapes = 0,
+                    total_shapes = 0,
+                    fully_validated = FALSE
+                WHERE submission_id = %s AND gpu_type = %s
+                """,
+                (submission_id, gpu_type),
+            )
+            conn.commit()
+
+    failed_response = client.get("/api/leaderboard/339")
+    failed_rankings = failed_response.get_json()["data"]["rankings"]
+    assert {
+        gpu: [item["submission_id"] for item in items]
+        for gpu, items in failed_rankings.items()
+    } == initial_ids
+    failed = next(
+        item
+        for item in failed_rankings[gpu_type]
+        if item["submission_id"] == submission_id
+    )
+    assert failed["validation_status"] == "failed"
 
 
 def test_leaderboard_line_counts_support_bytea_code_storage(client, app):
