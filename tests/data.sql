@@ -9219,6 +9219,24 @@ CREATE TABLE IF NOT EXISTS leaderboard.submission_job_status (
         CONSTRAINT uq_submission_job_status_submission_id
             UNIQUE (submission_id)                            -- one-to-one with submission
     );
+
+CREATE TABLE IF NOT EXISTS leaderboard.submission_validation (
+    id BIGSERIAL PRIMARY KEY,
+    submission_id INTEGER NOT NULL
+        REFERENCES leaderboard.submission(id) ON DELETE CASCADE,
+    gpu_type TEXT NOT NULL,
+    contract_name TEXT NOT NULL,
+    contract_version TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('completed', 'failed')),
+    passed_shapes INTEGER NOT NULL DEFAULT 0,
+    total_shapes INTEGER NOT NULL DEFAULT 0,
+    fully_validated BOOLEAN NOT NULL DEFAULT FALSE,
+    geomean_sync_wall_speedup DOUBLE PRECISION,
+    result JSONB NOT NULL DEFAULT '{}'::jsonb,
+    error TEXT,
+    checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (submission_id, gpu_type, contract_version)
+);
 --
 -- PostgreSQL database dump complete
 --

@@ -36,6 +36,13 @@ export interface LeaderboardDetail {
       user_name: string;
       submission_id: number;
       line_count?: number;
+      validation_status?: "completed" | "failed" | null;
+      validation_shapes_passed?: number | null;
+      validation_shapes_total?: number | null;
+      validation_fully_validated?: boolean | null;
+      validation_geomean_speedup?: number | null;
+      validation_contract_version?: string | null;
+      validation_checked_at?: string | null;
     }>
   >;
 }

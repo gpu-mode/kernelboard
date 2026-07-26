@@ -108,6 +108,62 @@ describe("Leaderboard", () => {
     expect(screen.getByText(/custom_kernel/)).toBeInTheDocument();
   });
 
+  it("shows full and partial application validation badges beside submitters", () => {
+    const mockData = {
+      deadline: mockDeadline,
+      description: mockDescription,
+      name: mockName,
+      reference: mockReference,
+      starter: mockStarter,
+      gpu_types: ["B200"],
+      rankings: {
+        B200: [
+          {
+            file_name: "fast.py",
+            prev_score: 0,
+            rank: 1,
+            score: 3.25,
+            user_name: "stable-user",
+            submission_id: 101,
+            validation_status: "completed",
+            validation_shapes_passed: 8,
+            validation_shapes_total: 8,
+            validation_fully_validated: true,
+            validation_geomean_speedup: 1.4,
+            validation_contract_version: "v1",
+          },
+          {
+            file_name: "partial.py",
+            prev_score: 0.1,
+            rank: 2,
+            score: 3.5,
+            user_name: "partial-user",
+            submission_id: 102,
+            validation_status: "completed",
+            validation_shapes_passed: 6,
+            validation_shapes_total: 8,
+            validation_fully_validated: false,
+            validation_geomean_speedup: 1.1,
+            validation_contract_version: "v1",
+          },
+        ],
+      },
+    };
+
+    (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: mockData,
+      loading: false,
+      error: null,
+      errorStatus: null,
+      call: mockCall,
+    });
+
+    renderWithRouter(<Leaderboard />);
+
+    expect(screen.getByText("VALIDATED")).toBeInTheDocument();
+    expect(screen.getByText("6/8 VALIDATED")).toBeInTheDocument();
+  });
+
   it("shows loading state", () => {
     (apiHook.fetcherApiCallback as ReturnType<typeof vi.fn>).mockReturnValue({
       data: null,

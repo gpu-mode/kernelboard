@@ -49,6 +49,54 @@ def test_active_leaderboard_omits_line_counts(client, app):
     assert all("line_count" not in item for item in ranked_items)
 
 
+def test_leaderboard_includes_latest_validation_summary(client, app):
+    initial = client.get("/api/leaderboard/339").get_json()
+    gpu_type, rankings = next(iter(initial["data"]["rankings"].items()))
+    submission_id = rankings[0]["submission_id"]
+
+    with app.app_context():
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE leaderboard.leaderboard
+                SET task = jsonb_set(
+                    task,
+                    '{validation}',
+                    '{"version": "v1"}'::jsonb
+                )
+                WHERE id = 339
+                """
+            )
+            cur.execute(
+                """
+                INSERT INTO leaderboard.submission_validation (
+                    submission_id, gpu_type, contract_name, contract_version,
+                    status, passed_shapes, total_shapes, fully_validated,
+                    geomean_sync_wall_speedup, result
+                )
+                VALUES (%s, %s, 'natural-gradient-training', 'v1',
+                        'completed', 8, 8, TRUE, 1.25, '{}')
+                """,
+                (submission_id, gpu_type),
+            )
+            conn.commit()
+
+    response = client.get("/api/leaderboard/339")
+    assert response.status_code == 200
+    validated = next(
+        item
+        for item in response.get_json()["data"]["rankings"][gpu_type]
+        if item["submission_id"] == submission_id
+    )
+    assert validated["validation_status"] == "completed"
+    assert validated["validation_shapes_passed"] == 8
+    assert validated["validation_shapes_total"] == 8
+    assert validated["validation_fully_validated"] is True
+    assert validated["validation_geomean_speedup"] == 1.25
+    assert validated["validation_contract_version"] == "v1"
+
+
 def test_leaderboard_line_counts_support_bytea_code_storage(client, app):
     with app.app_context():
         conn = get_db_connection()

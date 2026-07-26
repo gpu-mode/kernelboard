@@ -265,11 +265,38 @@ def _get_query():
                 s.file_name AS file_name,
                 r.submission_id AS submission_id,
                 COALESCE(sc.submission_count, 0) AS submission_count,
+                validation.status AS validation_status,
+                validation.passed_shapes AS validation_shapes_passed,
+                validation.total_shapes AS validation_shapes_total,
+                validation.fully_validated AS validation_fully_validated,
+                validation.geomean_sync_wall_speedup AS validation_geomean_speedup,
+                validation.contract_version AS validation_contract_version,
+                validation.checked_at AS validation_checked_at,
                 RANK() OVER (PARTITION BY r.runner, u.id ORDER BY r.score ASC) AS rank
             FROM leaderboard.runs r
                 JOIN leaderboard.submission s ON r.submission_id = s.id
                 LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
                 LEFT JOIN submission_counts sc ON s.user_id = sc.user_id AND r.runner = sc.runner
+                LEFT JOIN LATERAL (
+                    SELECT
+                        status,
+                        passed_shapes,
+                        total_shapes,
+                        fully_validated,
+                        geomean_sync_wall_speedup,
+                        contract_version,
+                        checked_at
+                    FROM leaderboard.submission_validation
+                    WHERE submission_id = s.id
+                        AND gpu_type = r.runner
+                        AND contract_version = (
+                            SELECT task->'validation'->>'version'
+                            FROM leaderboard.leaderboard
+                            WHERE id = %(leaderboard_id)s
+                        )
+                    ORDER BY checked_at DESC
+                    LIMIT 1
+                ) validation ON TRUE
             WHERE NOT r.secret
                 AND r.score IS NOT NULL
                 AND r.passed
@@ -312,7 +339,14 @@ def _get_query():
                         'file_name', r.file_name,
                         'submission_id', r.submission_id,
                         'submission_count', r.submission_count,
-                        'submission_time', r.submission_time
+                        'submission_time', r.submission_time,
+                        'validation_status', r.validation_status,
+                        'validation_shapes_passed', r.validation_shapes_passed,
+                        'validation_shapes_total', r.validation_shapes_total,
+                        'validation_fully_validated', r.validation_fully_validated,
+                        'validation_geomean_speedup', r.validation_geomean_speedup,
+                        'validation_contract_version', r.validation_contract_version,
+                        'validation_checked_at', r.validation_checked_at
                     )
                     ORDER BY r.score ASC
                 )
