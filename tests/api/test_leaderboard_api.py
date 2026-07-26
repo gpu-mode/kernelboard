@@ -71,11 +71,11 @@ def test_leaderboard_includes_latest_validation_summary(client, app):
             cur.execute(
                 """
                 INSERT INTO leaderboard.submission_validation (
-                    submission_id, gpu_type, contract_name, contract_version,
+                    submission_id, gpu_type, contract_version,
                     status, passed_shapes, total_shapes, fully_validated,
                     geomean_sync_wall_speedup, result
                 )
-                VALUES (%s, %s, 'natural-gradient-training', 'v1',
+                VALUES (%s, %s, 'v1',
                         'completed', 8, 8, TRUE, 1.25, '{}')
                 """,
                 (submission_id, gpu_type),

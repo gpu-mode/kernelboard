@@ -9225,7 +9225,6 @@ CREATE TABLE IF NOT EXISTS leaderboard.submission_validation (
     submission_id INTEGER NOT NULL
         REFERENCES leaderboard.submission(id) ON DELETE CASCADE,
     gpu_type TEXT NOT NULL,
-    contract_name TEXT NOT NULL,
     contract_version TEXT NOT NULL,
     status TEXT NOT NULL CHECK (status IN ('completed', 'failed')),
     passed_shapes INTEGER NOT NULL DEFAULT 0,

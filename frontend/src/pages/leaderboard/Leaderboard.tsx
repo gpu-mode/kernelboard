@@ -178,8 +178,8 @@ const LeaderboardContent = memo(function LeaderboardContent() {
     findTopUsers();
   }, [id, data?.rankings]);
 
-  if (loading || !data) return <Loading />;
   if (error) return <ErrorAlert status={errorStatus} message={error} />;
+  if (loading || !data) return <Loading />;
   if (!data) return null;
 
   const toDeadlineLocal = (raw: string) => {

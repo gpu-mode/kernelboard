@@ -175,7 +175,7 @@ export default function RankingsList({
   const toggleExpanded = (field: string) => {
     setExpanded((prev) => ({
       ...prev,
-      [field]: !prev[field],
+      [field]: !(prev[field] ?? true),
     }));
   };
 
@@ -293,7 +293,7 @@ export default function RankingsList({
                     </Typography>
                   </Grid>
                   <Grid size={isAdmin ? 2 : fileSize}>
-                    <Typography
+                    <Box
                       sx={{
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -324,7 +324,7 @@ export default function RankingsList({
                           {item.file_name}
                         </Button>
                       )}
-                    </Typography>
+                    </Box>
                   </Grid>
                   {showLineCount && (
                     <Grid size={isAdmin ? 1 : 2}>

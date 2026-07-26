@@ -9,6 +9,10 @@ vi.mock("../../lib/hooks/useApi", () => ({
   fetcherApiCallback: vi.fn(),
 }));
 
+vi.mock("./components/UserTrendChart", () => ({
+  default: () => <div data-testid="user-trend-chart" />,
+}));
+
 // Mutable auth state for mocking useAuthStore per test
 type AuthState = {
   me: null | { authenticated: boolean; user?: { identity?: string } };
@@ -174,7 +178,7 @@ describe("Leaderboard", () => {
     });
 
     renderWithRouter(<Leaderboard />);
-    expect(screen.getByText(/Summoning/i)).toBeInTheDocument();
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
   });
 
   it("shows error message", () => {
@@ -320,17 +324,18 @@ describe("Leaderboard", () => {
     const btn = screen.queryByTestId("ranking-show-all-button-0");
     expect(btn).toBeInTheDocument();
 
-    // By default only 3 rows shown
-    expect(screen.queryAllByTestId("ranking-0-row")).toHaveLength(3);
-
-    // Click to show all
-    fireEvent.click(btn!);
+    // Rankings start expanded.
     expect(screen.queryAllByTestId("ranking-0-row")).toHaveLength(4);
     expect(within(btn!).getByText(/Hide/i)).toBeInTheDocument();
 
-    // Click to hide again
+    // Hide the rows after the top three.
     fireEvent.click(btn!);
     expect(screen.queryAllByTestId("ranking-0-row")).toHaveLength(3);
+    expect(within(btn!).getByText(/Show all/i)).toBeInTheDocument();
+
+    // Expand again.
+    fireEvent.click(btn!);
+    expect(screen.queryAllByTestId("ranking-0-row")).toHaveLength(4);
   });
 
   // -------------------- Starter codeblock --------------------
@@ -566,9 +571,9 @@ describe("Leaderboard", () => {
     // Switch to the Submission tab explicitly
     fireEvent.click(screen.getByRole("tab", { name: /Submission/i }));
 
-    const submit_btn = screen.getByTestId("leaderboard-submit-btn");
-    expect(submit_btn).toBeInTheDocument();
-    expect(submit_btn).toBeDisabled();
+    expect(
+      screen.queryByTestId("leaderboard-submit-btn"),
+    ).not.toBeInTheDocument();
 
     const deadline_txt = screen.getByTestId("deadline-passed-text");
     expect(
