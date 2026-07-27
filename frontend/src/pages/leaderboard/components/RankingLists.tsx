@@ -2,10 +2,8 @@ import { useState } from "react";
 import {
   Box,
   Button,
-  Chip,
   Grid,
   Stack,
-  Tooltip,
   type SxProps,
   type Theme,
   Typography,
@@ -14,10 +12,7 @@ import RankingTitleBadge from "./RankingTitleBadge";
 
 import { formatMicroseconds } from "../../../lib/utils/ranking.ts";
 import { getMedalIcon } from "../../../components/common/medal.tsx";
-import type {
-  NavigationItem,
-  SelectedSubmission,
-} from "./submissionTypes";
+import type { NavigationItem, SelectedSubmission } from "./submissionTypes";
 import { useSubmissionSidebarActions } from "./SubmissionSidebarContext";
 import { isExpired } from "../../../lib/date/utils.ts";
 import { useAuthStore } from "../../../lib/store/authStore.ts";
@@ -32,13 +27,6 @@ interface RankingItem {
   submission_count?: number;
   submission_time?: string;
   line_count?: number;
-  validation_status?: "completed" | "failed" | null;
-  validation_shapes_passed?: number | null;
-  validation_shapes_total?: number | null;
-  validation_fully_validated?: boolean | null;
-  validation_geomean_speedup?: number | null;
-  validation_contract_version?: string | null;
-  validation_checked_at?: string | null;
 }
 
 interface RankingsListProps {
@@ -106,58 +94,6 @@ const styles: Record<string, SxProps<Theme>> = {
   },
 };
 
-function ValidationBadge({ item }: { item: RankingItem }) {
-  if (!item.validation_status) return null;
-
-  const passed = item.validation_shapes_passed ?? 0;
-  const total = item.validation_shapes_total ?? 0;
-  const fullyValidated =
-    item.validation_status === "completed" &&
-    item.validation_fully_validated === true &&
-    total > 0 &&
-    passed === total;
-  const failed = item.validation_status === "failed";
-  const label = fullyValidated
-    ? "VALIDATED"
-    : failed
-      ? "VALIDATION ERROR"
-      : `${passed}/${total} VALIDATED`;
-  const speedup =
-    typeof item.validation_geomean_speedup === "number"
-      ? ` Geomean synchronized-wall speedup across measured shapes: ${item.validation_geomean_speedup.toFixed(2)}×.`
-      : "";
-  const contract = item.validation_contract_version
-    ? ` Contract: ${item.validation_contract_version}.`
-    : "";
-  const checked = item.validation_checked_at
-    ? ` Checked ${new Date(item.validation_checked_at).toLocaleString()}.`
-    : "";
-  const tooltip = fullyValidated
-    ? `All ${passed}/${total} training shapes passed the convergence, numerical, and speed gates.${speedup}${contract}${checked}`
-    : failed
-      ? `The validation job failed before it could complete.${contract}${checked}`
-      : `${passed}/${total} training shapes passed the convergence, numerical, and speed gates.${speedup}${contract}${checked}`;
-
-  return (
-    <Tooltip title={tooltip}>
-      <Chip
-        label={label}
-        color={fullyValidated ? "success" : failed ? "error" : "warning"}
-        size="small"
-        variant={fullyValidated ? "filled" : "outlined"}
-        data-testid={`validation-badge-${item.submission_id}`}
-        sx={{
-          height: 20,
-          fontSize: "0.65rem",
-          fontWeight: 800,
-          letterSpacing: "0.03em",
-          flexShrink: 0,
-        }}
-      />
-    </Tooltip>
-  );
-}
-
 export default function RankingsList({
   rankings,
   leaderboardId,
@@ -167,9 +103,7 @@ export default function RankingsList({
   const me = useAuthStore((s) => s.me);
   const isAdmin = !!me?.user?.is_admin;
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [colorHash] = useState<string>(
-    Math.random().toString(36).slice(2, 8),
-  );
+  const [colorHash] = useState<string>(Math.random().toString(36).slice(2, 8));
   const { openSubmission } = useSubmissionSidebarActions();
 
   const toggleExpanded = (field: string) => {
@@ -211,7 +145,12 @@ export default function RankingsList({
         : undefined,
     };
     if (leaderboardId) {
-      openSubmission(submission, navItems, index >= 0 ? index : 0, leaderboardId);
+      openSubmission(
+        submission,
+        navItems,
+        index >= 0 ? index : 0,
+        leaderboardId,
+      );
     }
   };
 
@@ -232,9 +171,8 @@ export default function RankingsList({
         }
         const isExpanded = expanded[field] ?? true;
         const visibleItems = isExpanded ? items : items.slice(0, 3);
-        const showLineCount = expired && items.some(
-          (item) => typeof item.line_count === "number",
-        );
+        const showLineCount =
+          expired && items.some((item) => typeof item.line_count === "number");
         const scoreSize = isAdmin ? 2 : showLineCount ? 2 : 3;
         const deltaSize = isAdmin ? 1 : showLineCount ? 2 : 3;
         const fileSize = 3;
@@ -266,19 +204,9 @@ export default function RankingsList({
                   <Grid size={3}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Typography sx={styles.rank}>{item.rank}. </Typography>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 0.75,
-                          minWidth: 0,
-                        }}
-                      >
-                        <Typography sx={styles.name}>
-                          {item.user_name} {getMedalIcon(item.rank)}
-                        </Typography>
-                        <ValidationBadge item={item} />
-                      </Box>
+                      <Typography sx={styles.name}>
+                        {item.user_name} {getMedalIcon(item.rank)}
+                      </Typography>
                     </Box>
                   </Grid>
                   <Grid size={scoreSize}>

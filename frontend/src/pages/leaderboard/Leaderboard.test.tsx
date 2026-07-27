@@ -112,7 +112,7 @@ describe("Leaderboard", () => {
     expect(screen.getByText(/custom_kernel/)).toBeInTheDocument();
   });
 
-  it("shows full and partial application validation badges beside submitters", () => {
+  it("does not show application validation status in rankings", () => {
     const mockData = {
       deadline: mockDeadline,
       description: mockDescription,
@@ -164,8 +164,16 @@ describe("Leaderboard", () => {
 
     renderWithRouter(<Leaderboard />);
 
-    expect(screen.getByText("VALIDATED")).toBeInTheDocument();
-    expect(screen.getByText("6/8 VALIDATED")).toBeInTheDocument();
+    expect(screen.getByText(/stable-user/)).toBeInTheDocument();
+    expect(screen.getByText(/partial-user/)).toBeInTheDocument();
+    expect(screen.queryByText("VALIDATED")).not.toBeInTheDocument();
+    expect(screen.queryByText("6/8 VALIDATED")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("validation-badge-101"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("validation-badge-102"),
+    ).not.toBeInTheDocument();
   });
 
   it("shows loading state", () => {
