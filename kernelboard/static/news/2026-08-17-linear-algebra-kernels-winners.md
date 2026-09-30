@@ -18,6 +18,7 @@ Thank you to everyone who competed and shared their code. You can study the impl
 I'm especially happy to see some of the top entrants write down how they achieved such strong results.
 
 - [QR Decomp at the Speed of Light](https://ml-mike.com/writing/qr_v2/)
+- [World's fastest (panel) QR factorization on B200](https://gau-nernst.github.io/b200-qr/)
 - [Auto-research with Codex](https://sankalp.bearblog.dev/autoresearch/)
 - [QR2 Shape-Specialized Householder Megakernels](https://github.com/fishmingyu/qrv2-gpu-mode)
 - [Another Typical Autoresearch Post](https://elianaive.com/posts/another-typical-autoresearch-post/)
