@@ -239,11 +239,30 @@ def _get_query():
             WHERE leaderboard_id = %(leaderboard_id)s
         ),
 
+        -- Read only this leaderboard's submissions and run metadata once.
+        -- The lateral fence prevents a runner filter from scanning runs belonging
+        -- to every other leaderboard. No run payloads are needed for rankings.
+        scoped_submissions AS MATERIALIZED (
+            SELECT id, user_id, submission_time, file_name, status, leaderboard_id
+            FROM leaderboard.submission
+            WHERE leaderboard_id = %(leaderboard_id)s
+        ),
+        scoped_runs AS MATERIALIZED (
+            SELECT r.*
+            FROM scoped_submissions s
+            JOIN LATERAL (
+                SELECT submission_id, runner, score, secret, passed
+                FROM leaderboard.runs
+                WHERE submission_id = s.id
+                OFFSET 0
+            ) r ON TRUE
+        ),
+
         -- Total submission count per user per GPU type for this leaderboard.
-        submission_counts AS (
+        submission_counts AS MATERIALIZED (
             SELECT s.user_id, r.runner, COUNT(DISTINCT s.id) AS submission_count
-            FROM leaderboard.submission s
-            JOIN leaderboard.runs r ON r.submission_id = s.id
+            FROM scoped_submissions s
+            JOIN scoped_runs r ON r.submission_id = s.id
             WHERE s.leaderboard_id = %(leaderboard_id)s
                 AND s.status <> 'hacked'
                 AND NOT EXISTS (
@@ -265,38 +284,11 @@ def _get_query():
                 s.file_name AS file_name,
                 r.submission_id AS submission_id,
                 COALESCE(sc.submission_count, 0) AS submission_count,
-                validation.status AS validation_status,
-                validation.passed_shapes AS validation_shapes_passed,
-                validation.total_shapes AS validation_shapes_total,
-                validation.fully_validated AS validation_fully_validated,
-                validation.geomean_sync_wall_speedup AS validation_geomean_speedup,
-                validation.contract_version AS validation_contract_version,
-                validation.checked_at AS validation_checked_at,
                 RANK() OVER (PARTITION BY r.runner, u.id ORDER BY r.score ASC) AS rank
-            FROM leaderboard.runs r
-                JOIN leaderboard.submission s ON r.submission_id = s.id
+            FROM scoped_runs r
+                JOIN scoped_submissions s ON r.submission_id = s.id
                 LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
                 LEFT JOIN submission_counts sc ON s.user_id = sc.user_id AND r.runner = sc.runner
-                LEFT JOIN LATERAL (
-                    SELECT
-                        status,
-                        passed_shapes,
-                        total_shapes,
-                        fully_validated,
-                        geomean_sync_wall_speedup,
-                        contract_version,
-                        checked_at
-                    FROM leaderboard.submission_validation
-                    WHERE submission_id = s.id
-                        AND gpu_type = r.runner
-                        AND contract_version = (
-                            SELECT task->'validation'->>'version'
-                            FROM leaderboard.leaderboard
-                            WHERE id = %(leaderboard_id)s
-                        )
-                    ORDER BY checked_at DESC
-                    LIMIT 1
-                ) validation ON TRUE
             WHERE NOT r.secret
                 AND r.score IS NOT NULL
                 AND r.passed
@@ -328,7 +320,38 @@ def _get_query():
         ),
 
         -- From ranked_runs, keep only the top run per user.
-        top_runs AS (SELECT * FROM ranked_runs WHERE rank = 1)
+        top_runs AS (
+            SELECT r.*,
+                validation.status AS validation_status,
+                validation.passed_shapes AS validation_shapes_passed,
+                validation.total_shapes AS validation_shapes_total,
+                validation.fully_validated AS validation_fully_validated,
+                validation.geomean_sync_wall_speedup AS validation_geomean_speedup,
+                validation.contract_version AS validation_contract_version,
+                validation.checked_at AS validation_checked_at
+            FROM ranked_runs r
+                LEFT JOIN LATERAL (
+                    SELECT
+                        status,
+                        passed_shapes,
+                        total_shapes,
+                        fully_validated,
+                        geomean_sync_wall_speedup,
+                        contract_version,
+                        checked_at
+                    FROM leaderboard.submission_validation
+                    WHERE submission_id = r.submission_id
+                        AND gpu_type = r.runner
+                        AND contract_version = (
+                            SELECT task->'validation'->>'version'
+                            FROM leaderboard.leaderboard
+                            WHERE id = %(leaderboard_id)s
+                        )
+                    ORDER BY checked_at DESC
+                    LIMIT 1
+                ) validation ON TRUE
+            WHERE r.rank = 1
+        )
 
         SELECT jsonb_build_object(
             'rankings', (SELECT jsonb_object_agg(g.gpu_type, (

@@ -48,7 +48,7 @@ def _get_cached_top_users(redis_conn, leaderboard_ids: list[int]) -> dict[int, l
         return {}
 
 
-def _set_cached_top_users(redis_conn, leaderboard_id: int, top_users: list):
+def _set_cached_top_users(redis_conn, leaderboard_id: int, top_users: list | None):
     """Cache top_users for ended leaderboard (no expiry)."""
     if not redis_conn:
         return
@@ -179,8 +179,7 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
 
         # 5. Cache newly computed ended leaderboards
         for lb_id in uncached_ended_ids:
-            if lb_id in computed_results:
-                _set_cached_top_users(redis_conn, lb_id, computed_results[lb_id])
+            _set_cached_top_users(redis_conn, lb_id, computed_results.get(lb_id))
 
         # 6. Get metadata for all leaderboards
         cur.execute(_get_leaderboard_metadata_query())

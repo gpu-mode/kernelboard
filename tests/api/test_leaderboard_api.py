@@ -428,3 +428,33 @@ def test_hacked_submissions_are_hidden_from_public_leaderboard(client, app):
     assert "hidden_submission_status_hacked.py" not in ranked_files
     assert "hidden_job_status_hacked.py" not in ranked_files
     assert "visible_clean_status.py" in ranked_files
+
+
+def test_equal_best_runs_preserve_ties_and_distinct_submission_count(client, app):
+    before = client.get("/api/leaderboard/339").get_json()["data"]["rankings"]
+    gpu, entries = next(iter(before.items()))
+    winner = entries[0]
+    with app.app_context():
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO leaderboard.runs (
+                    id, submission_id, start_time, end_time, mode, secret,
+                    runner, score, passed, compilation, meta, result, system_info
+                )
+                SELECT 990001, submission_id, start_time, end_time, mode, secret,
+                       runner, score, passed, compilation, meta, result, system_info
+                FROM leaderboard.runs
+                WHERE submission_id = %s AND runner = %s
+                    AND NOT secret AND passed AND score = %s
+                LIMIT 1
+                """,
+                (winner["submission_id"], gpu, winner["score"]),
+            )
+        conn.commit()
+    after = client.get("/api/leaderboard/339").get_json()["data"]["rankings"][gpu]
+    tied = [item for item in after if item["submission_id"] == winner["submission_id"]]
+    assert len(tied) == 2
+    assert all(item["score"] == winner["score"] for item in tied)
+    assert all(item["submission_count"] == winner["submission_count"] for item in tied)

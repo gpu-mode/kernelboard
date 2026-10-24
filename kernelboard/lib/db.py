@@ -16,7 +16,6 @@ def get_db_connection() -> psycopg2.extensions.connection:
             raise RuntimeError(
                 "DATABASE_URL is not set in the application configuration."
             )
-        print("database_url", database_url)
         g.db_connection = psycopg2.connect(database_url)
     return g.db_connection
 
