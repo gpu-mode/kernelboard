@@ -45,7 +45,10 @@ def leaderboard(leaderboard_id: int):
                 r.score AS score,
                 s.submission_time AS submission_time,
                 s.file_name AS file_name,
-                RANK() OVER (PARTITION BY r.runner, u.id ORDER BY r.score ASC) AS rank
+                ROW_NUMBER() OVER (
+                    PARTITION BY r.runner, s.user_id
+                    ORDER BY r.score ASC, s.submission_time ASC, s.id ASC, r.id ASC
+                ) AS rank
             FROM leaderboard.runs r
                 JOIN leaderboard.submission s ON r.submission_id = s.id
                 LEFT JOIN leaderboard.user_info u ON s.user_id = u.id

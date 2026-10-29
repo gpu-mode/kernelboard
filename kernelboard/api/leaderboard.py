@@ -251,7 +251,7 @@ def _get_query():
             SELECT r.*
             FROM scoped_submissions s
             JOIN LATERAL (
-                SELECT submission_id, runner, score, secret, passed
+                SELECT id, submission_id, runner, score, secret, passed
                 FROM leaderboard.runs
                 WHERE submission_id = s.id
                 OFFSET 0
@@ -284,7 +284,10 @@ def _get_query():
                 s.file_name AS file_name,
                 r.submission_id AS submission_id,
                 COALESCE(sc.submission_count, 0) AS submission_count,
-                RANK() OVER (PARTITION BY r.runner, u.id ORDER BY r.score ASC) AS rank
+                ROW_NUMBER() OVER (
+                    PARTITION BY r.runner, s.user_id
+                    ORDER BY r.score ASC, s.submission_time ASC, s.id ASC, r.id ASC
+                ) AS rank
             FROM scoped_runs r
                 JOIN scoped_submissions s ON r.submission_id = s.id
                 LEFT JOIN leaderboard.user_info u ON s.user_id = u.id

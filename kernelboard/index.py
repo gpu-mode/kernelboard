@@ -75,8 +75,8 @@ def index():
                 s.leaderboard_id AS leaderboard_id,
                 u.user_name AS user_name,
                 r.score AS score,
-                RANK() OVER (PARTITION BY s.leaderboard_id, r.runner, u.id
-                ORDER BY r.score ASC) AS personal_submission_rank
+                ROW_NUMBER() OVER (PARTITION BY s.leaderboard_id, r.runner, s.user_id
+                ORDER BY r.score ASC, s.submission_time ASC, s.id ASC, r.id ASC) AS personal_submission_rank
             FROM leaderboard.runs r
                 JOIN leaderboard.submission s ON r.submission_id = s.id
                 JOIN active_leaderboards a ON s.leaderboard_id = a.id

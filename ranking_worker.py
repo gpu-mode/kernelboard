@@ -117,9 +117,9 @@ personal_best_candidates AS (
         s.user_id,
         u.user_name,
         r.score,
-        RANK() OVER (
+        ROW_NUMBER() OVER (
             PARTITION BY s.leaderboard_id, r.runner, s.user_id
-            ORDER BY r.score ASC
+            ORDER BY r.score ASC, s.submission_time ASC, s.id ASC, r.id ASC
         ) AS personal_submission_rank
     FROM leaderboard.runs r
     JOIN leaderboard.submission s ON r.submission_id = s.id
