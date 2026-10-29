@@ -74,7 +74,9 @@ const styles: Record<string, SxProps<Theme>> = {
   },
   name: {
     fontWeight: 800,
-    minWidth: "90px",
+    minWidth: 0,
+    whiteSpace: "normal",
+    overflowWrap: "anywhere",
   },
   score: {
     fontFamily: "monospace",
@@ -201,26 +203,26 @@ export default function RankingsList({
                   sx={styles.rankingRow}
                   data-testid={`ranking-${ridx}-row`}
                 >
-                  <Grid size={3}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Grid size={{ xs: 12, sm: 3 }}>
+                    <Box sx={{ display: "flex", alignItems: "baseline", gap: 1 }}>
                       <Typography sx={styles.rank}>{item.rank}. </Typography>
-                      <Typography sx={styles.name}>
+                      <Typography sx={styles.name} title={item.user_name}>
                         {item.user_name} {getMedalIcon(item.rank)}
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid size={scoreSize}>
+                  <Grid size={{ xs: 4, sm: scoreSize }}>
                     <Typography sx={styles.score}>
                       {formatMicroseconds(item.score)}
                     </Typography>
                   </Grid>
-                  <Grid size={deltaSize}>
+                  <Grid size={{ xs: 4, sm: deltaSize }}>
                     <Typography sx={styles.delta}>
                       {item.prev_score > 0 &&
                         `+${formatMicroseconds(item.prev_score)}`}
                     </Typography>
                   </Grid>
-                  <Grid size={isAdmin ? 2 : fileSize}>
+                  <Grid size={{ xs: 4, sm: isAdmin ? 2 : fileSize }}>
                     <Box
                       sx={{
                         overflow: "hidden",
