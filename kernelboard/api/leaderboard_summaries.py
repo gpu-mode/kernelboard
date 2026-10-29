@@ -180,6 +180,10 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False, us
         # Refresh active competitions together; fill ended competitions one at a
         # time so completed work survives a later timeout or worker restart.
         batches = ([active_ids] if active_ids else []) + [[lb_id] for lb_id in uncached_ended_ids]
+        # Compiling ~70 JIT functions cost ~0.5s per batch in production,
+        # exceeding the execution time of the active-competition query.
+        # This setting lasts only for the current request's transaction.
+        cur.execute("SET LOCAL jit = off")
         cur.execute("SHOW statement_timeout")
         previous_timeout = cur.fetchone()[0]
         for batch in batches:
