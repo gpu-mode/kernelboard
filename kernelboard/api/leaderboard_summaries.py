@@ -103,7 +103,7 @@ def index():
 
     # Choose strategy based on query params
     if use_beta:
-        # if use_beta is True, use the original query (will deprecate this one cached query is stable)
+        # The diagnostic path bypasses Redis, but retains query time limits.
         return _get_leaderboards_original(total_start)
     else:
         return _get_leaderboards_cached(total_start, force_refresh)
@@ -114,7 +114,7 @@ def index():
 # =============================================================================
 
 
-def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
+def _get_leaderboards_cached(total_start: float, force_refresh: bool = False, use_cache: bool = True):
     """
     Get leaderboard summaries with Redis caching for ended leaderboards.
 
@@ -130,7 +130,7 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
     # 1. Database & Redis connection
     db_conn_start = time.perf_counter()
     conn = get_db_connection()
-    redis_conn = _get_redis()
+    redis_conn = _get_redis() if use_cache else None
     db_conn_time = (time.perf_counter() - db_conn_start) * 1000
 
     query_start = time.perf_counter()
@@ -260,45 +260,8 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
 
 
 def _get_leaderboards_original(total_start: float):
-    """
-    Get leaderboard summaries without caching (original implementation).
-    """
-    # 1. Database connection
-    db_conn_start = time.perf_counter()
-    conn = get_db_connection()
-    db_conn_time = (time.perf_counter() - db_conn_start) * 1000
-
-    # 2. Query execution
-    query = _get_query()
-    query_start = time.perf_counter()
-    with conn.cursor() as cur:
-        cur.execute(query)
-        leaderboards = [row[0] for row in cur.fetchall()]
-    query_time = (time.perf_counter() - query_start) * 1000
-
-    # 3. Data transformation
-    transform_start = time.perf_counter()
-    for lb in leaderboards:
-        if lb["gpu_types"] is None:
-            lb["gpu_types"] = []
-    transform_time: float = (time.perf_counter() - transform_start) * 1000
-
-    total_time = (time.perf_counter() - total_start) * 1000
-
-    logger.info(
-        "[Perf] leaderboard_summaries (original) | db_conn=%.2fms | query=%.2fms | transform=%.2fms | total=%.2fms",
-        db_conn_time,
-        query_time,
-        transform_time,
-        total_time,
-    )
-
-    return http_success(
-        {
-            "leaderboards": leaderboards,
-            "now": datetime.now(timezone.utc),
-        }
-    )
+    """Keep the uncached diagnostic path within the same ranking time budget."""
+    return _get_leaderboards_cached(total_start, use_cache=False)
 
 
 # =============================================================================

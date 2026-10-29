@@ -105,3 +105,15 @@ def test_slow_rankings_still_serve_metadata_and_can_retry(client, app, monkeypat
     assert retry.status_code == 200
     assert any(lb['top_users'] for lb in retry.get_json()['data']['leaderboards'])
     assert set(summaries._get_cached_top_users(summaries._get_redis(), ids)) == set(ids)
+
+
+def test_uncached_diagnostic_path_does_not_use_redis(client, monkeypatch):
+    from kernelboard.api import leaderboard_summaries as summaries
+
+    def unexpected_cache():
+        raise AssertionError("The uncached diagnostic path must bypass Redis")
+
+    monkeypatch.setattr(summaries, '_get_redis', unexpected_cache)
+    response = client.get('/api/leaderboard-summaries?use_beta')
+    assert response.status_code == 200
+    assert any(lb['top_users'] for lb in response.get_json()['data']['leaderboards'])
