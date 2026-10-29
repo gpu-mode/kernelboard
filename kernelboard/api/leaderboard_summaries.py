@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 leaderboard_summaries_bp = Blueprint("leaderboard_summaries_bp", __name__, url_prefix="/leaderboard-summaries")
 
 # Redis cache key prefix for ended leaderboard top_users
-CACHE_KEY_PREFIX = "lb_top_users:v2:"
+CACHE_KEY_PREFIX = "lb_top_users:v3:"
 
 
 # =============================================================================
@@ -354,9 +354,9 @@ def _get_query_for_ids():
                 s.user_id,
                 u.user_name,
                 r.score,
-                RANK() OVER (
+                ROW_NUMBER() OVER (
                     PARTITION BY s.leaderboard_id, r.runner, s.user_id
-                    ORDER BY r.score ASC
+                    ORDER BY r.score ASC, s.submission_time ASC, s.id ASC, r.id ASC
                 ) AS personal_submission_rank
             FROM leaderboard.runs r
             JOIN leaderboard.submission s ON r.submission_id = s.id
@@ -475,9 +475,9 @@ def _get_query():
                 s.user_id,
                 u.user_name,
                 r.score,
-                RANK() OVER (
+                ROW_NUMBER() OVER (
                     PARTITION BY s.leaderboard_id, r.runner, s.user_id
-                    ORDER BY r.score ASC
+                    ORDER BY r.score ASC, s.submission_time ASC, s.id ASC, r.id ASC
                 ) AS personal_submission_rank
             FROM leaderboard.runs r
             JOIN leaderboard.submission s ON r.submission_id = s.id
