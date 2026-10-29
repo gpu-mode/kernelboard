@@ -5,6 +5,7 @@ import time
 from datetime import datetime, timezone
 
 from flask import Blueprint, request
+from psycopg2.errors import QueryCanceled
 
 from kernelboard.lib.auth_utils import is_current_user_admin
 from kernelboard.lib.db import get_db_connection
@@ -17,6 +18,11 @@ leaderboard_summaries_bp = Blueprint("leaderboard_summaries_bp", __name__, url_p
 
 # Redis cache key prefix for ended leaderboard top_users
 CACHE_KEY_PREFIX = "lb_top_users:v3:"
+
+# Leave room for connection setup, metadata, and response serialization before
+# Gunicorn's 30-second worker deadline. A cold cache must still serve the page.
+RANKING_BUDGET_MS = 10000
+RANKING_QUERY_TIMEOUT_MS = 3000
 
 
 # =============================================================================
@@ -97,7 +103,7 @@ def index():
 
     # Choose strategy based on query params
     if use_beta:
-        # if use_beta is True, use the original query (will deprecate this one cached query is stable)
+        # The diagnostic path bypasses Redis, but retains query time limits.
         return _get_leaderboards_original(total_start)
     else:
         return _get_leaderboards_cached(total_start, force_refresh)
@@ -108,7 +114,7 @@ def index():
 # =============================================================================
 
 
-def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
+def _get_leaderboards_cached(total_start: float, force_refresh: bool = False, use_cache: bool = True):
     """
     Get leaderboard summaries with Redis caching for ended leaderboards.
 
@@ -124,7 +130,7 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
     # 1. Database & Redis connection
     db_conn_start = time.perf_counter()
     conn = get_db_connection()
-    redis_conn = _get_redis()
+    redis_conn = _get_redis() if use_cache else None
     db_conn_time = (time.perf_counter() - db_conn_start) * 1000
 
     query_start = time.perf_counter()
@@ -169,17 +175,46 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
         )
 
         compute_start = time.perf_counter()
-        if ids_to_compute:
-            ids_tuple = tuple(ids_to_compute)
-            cur.execute(_get_query_for_ids(), (ids_tuple, ids_tuple))
-            computed_results = {row[0]: row[1] for row in cur.fetchall()}
-        else:
-            computed_results = {}
+        computed_results = {}
+        deferred_ids = []
+        # Refresh active competitions together; fill ended competitions one at a
+        # time so completed work survives a later timeout or worker restart.
+        batches = ([active_ids] if active_ids else []) + [[lb_id] for lb_id in uncached_ended_ids]
+        # Compiling ~70 JIT functions cost ~0.5s per batch in production,
+        # exceeding the execution time of the active-competition query.
+        # This setting lasts only for the current request's transaction.
+        cur.execute("SET LOCAL jit = off")
+        cur.execute("SHOW statement_timeout")
+        previous_timeout = cur.fetchone()[0]
+        for batch in batches:
+            remaining_ms = RANKING_BUDGET_MS - (time.perf_counter() - compute_start) * 1000
+            if remaining_ms <= 0:
+                deferred_ids.extend(batch)
+                continue
+            cur.execute("SAVEPOINT summary_rankings")
+            try:
+                cur.execute(
+                    "SELECT set_config('statement_timeout', %s, true)",
+                    (str(max(1, min(RANKING_QUERY_TIMEOUT_MS, int(remaining_ms)))),),
+                )
+                ids_tuple = tuple(batch)
+                cur.execute(_get_query_for_ids(), (ids_tuple, ids_tuple))
+                results = dict(cur.fetchall())
+            except QueryCanceled:
+                cur.execute("ROLLBACK TO SAVEPOINT summary_rankings")
+                deferred_ids.extend(batch)
+                logger.warning("Summary rankings deferred after query timeout: %s", batch)
+            else:
+                computed_results.update(results)
+                for lb_id in batch:
+                    if lb_id in uncached_ended_ids:
+                        _set_cached_top_users(redis_conn, lb_id, results.get(lb_id))
+            finally:
+                cur.execute("RELEASE SAVEPOINT summary_rankings")
+                cur.execute("SELECT set_config('statement_timeout', %s, true)", (previous_timeout,))
         compute_time = (time.perf_counter() - compute_start) * 1000
-
-        # 5. Cache newly computed ended leaderboards
-        for lb_id in uncached_ended_ids:
-            _set_cached_top_users(redis_conn, lb_id, computed_results.get(lb_id))
+        if deferred_ids:
+            logger.warning("Summary rankings pending for %d leaderboards", len(deferred_ids))
 
         # 6. Get metadata for all leaderboards
         cur.execute(_get_leaderboard_metadata_query())
@@ -229,45 +264,8 @@ def _get_leaderboards_cached(total_start: float, force_refresh: bool = False):
 
 
 def _get_leaderboards_original(total_start: float):
-    """
-    Get leaderboard summaries without caching (original implementation).
-    """
-    # 1. Database connection
-    db_conn_start = time.perf_counter()
-    conn = get_db_connection()
-    db_conn_time = (time.perf_counter() - db_conn_start) * 1000
-
-    # 2. Query execution
-    query = _get_query()
-    query_start = time.perf_counter()
-    with conn.cursor() as cur:
-        cur.execute(query)
-        leaderboards = [row[0] for row in cur.fetchall()]
-    query_time = (time.perf_counter() - query_start) * 1000
-
-    # 3. Data transformation
-    transform_start = time.perf_counter()
-    for lb in leaderboards:
-        if lb["gpu_types"] is None:
-            lb["gpu_types"] = []
-    transform_time: float = (time.perf_counter() - transform_start) * 1000
-
-    total_time = (time.perf_counter() - total_start) * 1000
-
-    logger.info(
-        "[Perf] leaderboard_summaries (original) | db_conn=%.2fms | query=%.2fms | transform=%.2fms | total=%.2fms",
-        db_conn_time,
-        query_time,
-        transform_time,
-        total_time,
-    )
-
-    return http_success(
-        {
-            "leaderboards": leaderboards,
-            "now": datetime.now(timezone.utc),
-        }
-    )
+    """Keep the uncached diagnostic path within the same ranking time budget."""
+    return _get_leaderboards_cached(total_start, use_cache=False)
 
 
 # =============================================================================
@@ -347,6 +345,22 @@ def _get_query_for_ids():
                 END,
                 gpu_type
         ),
+        -- Fence the run lookup by submission before applying runner filters.
+        -- Otherwise a cold cache can scan runs for every competition.
+        scoped_submissions AS MATERIALIZED (
+            SELECT s.id, s.leaderboard_id, s.user_id, s.submission_time,
+                   p.gpu_type
+            FROM leaderboard.submission s
+            JOIN priority_gpu p ON p.leaderboard_id = s.leaderboard_id
+            WHERE s.leaderboard_id IN %s
+                AND s.status <> 'hacked'
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM leaderboard.submission_job_status sjs
+                    WHERE sjs.submission_id = s.id
+                        AND sjs.status = 'hacked'
+                )
+        ),
         personal_best_candidates AS (
             SELECT
                 r.runner,
@@ -358,22 +372,19 @@ def _get_query_for_ids():
                     PARTITION BY s.leaderboard_id, r.runner, s.user_id
                     ORDER BY r.score ASC, s.submission_time ASC, s.id ASC, r.id ASC
                 ) AS personal_submission_rank
-            FROM leaderboard.runs r
-            JOIN leaderboard.submission s ON r.submission_id = s.id
-            JOIN priority_gpu p ON p.leaderboard_id = s.leaderboard_id
-                AND p.gpu_type = r.runner
+            FROM scoped_submissions s
+            JOIN LATERAL (
+                SELECT id, submission_id, runner, score
+                FROM leaderboard.runs
+                WHERE submission_id = s.id
+                    AND runner = s.gpu_type
+                    AND NOT secret
+                    AND score IS NOT NULL
+                    AND passed
+                OFFSET 0
+            ) r ON TRUE
             LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
-            WHERE NOT r.secret
-                AND r.score IS NOT NULL
-                AND r.passed
-                AND s.leaderboard_id IN %s
-                AND s.status <> 'hacked'
-                AND NOT EXISTS (
-                    SELECT 1
-                    FROM leaderboard.submission_job_status sjs
-                    WHERE sjs.submission_id = s.id
-                        AND sjs.status = 'hacked'
-                )
+            WHERE TRUE
                 AND EXISTS (
                     SELECT 1
                     FROM leaderboard.runs sr
@@ -382,6 +393,7 @@ def _get_query_for_ids():
                         AND sr.runner = r.runner
                         AND sr.mode = 'leaderboard'
                         AND sr.passed
+                    OFFSET 0
                 )
                 AND NOT EXISTS (
                     SELECT 1
@@ -390,6 +402,7 @@ def _get_query_for_ids():
                         AND sr.secret
                         AND sr.runner = r.runner
                         AND sr.passed = FALSE
+                    OFFSET 0
                 )
         ),
         personal_best_runs AS (
