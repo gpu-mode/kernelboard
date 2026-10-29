@@ -16,3 +16,9 @@ ALTER TABLE leaderboard.runs SET (
     autovacuum_vacuum_scale_factor = 0.02,
     autovacuum_vacuum_insert_scale_factor = 0.02
 );
+
+-- Ranking tie-breaking also reads the run id. Without it, every matching
+-- public run requires a heap read even when the other metadata is indexed.
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_runs_public_ranking_covering
+    ON leaderboard.runs (submission_id, runner, score) INCLUDE (id)
+    WHERE NOT secret AND score IS NOT NULL AND passed;
