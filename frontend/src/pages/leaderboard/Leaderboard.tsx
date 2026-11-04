@@ -10,8 +10,8 @@ import {
   Button,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { memo, useCallback, useEffect, useState } from "react";
-import { fetchLeaderBoard, searchUsers } from "../../api/api";
+import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { fetchLeaderBoard } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
 import { isExpired, toDateLocal } from "../../lib/date/utils";
 import RankingsList from "./components/RankingLists";
@@ -23,7 +23,6 @@ import Loading from "../../components/common/loading";
 import { ConstrainedContainer } from "../../components/app-layout/ConstrainedContainer";
 import { useAuthStore } from "../../lib/store/authStore";
 import SubmissionHistorySection from "./components/submission-history/SubmissionHistorySection";
-import UserTrendChart from "./components/UserTrendChart";
 import {
   SubmissionSidebarProvider,
   useSubmissionSidebarState,
@@ -41,6 +40,7 @@ import {
 } from "@mui/material";
 import quickStartMarkdown from "../home/quick-start.md?raw";
 
+const UserTrendChart = lazy(() => import("./components/UserTrendChart"));
 const DEFAULT_SIDEBAR_WIDTH = 600;
 
 export const CardTitle = styled(Typography)(() => ({
@@ -89,12 +89,6 @@ const LeaderboardContent = memo(function LeaderboardContent() {
   const isAuthed = !!(me && me.authenticated);
   const userId = me?.user?.identity ?? null;
 
-  // State for top users (strongest submissions) and default GPU type
-  const [defaultUsers, setDefaultUsers] = useState<
-    Array<{ userId: string; username: string }>
-  >([]);
-  const [defaultGpuType, setDefaultGpuType] = useState<string | null>(null);
-
   // Sync tab state with query parameter
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -124,59 +118,22 @@ const LeaderboardContent = memo(function LeaderboardContent() {
     if (id) call(id);
   }, [id, call]);
 
-  // Fetch top users (strongest submissions) when rankings are available
-  // Select from the GPU with the most unique users
-  useEffect(() => {
-    const findTopUsers = async () => {
-      if (!id || !data?.rankings) return;
-
-      const gpuTypes = Object.keys(data.rankings);
-      if (gpuTypes.length === 0) return;
-
-      // Find the GPU type with the most unique users
-      const mostActiveGpu = gpuTypes.reduce((currentMax, gpuType) => {
-        const rankings = data.rankings[gpuType];
-        const userCount = rankings ? rankings.length : 0;
-        const maxCount = data.rankings[currentMax]?.length ?? 0;
-        return userCount > maxCount ? gpuType : currentMax;
-      }, gpuTypes[0]);
-
-      // Set the default GPU type to the one with most users
-      setDefaultGpuType(mostActiveGpu);
-
-      const mostActiveGpuRankings = data.rankings[mostActiveGpu];
-      if (!mostActiveGpuRankings || mostActiveGpuRankings.length === 0) return;
-
-      // Get top 5 users (sorted by score ascending)
-      const topUserNames = mostActiveGpuRankings
+  // The ranking response already identifies users. Avoid five username-search
+  // requests (which can also pick the wrong account when names collide).
+  const { defaultUsers, defaultGpuType } = useMemo(() => {
+    const rankings = data?.rankings ?? {};
+    const gpuTypes = Object.keys(rankings);
+    const gpuType = gpuTypes.reduce<string | null>((best, gpu) =>
+      best === null || rankings[gpu].length > rankings[best].length ? gpu : best,
+    null);
+    return {
+      defaultGpuType: gpuType,
+      defaultUsers: (gpuType ? rankings[gpuType] : [])
         .slice(0, 5)
-        .map((r) => r.user_name)
-        .filter(Boolean);
-
-      if (topUserNames.length === 0) return;
-
-      try {
-        // Search for each user by username to get their user_id
-        const userPromises = topUserNames.map((userName: string) =>
-          searchUsers(id, userName, 1)
-        );
-        const results = await Promise.all(userPromises);
-
-        const foundUsers = results
-          .filter((result) => result.users && result.users.length > 0)
-          .map((result) => ({
-            userId: result.users[0].user_id,
-            username: result.users[0].username,
-          }));
-
-        setDefaultUsers(foundUsers);
-      } catch (err) {
-        console.error("Failed to fetch top users:", err);
-      }
+        .filter((entry) => entry.user_id && entry.user_name)
+        .map((entry) => ({ userId: entry.user_id, username: entry.user_name })),
     };
-
-    findTopUsers();
-  }, [id, data?.rankings]);
+  }, [data?.rankings]);
 
   if (error) return <ErrorAlert status={errorStatus} message={error} />;
   if (loading || !data) return <Loading />;
@@ -303,7 +260,9 @@ const LeaderboardContent = memo(function LeaderboardContent() {
                 <Card>
                   <CardContent>
                     <CardTitle fontWeight="bold">Performance Trend</CardTitle>
-                    <UserTrendChart leaderboardId={id!} defaultUsers={defaultUsers} defaultGpuType={defaultGpuType} rankings={data.rankings} deadline={data.deadline} />
+                    <Suspense fallback={<Loading />}>
+                      <UserTrendChart key={id} leaderboardId={id!} defaultUsers={defaultUsers} defaultGpuType={defaultGpuType} rankings={data.rankings} deadline={data.deadline} />
+                    </Suspense>
                   </CardContent>
                 </Card>
               </>

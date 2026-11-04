@@ -7,7 +7,7 @@ JOB_STATUS_FILTER = "sjs.status = 'hacked'"
 
 def test_leaderboard_queries_filter_hacked_submissions():
     expected_counts = {
-        "kernelboard/api/leaderboard.py": 7,
+        "kernelboard/api/leaderboard.py": 6,
         "kernelboard/api/leaderboard_summaries.py": 2,
         "kernelboard/index.py": 1,
         "kernelboard/leaderboard.py": 1,

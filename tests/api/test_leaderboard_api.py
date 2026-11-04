@@ -7,6 +7,20 @@ def test_leaderboard(client):
     assert b"conv2d" in response.data
 
 
+def test_rankings_include_account_ids_for_trend_selection(client, app):
+    response = client.get("/api/leaderboard/339")
+    rankings = response.get_json()["data"]["rankings"]
+    with app.app_context():
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, user_id FROM leaderboard.submission WHERE leaderboard_id = 339")
+            account_ids = dict(cur.fetchall())
+    assert rankings
+    for entries in rankings.values():
+        for entry in entries:
+            assert entry["user_id"] == account_ids[entry["submission_id"]]
+
+
 def test_concluded_leaderboard_includes_line_counts(client):
     response = client.get("/api/leaderboard/339")
     assert response.status_code == 200

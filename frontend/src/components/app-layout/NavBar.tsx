@@ -14,6 +14,7 @@ import { appBarStyle, brandStyle } from "./styles";
 import { ConstrainedContainer } from "./ConstrainedContainer";
 import NavUserProfile from "./NavUserProfile";
 import { useThemeStore } from "../../lib/store/themeStore";
+import { Link as RouterLink } from "react-router-dom";
 
 export interface NavLink {
   label: string;
@@ -61,7 +62,7 @@ export default function NavBar() {
 
   const Brand = () => (
     <Box sx={brandStyle}>
-      <Link href="/" underline="none" color="inherit">
+      <Link component={RouterLink} to="/" underline="none" color="inherit">
         <Box sx={{ ...flexRowCenter }}>
           <Box
             component="img"
@@ -89,7 +90,8 @@ export default function NavBar() {
             {links.map(({ label, href, external }) => (
               <Link
                 key={label}
-                href={href}
+                component={RouterLink}
+                to={href}
                 target={external ? "_blank" : undefined}
                 rel={external ? "noopener" : undefined}
                 underline="none"

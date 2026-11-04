@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import CodeIcon from "@mui/icons-material/Code";
 import Grid from "@mui/material/Grid";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { fetchLeaderboardSummaries } from "../../api/api";
 import { fetcherApiCallback } from "../../lib/hooks/useApi";
@@ -21,11 +21,12 @@ import { ErrorAlert } from "../../components/alert/ErrorAlert";
 import LeaderboardTile from "./components/LeaderboardTile";
 import Loading from "../../components/common/loading";
 import { ConstrainedContainer } from "../../components/app-layout/ConstrainedContainer";
-import MarkdownRenderer from "../../components/markdown-renderer/MarkdownRenderer";
 import quickStartMarkdown from "./quick-start.md?raw";
 import { isExpired, getTimeLeft, shouldHideTimeRemaining } from "../../lib/date/utils";
 import { ColoredSquare } from "../../components/common/ColoredSquare";
 import ArrowOutwardIcon from "@mui/icons-material/ArrowOutward";
+
+const MarkdownRenderer = lazy(() => import("../../components/markdown-renderer/MarkdownRenderer"));
 
 interface TopUser {
   rank: number;
@@ -204,7 +205,11 @@ export default function Home() {
         >
           <DialogTitle>Submit Your First Kernel via cli tool!</DialogTitle>
           <DialogContent dividers>
-            <MarkdownRenderer content={quickStartMarkdown} />
+            {isQuickStartOpen && (
+              <Suspense fallback={<Loading />}>
+                <MarkdownRenderer content={quickStartMarkdown} />
+              </Suspense>
+            )}
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setIsQuickStartOpen(false)}>Close</Button>

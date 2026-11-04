@@ -5,19 +5,25 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AppLayout from "./components/app-layout/AppLayout";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { createAppTheme } from "./components/common/styles/theme";
-import Leaderboard from "./pages/leaderboard/Leaderboard";
-import LeaderboardEditor from "./pages/leaderboard/LeaderboardEditor";
 import Home from "./pages/home/Home";
-import News from "./pages/news/News";
-import WorkingGroups from "./pages/working-groups/WorkingGroups";
-import Lectures from "./pages/lectures/Lectures";
-import Live from "./pages/live/Live";
 import ErrorPage from "./pages/Error";
-import Login from "./pages/login/login";
-import Privacy from "./pages/privacy/Privacy";
+import Loading from "./components/common/loading";
 import { useAuthStore } from "./lib/store/authStore";
 import { useThemeStore } from "./lib/store/themeStore";
-import { useEffect, useMemo } from "react";
+import { lazy, Suspense, useEffect, useMemo } from "react";
+
+const Leaderboard = lazy(() => import("./pages/leaderboard/Leaderboard"));
+const LeaderboardEditor = lazy(
+  () => import("./pages/leaderboard/LeaderboardEditor"),
+);
+const News = lazy(() => import("./pages/news/News"));
+const WorkingGroups = lazy(
+  () => import("./pages/working-groups/WorkingGroups"),
+);
+const Lectures = lazy(() => import("./pages/lectures/Lectures"));
+const Live = lazy(() => import("./pages/live/Live"));
+const Login = lazy(() => import("./pages/login/login"));
+const Privacy = lazy(() => import("./pages/privacy/Privacy"));
 
 const errorRoutes = [
   {
@@ -67,34 +73,39 @@ function App() {
       <CssBaseline />
       <BrowserRouter basename="">
         <AppLayout>
-          <Routes>
-            <Route path="/" element={<Navigate to="/home" replace />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/leaderboard/:id" element={<Leaderboard />} />
-            <Route path="/leaderboard/:id/editor" element={<LeaderboardEditor />} />
-            <Route path="/news" element={<News />} />
-            <Route path="/news/:slug" element={<News />} />
-            <Route path="/working-groups" element={<WorkingGroups />} />
-            <Route path="/events" element={<Lectures />} />
-            <Route path="/lectures" element={<Lectures />} />
-            <Route path="/live" element={<Live />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/privacy" element={<Privacy />} />
-            {/* error handling page */}
-            {errorRoutes.map(({ path, code, title, description }) => (
+          <Suspense fallback={<Loading />}>
+            <Routes>
+              <Route path="/" element={<Navigate to="/home" replace />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/leaderboard/:id" element={<Leaderboard />} />
               <Route
-                key={path}
-                path={path}
-                element={
-                  <ErrorPage
-                    code={code}
-                    title={title}
-                    description={description}
-                  />
-                }
+                path="/leaderboard/:id/editor"
+                element={<LeaderboardEditor />}
               />
-            ))}
-          </Routes>
+              <Route path="/news" element={<News />} />
+              <Route path="/news/:slug" element={<News />} />
+              <Route path="/working-groups" element={<WorkingGroups />} />
+              <Route path="/events" element={<Lectures />} />
+              <Route path="/lectures" element={<Lectures />} />
+              <Route path="/live" element={<Live />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/privacy" element={<Privacy />} />
+              {/* error handling page */}
+              {errorRoutes.map(({ path, code, title, description }) => (
+                <Route
+                  key={path}
+                  path={path}
+                  element={
+                    <ErrorPage
+                      code={code}
+                      title={title}
+                      description={description}
+                    />
+                  }
+                />
+              ))}
+            </Routes>
+          </Suspense>
         </AppLayout>
       </BrowserRouter>
     </ThemeProvider>

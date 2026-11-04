@@ -29,6 +29,7 @@ export interface LeaderboardDetail {
   rankings: Record<
     string,
     Array<{
+      user_id: string;
       file_name: string;
       prev_score: number;
       rank: number;

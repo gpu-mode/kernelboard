@@ -30,6 +30,9 @@ def leaderboard(leaderboard_id: int):
     query = _get_query()
     query_start = time.perf_counter()
     with conn.cursor() as cur:
+        # Compilation costs more than execution for these small indexed reads.
+        # Keep this local to the request transaction, as in the summaries API.
+        cur.execute("SET LOCAL jit = off")
         cur.execute(query, {"leaderboard_id": leaderboard_id})
         result = cur.fetchone()
     query_time = (time.perf_counter() - query_start) * 1000
@@ -239,38 +242,27 @@ def _get_query():
             WHERE leaderboard_id = %(leaderboard_id)s
         ),
 
-        -- Read only this leaderboard's submissions and run metadata once.
-        -- The lateral fence prevents a runner filter from scanning runs belonging
-        -- to every other leaderboard. No run payloads are needed for rankings.
+        -- Filter eligible submissions once for both rankings and counts.
         scoped_submissions AS MATERIALIZED (
             SELECT id, user_id, submission_time, file_name, status, leaderboard_id
-            FROM leaderboard.submission
+            FROM leaderboard.submission s
             WHERE leaderboard_id = %(leaderboard_id)s
-        ),
-        scoped_runs AS MATERIALIZED (
-            SELECT r.*
-            FROM scoped_submissions s
-            JOIN LATERAL (
-                SELECT id, submission_id, runner, score, secret, passed
-                FROM leaderboard.runs
-                WHERE submission_id = s.id
-                OFFSET 0
-            ) r ON TRUE
+                AND s.status <> 'hacked'
+                AND NOT EXISTS (
+                    SELECT 1 FROM leaderboard.submission_job_status sjs
+                    WHERE sjs.submission_id = s.id AND sjs.status = 'hacked'
+                )
         ),
 
         -- Total submission count per user per GPU type for this leaderboard.
         submission_counts AS MATERIALIZED (
-            SELECT s.user_id, r.runner, COUNT(DISTINCT s.id) AS submission_count
+            SELECT s.user_id, r.runner, COUNT(*) AS submission_count
             FROM scoped_submissions s
-            JOIN scoped_runs r ON r.submission_id = s.id
-            WHERE s.leaderboard_id = %(leaderboard_id)s
-                AND s.status <> 'hacked'
-                AND NOT EXISTS (
-                    SELECT 1
-                    FROM leaderboard.submission_job_status sjs
-                    WHERE sjs.submission_id = s.id
-                        AND sjs.status = 'hacked'
-                )
+            JOIN LATERAL (
+                SELECT DISTINCT runner FROM leaderboard.runs
+                WHERE submission_id = s.id
+                OFFSET 0
+            ) r ON TRUE
             GROUP BY s.user_id, r.runner
         ),
 
@@ -278,6 +270,7 @@ def _get_query():
         -- user's runs on that GPU type are ranked by score.
         ranked_runs AS (
             SELECT r.runner AS runner,
+                s.user_id AS user_id,
                 u.user_name AS user_name,
                 r.score AS score,
                 s.submission_time AS submission_time,
@@ -288,22 +281,21 @@ def _get_query():
                     PARTITION BY r.runner, s.user_id
                     ORDER BY r.score ASC, s.submission_time ASC, s.id ASC, r.id ASC
                 ) AS rank
-            FROM scoped_runs r
-                JOIN scoped_submissions s ON r.submission_id = s.id
+            FROM scoped_submissions s
+                -- Read the covering public-score index, without fetching every
+                -- secret/failed run from the heap. Keep one candidate per GPU
+                -- and submission before ranking users.
+                JOIN LATERAL (
+                    SELECT DISTINCT ON (runner) id, submission_id, runner, score
+                    FROM leaderboard.runs
+                    WHERE submission_id = s.id
+                        AND NOT secret AND score IS NOT NULL AND passed
+                    ORDER BY runner, score, id
+                    OFFSET 0
+                ) r ON TRUE
                 LEFT JOIN leaderboard.user_info u ON s.user_id = u.id
                 LEFT JOIN submission_counts sc ON s.user_id = sc.user_id AND r.runner = sc.runner
-            WHERE NOT r.secret
-                AND r.score IS NOT NULL
-                AND r.passed
-                AND s.leaderboard_id = %(leaderboard_id)s
-                AND s.status <> 'hacked'
-                AND NOT EXISTS (
-                    SELECT 1
-                    FROM leaderboard.submission_job_status sjs
-                    WHERE sjs.submission_id = s.id
-                        AND sjs.status = 'hacked'
-                )
-                AND EXISTS (
+            WHERE EXISTS (
                     SELECT 1
                     FROM leaderboard.runs sr
                     WHERE sr.submission_id = s.id
@@ -311,6 +303,7 @@ def _get_query():
                         AND sr.runner = r.runner
                         AND sr.mode = 'leaderboard'
                         AND sr.passed
+                    OFFSET 0
                 )
                 AND NOT EXISTS (
                     SELECT 1
@@ -319,6 +312,7 @@ def _get_query():
                         AND sr.secret
                         AND sr.runner = r.runner
                         AND sr.passed = FALSE
+                    OFFSET 0
                 )
         ),
 
@@ -360,6 +354,7 @@ def _get_query():
             'rankings', (SELECT jsonb_object_agg(g.gpu_type, (
                 SELECT jsonb_agg(
                     jsonb_build_object(
+                        'user_id', r.user_id,
                         'user_name', r.user_name,
                         'score', r.score,
                         'file_name', r.file_name,
@@ -376,7 +371,7 @@ def _get_query():
                     )
                     ORDER BY r.score ASC
                 )
-                FROM top_runs r WHERE r.runner = g.gpu_type))),
+                FROM top_runs r WHERE r.runner = g.gpu_type)) FROM gpu_types g),
 
             'leaderboard', (SELECT jsonb_build_object(
                 'name', name,
@@ -388,7 +383,7 @@ def _get_query():
                 'benchmarks', benchmarks,
                 'gpu_types', (SELECT jsonb_agg(gpu_type) FROM gpu_types)
             ) FROM leaderboard_info)
-        ) AS result FROM (SELECT gpu_type FROM gpu_types) g;
+        ) AS result WHERE EXISTS (SELECT 1 FROM gpu_types);
     """
     return query
 

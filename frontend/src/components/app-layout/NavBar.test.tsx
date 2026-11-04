@@ -1,37 +1,37 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
+import { useLocation } from "react-router-dom";
+import { renderWithRouter } from "../../tests/test-utils";
 import NavBar from "./NavBar";
 
+function CurrentPath() {
+  return <output data-testid="current-path">{useLocation().pathname}</output>;
+}
+
 describe("NavBar", () => {
-  it("renders Working Groups link with correct URL", () => {
-    render(<NavBar />);
-
-    const workingGroupsLink = screen.getByRole("link", {
-      name: /working groups/i,
-    });
-
-    expect(workingGroupsLink).toBeInTheDocument();
-    expect(workingGroupsLink).toHaveAttribute("href", "/working-groups");
-    // Internal link should not have target="_blank" or rel="noopener"
-    expect(workingGroupsLink).not.toHaveAttribute("target", "_blank");
-    expect(workingGroupsLink).not.toHaveAttribute("rel", "noopener");
+  it("renders the site navigation links", () => {
+    renderWithRouter(<NavBar />);
+    for (const [name, href] of [
+      ["News", "/news"],
+      ["Events", "/events"],
+      ["Projects", "/working-groups"],
+    ]) {
+      const link = screen.getByRole("link", { name });
+      expect(link).toHaveAttribute("href", href);
+      expect(link).not.toHaveAttribute("target", "_blank");
+    }
   });
 
-  it("renders all expected navigation links in correct order", () => {
-    render(<NavBar />);
-
-    const links = screen.getAllByRole("link");
-    const navigationLinks = links.filter((link) =>
-      ["News", "Working Groups", "Events", "Resources", "Docs"].includes(
-        link.textContent || "",
-      ),
+  it("navigates inside the app without reloading the document", () => {
+    renderWithRouter(
+      <>
+        <NavBar />
+        <CurrentPath />
+      </>,
     );
-
-    expect(navigationLinks).toHaveLength(5);
-    expect(navigationLinks[0]).toHaveTextContent("News");
-    expect(navigationLinks[1]).toHaveTextContent("Working Groups");
-    expect(navigationLinks[2]).toHaveTextContent("Events");
-    expect(navigationLinks[3]).toHaveTextContent("Resources");
-    expect(navigationLinks[4]).toHaveTextContent("Docs");
+    fireEvent.click(screen.getByRole("link", { name: "News" }));
+    expect(screen.getByTestId("current-path")).toHaveTextContent("/news");
+    fireEvent.click(screen.getByRole("link", { name: "GPU MODE" }));
+    expect(screen.getByTestId("current-path")).toHaveTextContent("/");
   });
 });

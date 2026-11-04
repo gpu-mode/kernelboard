@@ -1,5 +1,12 @@
 import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
-import ReactECharts from "echarts-for-react";
+import ReactECharts from "echarts-for-react/lib/core";
+import * as echarts from "echarts/core";
+import { LineChart } from "echarts/charts";
+import {
+  DataZoomComponent, GridComponent, LegendComponent, TitleComponent,
+  ToolboxComponent, TooltipComponent,
+} from "echarts/components";
+import { CanvasRenderer } from "echarts/renderers";
 import {
   Box,
   Typography,
@@ -36,6 +43,12 @@ import type {
   SelectedSubmission,
 } from "./submissionTypes";
 import { useSubmissionSidebarActions } from "./SubmissionSidebarContext";
+
+// Register only the chart features used here instead of the full ECharts bundle.
+echarts.use([
+  LineChart, DataZoomComponent, GridComponent, LegendComponent,
+  TitleComponent, ToolboxComponent, TooltipComponent, CanvasRenderer,
+]);
 
 // Display name prefix for custom (KernelAgent) entries
 const CUSTOM_ENTRY_PREFIX = "KernelAgent";
@@ -1165,6 +1178,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     <Box>
       {renderSearchInput()}
       <ReactECharts
+        echarts={echarts}
         ref={chartRef}
         option={option}
         style={{ height: 500 }}

@@ -2,7 +2,8 @@ import http
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, make_response, redirect, send_from_directory
+from flask import Flask, make_response, redirect, request, send_from_directory
+from flask_compress import Compress
 from flask_login import LoginManager
 from flask_session import Session
 from flask_talisman import Talisman
@@ -65,6 +66,32 @@ def create_app(test_config=None):
 
     if test_config is not None:
         app.config.from_mapping(test_config)
+
+    # Compress scripts, styles and JSON without adding a response cache.
+    app.config["COMPRESS_REGISTER"] = False
+    app.config["COMPRESS_STREAMS"] = False
+    app.config["COMPRESS_MIMETYPES"] = [
+        "text/html", "text/css", "text/xml", "text/javascript",
+        "application/json", "application/javascript", "application/xml", "image/svg+xml",
+    ]
+    compression = Compress(app)
+
+    @app.after_request
+    def compress_response(response):
+        # Byte ranges refer to the original file, so leave partial downloads alone.
+        if response.status_code != 200 or request.headers.get("Range"):
+            return response
+        if (
+            response.direct_passthrough
+            and response.mimetype in compression.compress_mimetypes_set
+            and response.content_length is not None
+            and response.content_length <= 8 * 1024 * 1024
+        ):
+            # send_file uses a file iterator. Buffer small text assets so gzip
+            # works as well as Brotli, while large/streaming downloads stay streamed.
+            response.direct_passthrough = False
+            response.get_data()
+        return compression.after_request(response)
 
     Session(app)
 

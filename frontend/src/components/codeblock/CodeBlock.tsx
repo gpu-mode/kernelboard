@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Box, IconButton, Tooltip, useTheme } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import SyntaxHighlighter from "./syntax";
+import oneLight from "react-syntax-highlighter/dist/esm/styles/prism/one-light";
+import oneDark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark";
 import { FixedSizeList } from "react-window";
 import { useContainerHeight } from "../../lib/hooks/useContainerHeight";
 import type { rendererNode } from "react-syntax-highlighter";
