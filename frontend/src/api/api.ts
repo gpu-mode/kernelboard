@@ -1,4 +1,5 @@
 import type { User } from "../lib/types/user";
+import { compareGpuTypes } from "../lib/utils/gpu";
 
 export class APIError extends Error {
   status: number;
@@ -117,7 +118,15 @@ export async function fetchLeaderBoard(id: string): Promise<LeaderboardDetail> {
     `[Perf] fetchLeaderBoard id=${id} | fetch=${fetchTime.toFixed(2)}ms | parse=${parseTime.toFixed(2)}ms | total=${totalTime.toFixed(2)}ms`,
   );
 
-  return r.data;
+  const data: LeaderboardDetail = r.data;
+  return {
+    ...data,
+    gpu_types: [...data.gpu_types].sort(compareGpuTypes),
+    // JSON object key order is not a GPU display order; normalize it for every page.
+    rankings: Object.fromEntries(
+      Object.entries(data.rankings).sort(([a], [b]) => compareGpuTypes(a, b)),
+    ),
+  };
 }
 
 export async function fetchCodes(
@@ -192,7 +201,14 @@ export async function fetchLeaderboardSummaries(
     `[Perf] fetchLeaderboardSummaries (${version}| ${forceRefreshCache})( | fetch=${fetchTime.toFixed(2)}ms | parse=${parseTime.toFixed(2)}ms | total=${totalTime.toFixed(2)}ms`,
   );
 
-  return r.data;
+  const data: LeaderboardSummariesResponse = r.data;
+  return {
+    ...data,
+    leaderboards: data.leaderboards.map((leaderboard) => ({
+      ...leaderboard,
+      gpu_types: [...leaderboard.gpu_types].sort(compareGpuTypes),
+    })),
+  };
 }
 
 export async function getMe(): Promise<User> {

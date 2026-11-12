@@ -36,6 +36,7 @@ import {
   type UserSearchResult,
 } from "../../../api/api";
 import { isExpired } from "../../../lib/date/utils";
+import { compareGpuTypes } from "../../../lib/utils/gpu";
 import { formatMicrosecondsNum, formatMicroseconds } from "../../../lib/utils/ranking";
 import { useThemeStore } from "../../../lib/store/themeStore";
 import type {
@@ -266,7 +267,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
     const fastestTrendGpuTypes = fastestTrendData?.time_series ? Object.keys(fastestTrendData.time_series) : [];
     const gpuTypesFromUsers = data?.time_series ? Object.keys(data.time_series) : [];
     const gpuTypesFromCustom = customData?.time_series ? Object.keys(customData.time_series) : [];
-    const allGpuTypes = [...new Set([...gpuTypesFromUsers, ...gpuTypesFromCustom, ...fastestTrendGpuTypes])];
+    const allGpuTypes = [...new Set([...gpuTypesFromUsers, ...gpuTypesFromCustom, ...fastestTrendGpuTypes])].sort(compareGpuTypes);
     return selectedGpuType || allGpuTypes[0] || "";
   }, [selectedGpuType, data, customData, fastestTrendData]);
 
@@ -423,7 +424,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
         const result = await fetchUserTrend(leaderboardId, userIds);
         setData(result);
         // Set default GPU type to the one with the most unique users
-        const gpuTypes = Object.keys(result.time_series || {});
+        const gpuTypes = Object.keys(result.time_series || {}).sort(compareGpuTypes);
         if (gpuTypes.length > 0 && !gpuTypes.includes(selectedGpuType)) {
           // Count unique users per GPU type
           let maxUsers = 0;
@@ -566,7 +567,7 @@ export default function UserTrendChart({ leaderboardId, defaultUsers, defaultGpu
   // GPU types from user data or custom data
   const gpuTypesFromUsers = data?.time_series ? Object.keys(data.time_series) : [];
   const gpuTypesFromCustom = customData?.time_series ? Object.keys(customData.time_series) : [];
-  const gpuTypes = [...new Set([...gpuTypesFromUsers, ...gpuTypesFromCustom])];
+  const gpuTypes = [...new Set([...gpuTypesFromUsers, ...gpuTypesFromCustom])].sort(compareGpuTypes);
 
   // Apply axis range from input fields
   const handleApplyAxisRange = () => {
